@@ -8,7 +8,7 @@ What does evaluation contamination mean in this project?
 
 Evaluation contamination is any evidence-backed flaw in evaluation artifacts that can make evaluation results misleading, invalid, non-reproducible, or unsafe to trust.
 
-LLM Doctor focuses on contamination because it directly affects the question defined in [Positioning](../00-product/positioning.md):
+EvalProof focuses on contamination because it directly affects the question defined in [Positioning](../00-product/positioning.md):
 
 > Can I trust these evaluation artifacts?
 

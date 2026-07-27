@@ -2,31 +2,31 @@
 
 ## Question
 
-What is LLM Doctor, and what is it not?
+What is EvalProof, and what is it not?
 
 ## Core Position
 
-LLM Doctor is a local-first static preflight scanner for LLM evaluation artifacts.
+EvalProof is a local-first static preflight scanner for LLM evaluation artifacts.
 
 It helps engineers decide whether evaluation artifacts are trustworthy before they rely on benchmark results, regression results, or deployment decisions.
 
-LLM Doctor does not answer:
+EvalProof does not answer:
 
 > How good is this model?
 
-LLM Doctor answers:
+EvalProof answers:
 
 > Can I trust the artifacts used to evaluate this model or LLM system?
 
 ## Primary Promise
 
-> Before you trust an LLM evaluation, run LLM Doctor.
+> Before you trust an LLM evaluation, run EvalProof.
 
 This promise defines the product boundary. Features that do not improve confidence in evaluation artifacts do not belong in the MVP.
 
 ## Primary Wedge
 
-LLM Doctor should become known for one capability:
+EvalProof should become known for one capability:
 
 > Detecting LLM evaluation contamination.
 
@@ -34,25 +34,25 @@ Evaluation contamination means defects in evaluation artifacts that can make eva
 
 Examples include train/eval overlap, duplicate evaluation samples, answer leakage from RAG corpora, missing reproducibility metadata, prompt or dataset fingerprint mismatch, and unsafe prompt interpolation that compromises evaluation validity.
 
-Security-related checks are included only when they affect evaluation trust. LLM Doctor is not a general-purpose security scanner.
+Security-related checks are included only when they affect evaluation trust. EvalProof is not a general-purpose security scanner.
 
 ## Product Category
 
-LLM Doctor is an artifact trust scanner.
+EvalProof is an artifact trust scanner.
 
 It sits before evaluation execution and before production observability:
 
 1. A team prepares datasets, prompts, RAG corpora, and evaluation result files.
-2. The team runs LLM Doctor.
-3. LLM Doctor reports contamination and trust findings.
+2. The team runs EvalProof.
+3. EvalProof reports contamination and trust findings.
 4. The team fixes artifact issues.
 5. The team runs evaluation frameworks or trusts existing results.
 
-LLM Doctor integrates with evaluation tools by improving the quality and trustworthiness of their inputs and outputs. It does not replace them.
+EvalProof integrates with evaluation tools by improving the quality and trustworthiness of their inputs and outputs. It does not replace them.
 
-## What LLM Doctor Is
+## What EvalProof Is
 
-LLM Doctor is:
+EvalProof is:
 
 - A static scanner.
 - A local-first command-line tool.
@@ -64,9 +64,9 @@ LLM Doctor is:
 
 The system architecture is defined in [System Overview](../02-architecture/system-overview.md).
 
-## What LLM Doctor Is Not
+## What EvalProof Is Not
 
-LLM Doctor is not an evaluation framework, benchmark runner, prompt engineering tool, observability platform, LLMOps platform, or generic security scanner.
+EvalProof is not an evaluation framework, benchmark runner, prompt engineering tool, observability platform, LLMOps platform, or generic security scanner.
 
 MVP exclusions are defined in [Non-Goals](non-goals.md). The exact MVP boundary is defined in [MVP Scope](mvp-scope.md).
 
@@ -85,7 +85,7 @@ The MVP is not optimized for non-technical prompt authors, business users, or ho
 
 ## Product Voice
 
-LLM Doctor must be direct, evidence-based, and conservative.
+EvalProof must be direct, evidence-based, and conservative.
 
 Findings should say what was detected, why it matters, and what action to take. Findings must not speculate beyond the evidence.
 
@@ -101,12 +101,12 @@ Finding requirements are defined in [Finding Model And Schema](../01-concepts/fi
 
 ## Design Decisions
 
-- LLM Doctor is positioned as an artifact trust scanner, not an evaluation framework.
+- EvalProof is positioned as an artifact trust scanner, not an evaluation framework.
 - The primary wedge is evaluation contamination detection.
-- The primary promise is: "Before you trust an LLM evaluation, run LLM Doctor."
+- The primary promise is: "Before you trust an LLM evaluation, run EvalProof."
 - The MVP must remain static, local-first, offline-first, and CI-friendly.
 - Security-related checks are allowed only when they affect evaluation artifact trust.
-- LLM Doctor complements existing evaluation and observability tools instead of replacing them.
+- EvalProof complements existing evaluation and observability tools instead of replacing them.
 - Findings must be evidence-based and avoid subjective quality judgments.
 
 ## Open Questions

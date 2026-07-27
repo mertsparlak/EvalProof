@@ -71,7 +71,7 @@ def generate_json_report(
     report = {
         "schema_version": "1.0",
         "tool": {
-            "name": "llm-doctor",
+            "name": "evalproof",
             "version": "0.0.0",
         },
         "scan": {
@@ -111,7 +111,7 @@ def render_terminal_summary(
             counts[f.severity.lower()] += 1
 
     lines = []
-    lines.append("=== LLM Doctor Preflight Scan Summary ===")
+    lines.append("=== EvalProof Preflight Scan Summary ===")
     lines.append(f"Scan root: {scan_root}")
     lines.append(f"Artifacts scanned: {artifacts_scanned}")
     lines.append("Findings by severity:")

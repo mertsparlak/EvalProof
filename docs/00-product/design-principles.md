@@ -8,7 +8,7 @@ What principles constrain every MVP design decision?
 
 ### Evidence Over Opinions
 
-Every finding must be backed by concrete evidence. LLM Doctor must not emit subjective quality judgments.
+Every finding must be backed by concrete evidence. EvalProof must not emit subjective quality judgments.
 
 ### Prefer False Negatives Over False Positives
 

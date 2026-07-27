@@ -6,9 +6,9 @@ How does MVP configuration work?
 
 ## Configuration File
 
-The MVP configuration file is `llm-doctor.yaml` at the scan root unless the CLI specifies another path.
+The MVP configuration file is `evalproof.yaml` at the scan root unless the CLI specifies another path.
 
-Configuration is optional. Defaults must allow `llm-doctor scan .` to run without setup.
+Configuration is optional. Defaults must allow `evalproof scan .` to run without setup.
 
 ## Supported Configuration
 

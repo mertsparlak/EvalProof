@@ -9,7 +9,7 @@ How must the MVP CLI behave, including exit codes?
 The MVP command is:
 
 ```text
-llm-doctor scan [path]
+evalproof scan [path]
 ```
 
 If `path` is omitted, the scanner uses the current working directory.

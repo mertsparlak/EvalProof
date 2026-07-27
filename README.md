@@ -1,10 +1,10 @@
-# LLM Doctor
+# EvalProof
 
-LLM Doctor is a local-first static preflight scanner for LLM evaluation artifacts.
+EvalProof is a local-first static preflight scanner for LLM evaluation artifacts.
 
 Primary promise:
 
-> Before you trust an LLM evaluation, run LLM Doctor.
+> Before you trust an LLM evaluation, run EvalProof.
 
 This repository currently contains the frozen MVP foundation documentation. It is intended to be sufficient for another coding agent to implement the MVP without making architectural decisions.
 
