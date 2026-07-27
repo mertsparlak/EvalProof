@@ -186,4 +186,4 @@ None.
 
 ## Future Considerations
 
-Future versions may add near-duplicate indexes or embedding indexes as opt-in extensions if they preserve the finding contract.
+In EvalProof v1.1, the `SimilarityIndex` was added as a reusable, additive extension to the `ProjectIndex` for deterministic near-duplicate candidate discovery using MinHash and LSH. Embedding-based or model-assisted similarity checks remain deferred unless explicitly required by future specifications.
