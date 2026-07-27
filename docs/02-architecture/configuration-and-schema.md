@@ -50,7 +50,7 @@ ci:
   fail_on: high
 
 limits:
-  max_file_mb: 50
+  max_file_mb: 100
   max_rows_per_artifact: 250000
 ```
 

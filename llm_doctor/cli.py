@@ -19,6 +19,7 @@ from llm_doctor.reporting import (
     sort_findings_deterministically,
 )
 from llm_doctor.rule_engine import ScanContext, execute_rules
+import llm_doctor.rules  # Ensures built-in MVP rules are registered
 
 
 def run_scan(args: argparse.Namespace) -> int:
