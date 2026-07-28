@@ -19,7 +19,7 @@ except ImportError:
 from llm_doctor.artifact import Artifact
 from llm_doctor.config import Config
 from llm_doctor.finding import Diagnostic, DiagnosticSeverity, DiagnosticCode, canonical_json_dumps
-from llm_doctor.similarity import SimilarityIndex
+from llm_doctor.similarity import SimilarityIndex, extract_target_similarity_text
 
 
 TRIVIAL_LABELS: Set[str] = {"yes", "no", "true", "false"}
@@ -423,7 +423,7 @@ class ProjectIndex:
         """Index dataset row text into Similarity Engine for near-duplicate checks."""
         if not self.config.similarity.enabled:
             return
-        row_str = canonical_json_dumps(normalize_row_data(row_data))
+        row_str = extract_target_similarity_text(row_data, self.config.similarity)
         item_id = f"{art.path}:row:{row_num}"
         self.similarity_index.add_item(
             item_id=item_id,

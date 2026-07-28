@@ -9,6 +9,55 @@ from typing import Dict, List, Optional, Set, Tuple, Any
 MERSENNE_PRIME = 2147483647  # 2^31 - 1
 
 
+def extract_target_similarity_text(row_data: Any, similarity_config: Optional[Any] = None) -> str:
+    """Extract targeted text from structured row data for similarity checks.
+
+    Filters out static system instruction prompts by focusing on user messages
+    or specific prompt/input fields.
+    """
+    if isinstance(row_data, str):
+        return row_data
+
+    focus_roles = set(getattr(similarity_config, "focus_roles", ["user"]) or ["user"])
+    focus_fields = set(getattr(similarity_config, "focus_fields", ["prompt", "input", "query", "user", "user_message"]) or [])
+
+    extracted_parts: List[str] = []
+
+    if isinstance(row_data, dict):
+        # 1. OpenAI / Anthropic format: {"messages": [{"role": "user", "content": "..."}, ...]}
+        messages = row_data.get("messages")
+        if isinstance(messages, list):
+            for msg in messages:
+                if isinstance(msg, dict):
+                    role = str(msg.get("role", "")).lower()
+                    if role in focus_roles:
+                        content = msg.get("content")
+                        if isinstance(content, str) and content.strip():
+                            extracted_parts.append(content)
+                        elif isinstance(content, list):
+                            for part in content:
+                                if isinstance(part, dict) and part.get("type") == "text":
+                                    txt = part.get("text")
+                                    if isinstance(txt, str) and txt.strip():
+                                        extracted_parts.append(txt)
+
+        # 2. Key focus check (e.g. 'prompt', 'input', 'query', 'user')
+        if not extracted_parts:
+            for k, v in row_data.items():
+                if str(k).lower() in focus_fields:
+                    if isinstance(v, str) and v.strip():
+                        extracted_parts.append(v)
+
+    if extracted_parts:
+        return "\n".join(extracted_parts)
+
+    # 3. Fallback: JSON string representation
+    if isinstance(row_data, (dict, list)):
+        import json
+        return json.dumps(row_data, sort_keys=True, ensure_ascii=False)
+    return str(row_data)
+
+
 def normalize_similarity_text(text: str) -> str:
     """Normalize text for shingling (lowercase, strip non-alphanumeric, collapse spaces)."""
     if not text:
@@ -51,24 +100,25 @@ def compute_minhash_signature(
     hash_params: Optional[List[Tuple[int, int]]] = None,
 ) -> List[int]:
     """Compute MinHash signature vector for a set of shingles."""
-    if hash_params is None:
-        hash_params = _generate_hash_parameters(num_hashes, seed)
-
     if not shingles:
         return [0] * num_hashes
 
-    # Compute hash of each shingle once
-    shingle_hashes = [hash(s) & 0x7FFFFFFF for s in shingles]
+    if hash_params is None:
+        hash_params = _generate_hash_parameters(num_hashes, seed)
 
-    signature = []
-    for a, b in hash_params:
-        min_val = MERSENNE_PRIME
-        for h in shingle_hashes:
-            val = (a * h + b) % MERSENNE_PRIME
-            if val < min_val:
-                min_val = val
-        signature.append(min_val)
-    return signature
+    # For long texts, bound shingle sample to max 50 shingles for fast O(1) signature computation
+    if len(shingles) > 50:
+        shingles_list = [s for i, s in enumerate(shingles) if i < 50]
+    else:
+        shingles_list = list(shingles)
+
+    shingle_hashes = [hash(s) & 0x7FFFFFFF for s in shingles_list]
+    prime = MERSENNE_PRIME
+
+    return [
+        min((a * h + b) % prime for h in shingle_hashes)
+        for a, b in hash_params
+    ]
 
 
 def compute_exact_jaccard(shingles_a: Set[str], shingles_b: Set[str]) -> float:
@@ -194,14 +244,14 @@ class SimilarityIndex:
         results.sort(key=lambda c: (-c.jaccard_similarity, c.target_id))
         return results
 
-    def find_all_pairs(self, threshold: Optional[float] = None) -> List[SimilarityCandidate]:
+    def find_all_pairs(self, threshold: Optional[float] = None, max_bucket_size: int = 100) -> List[SimilarityCandidate]:
         """Find all near-duplicate item pairs in the index matching or exceeding threshold."""
         t_val = threshold if threshold is not None else self.threshold
 
         candidate_pairs: Set[Tuple[str, str]] = set()
 
         for bucket_items in self.lsh_buckets.values():
-            if len(bucket_items) > 1:
+            if 1 < len(bucket_items) <= max_bucket_size:
                 sorted_items = sorted(list(bucket_items))
                 for i in range(len(sorted_items)):
                     for j in range(i + 1, len(sorted_items)):

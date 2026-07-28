@@ -126,3 +126,33 @@ def test_similarity_config_integration():
     assert cfg.similarity.num_hashes == 64
     assert cfg.similarity.bands == 16
     assert cfg.similarity.threshold == 0.85
+    assert cfg.similarity.focus_roles == ["user"]
+    assert "prompt" in cfg.similarity.focus_fields
+
+
+def test_extract_target_similarity_text_system_prompt_filtering():
+    from llm_doctor.similarity import extract_target_similarity_text
+
+    cfg = SimilarityConfig(focus_roles=["user"])
+
+    row1 = {
+        "messages": [
+            {"role": "system", "content": "Static shared long system instruction prompt header."},
+            {"role": "user", "content": "Unique prompt query A"}
+        ]
+    }
+    row2 = {
+        "messages": [
+            {"role": "system", "content": "Static shared long system instruction prompt header."},
+            {"role": "user", "content": "Completely different query B"}
+        ]
+    }
+
+    t1 = extract_target_similarity_text(row1, cfg)
+    t2 = extract_target_similarity_text(row2, cfg)
+
+    assert t1 == "Unique prompt query A"
+    assert t2 == "Completely different query B"
+    assert "Static shared long system instruction" not in t1
+    assert "Static shared long system instruction" not in t2
+

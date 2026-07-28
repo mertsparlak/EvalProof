@@ -83,6 +83,8 @@ class SimilarityConfig:
     num_hashes: int = 64
     bands: int = 16
     threshold: float = 0.85
+    focus_roles: List[str] = field(default_factory=lambda: ["user"])
+    focus_fields: List[str] = field(default_factory=lambda: ["prompt", "input", "query", "user", "user_message"])
 
 
 @dataclass
@@ -217,7 +219,7 @@ def parse_and_validate_config_dict(data: Any, config_path: Optional[str] = None)
         if not isinstance(sim_data, dict):
             raise ConfigError("'similarity' must be an object.")
         for key in sim_data:
-            if key not in {"enabled", "shingle_size", "num_hashes", "bands", "threshold"}:
+            if key not in {"enabled", "shingle_size", "num_hashes", "bands", "threshold", "focus_roles", "focus_fields"}:
                 raise ConfigError(f"Invalid key under 'similarity': '{key}'.")
 
         if "enabled" in sim_data:
@@ -249,6 +251,18 @@ def parse_and_validate_config_dict(data: Any, config_path: Optional[str] = None)
             if not isinstance(val, (int, float)) or isinstance(val, bool) or not (0.0 <= val <= 1.0):
                 raise ConfigError("'similarity.threshold' must be a float between 0.0 and 1.0.")
             cfg.similarity.threshold = float(val)
+
+        if "focus_roles" in sim_data:
+            val = sim_data["focus_roles"]
+            if not isinstance(val, list) or not all(isinstance(x, str) for x in val):
+                raise ConfigError("'similarity.focus_roles' must be a list of strings.")
+            cfg.similarity.focus_roles = list(val)
+
+        if "focus_fields" in sim_data:
+            val = sim_data["focus_fields"]
+            if not isinstance(val, list) or not all(isinstance(x, str) for x in val):
+                raise ConfigError("'similarity.focus_fields' must be a list of strings.")
+            cfg.similarity.focus_fields = list(val)
 
     return cfg
 
