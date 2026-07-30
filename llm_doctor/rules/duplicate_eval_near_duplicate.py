@@ -1,6 +1,6 @@
 """contamination.duplicate_eval_near_duplicate rule implementation."""
 
-from typing import List, Set, Tuple
+from typing import List, Set, Tuple, Dict, Any
 from llm_doctor.finding import Finding, Severity, Confidence, Location
 from llm_doctor.rule_engine import Rule, ScanContext
 
@@ -39,10 +39,9 @@ class DuplicateEvalNearDuplicateRule(Rule):
         threshold = ctx.config.similarity.threshold
         candidates = ctx.project_index.similarity_index.find_all_pairs(threshold=threshold)
 
-        findings: List[Finding] = []
-        emitted_pairs: Set[Tuple[str, str]] = set()
-
         eval_roles = {"evaluation_dataset", "benchmark_dataset"}
+        eval_groups: Dict[Tuple[str, int], Dict[str, Any]] = {}
+        emitted_pairs: Set[Tuple[str, str]] = set()
 
         for cand in candidates:
             src_meta = cand.metadata.get("source_metadata", {})
@@ -73,24 +72,58 @@ class DuplicateEvalNearDuplicateRule(Rule):
             path_b = tgt_meta.get("path", cand.target_id)
             row_b = tgt_meta.get("row_number", 1)
 
-            # Prevent duplicate findings for symmetric pair
             pair_key = (min(cand.source_id, cand.target_id), max(cand.source_id, cand.target_id))
             if pair_key in emitted_pairs:
                 continue
             emitted_pairs.add(pair_key)
 
+            eval_key = (path_b, row_b)
+            if eval_key not in eval_groups:
+                eval_groups[eval_key] = {
+                    "path": path_b,
+                    "row": row_b,
+                    "text": cand.target_text,
+                    "max_similarity_score": sim_score,
+                    "matched_records": [],
+                    "seen_sources": set(),
+                }
+
+            group = eval_groups[eval_key]
+            src_key = (path_a, row_a)
+            if src_key not in group["seen_sources"]:
+                group["seen_sources"].add(src_key)
+                group["matched_records"].append({
+                    "path": path_a,
+                    "row": row_a,
+                    "similarity_score": sim_score,
+                    "snippet": cand.source_text[:200],
+                })
+                if sim_score > group["max_similarity_score"]:
+                    group["max_similarity_score"] = sim_score
+
+        findings: List[Finding] = []
+        for (path_b, row_b), group in eval_groups.items():
+            matched = group["matched_records"]
+            first_match = matched[0]
+            path_a = first_match["path"]
+            row_a = first_match["row"]
+            sim_score = group["max_similarity_score"]
+            match_count = len(matched)
+
             loc_b = Location(role="primary", path=path_b, row=row_b)
             loc_a = Location(role="secondary", path=path_a, row=row_a)
+
+            if match_count == 1:
+                msg = f"Near-duplicate evaluation record at row {row_b} resembles row {row_a} in '{path_a}' with similarity score {sim_score:.4f}."
+            else:
+                msg = f"Near-duplicate evaluation record at row {row_b} in '{path_b}' resembles {match_count} evaluation records (highest similarity score: {sim_score:.4f})."
 
             finding = Finding(
                 rule_id=self.id,
                 severity=self.default_severity,
                 confidence=Confidence.LIKELY.value,
                 title=self.title,
-                message=(
-                    f"Near-duplicate evaluation record at row {row_b} resembles row {row_a} "
-                    f"in '{path_b}' with similarity score {sim_score:.4f}."
-                ),
+                message=msg,
                 impact="Duplicate or near-duplicate evaluation samples skew evaluation metrics by over-weighting specific test cases.",
                 recommendation="Deduplicate evaluation samples to ensure fair and unweighted evaluation metrics.",
                 locations=[loc_b, loc_a],
@@ -99,8 +132,10 @@ class DuplicateEvalNearDuplicateRule(Rule):
                     "evaluation_row": row_b,
                     "duplicate_row": row_a,
                     "similarity_score": sim_score,
-                    "evaluation_snippet": cand.target_text[:200],
-                    "duplicate_snippet": cand.source_text[:200],
+                    "overlap_count": match_count,
+                    "evaluation_snippet": group["text"][:200],
+                    "duplicate_snippet": first_match["snippet"],
+                    "matched_duplicate_records": matched,
                 },
             )
             findings.append(finding)
