@@ -51,6 +51,7 @@ DEFAULT_EXCLUDES: List[str] = [
     ".cache/**",
     "target/**",
     "coverage/**",
+    "evalproof_report.json",
 ]
 
 DEFAULT_FAIL_ON: str = Severity.HIGH.value

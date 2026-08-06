@@ -1,0 +1,16 @@
+ci:
+  fail_on: high
+similarity:
+  threshold: 0.7
+  focus_fields: [prompt, question, input]
+artifacts:
+  - path: data/train.jsonl
+    roles: [training_dataset]
+  - path: data/eval.jsonl
+    roles: [evaluation_dataset]
+  - path: rag/corpus.md
+    roles: [rag_document]
+  - path: prompts/eval_prompt.md
+    roles: [prompt_template]
+  - path: results/run.json
+    roles: [evaluation_result]
