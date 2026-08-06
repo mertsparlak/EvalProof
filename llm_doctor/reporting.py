@@ -1,22 +1,15 @@
 """Reporting pipeline: finding sorting, terminal summary rendering, and JSON report generation."""
 
-from datetime import datetime, timezone
 import json
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional
 
-from llm_doctor.finding import Finding, Diagnostic, SEVERITY_RANK, Severity
+from llm_doctor.finding import Diagnostic, Finding, SEVERITY_RANK, Severity
 
 
 def sort_findings_deterministically(findings: List[Finding]) -> List[Finding]:
-    """Sort findings by:
-    1. severity rank (critical > high > medium > low)
-    2. rule_id
-    3. primary artifact path
-    4. primary location line/row
-    5. fingerprint
-    """
+    """Sort findings by severity, rule id, primary path, primary location, and fingerprint."""
     def get_sort_key(f: Finding):
-        sev_rank = -SEVERITY_RANK.get(f.severity.lower(), 0)  # negative so higher rank comes first
+        sev_rank = -SEVERITY_RANK.get(f.severity.lower(), 0)
         rule_id = f.rule_id
 
         primary_path = ""
@@ -36,7 +29,7 @@ def sort_findings_deterministically(findings: List[Finding]) -> List[Finding]:
 
 
 def sort_diagnostics_deterministically(diagnostics: List[Diagnostic]) -> List[Diagnostic]:
-    """Sort diagnostics by path, line/row, code."""
+    """Sort diagnostics by path, line/row, and code."""
     def get_sort_key(d: Diagnostic):
         path = d.path or ""
         line_row = d.line or d.row or 0
@@ -68,7 +61,7 @@ def generate_json_report(
         if f.severity.lower() in counts:
             counts[f.severity.lower()] += 1
 
-    report = {
+    return {
         "schema_version": "1.0",
         "tool": {
             "name": "evalproof",
@@ -88,18 +81,28 @@ def generate_json_report(
         "findings": [f.to_dict() for f in sorted_findings],
         "diagnostics": [d.to_dict() for d in sorted_diagnostics],
     }
-    return report
+
+
+def _finding_primary_path(finding: Finding) -> str:
+    for loc in finding.locations:
+        if loc.path:
+            return loc.path
+    return "-"
 
 
 def render_terminal_summary(
     scan_root: str,
     artifacts_scanned: int,
     findings: List[Finding],
+    diagnostics: Optional[List[Diagnostic]] = None,
     output_json_path: Optional[str] = None,
+    fail_on: str = Severity.HIGH.value,
+    ci_failed: bool = False,
     no_color: bool = False,
 ) -> str:
-    """Render human-readable terminal summary."""
+    """Render human-readable terminal summary for local and CI usage."""
     sorted_findings = sort_findings_deterministically(findings)
+    sorted_diagnostics = sort_diagnostics_deterministically(diagnostics or [])
     counts = {
         Severity.CRITICAL.value: 0,
         Severity.HIGH.value: 0,
@@ -110,30 +113,38 @@ def render_terminal_summary(
         if f.severity.lower() in counts:
             counts[f.severity.lower()] += 1
 
-    lines = []
-    lines.append("=== EvalProof Preflight Scan Summary ===")
-    lines.append(f"Scan root: {scan_root}")
-    lines.append(f"Artifacts scanned: {artifacts_scanned}")
-    lines.append("Findings by severity:")
-    lines.append(f"  Critical : {counts['critical']}")
-    lines.append(f"  High     : {counts['high']}")
-    lines.append(f"  Medium   : {counts['medium']}")
-    lines.append(f"  Low      : {counts['low']}")
-    lines.append(f"Total findings: {len(sorted_findings)}")
+    lines = [
+        "=== EvalProof Trust Preflight ===",
+        f"Scan root: {scan_root}",
+        f"Artifacts scanned: {artifacts_scanned}",
+        f"Findings: {len(sorted_findings)} total | critical={counts['critical']} high={counts['high']} medium={counts['medium']} low={counts['low']}",
+        f"Diagnostics: {len(sorted_diagnostics)}",
+    ]
+
+    if output_json_path:
+        lines.append(f"JSON report: {output_json_path}")
+
+    if ci_failed:
+        lines.append(f"CI result: fail (finding at or above {fail_on})")
+    else:
+        lines.append("CI result: pass")
 
     if sorted_findings:
         lines.append("")
-        lines.append("Highest severity findings:")
-        for f in sorted_findings[:10]:
-            primary_path = ""
-            for loc in f.locations:
-                if loc.path:
-                    primary_path = loc.path
-                    break
-            lines.append(f"  [{f.severity.upper()}] {f.rule_id} ({primary_path}): {f.message}")
+        lines.append("Top findings:")
+        for f in sorted_findings[:5]:
+            primary_path = _finding_primary_path(f)
+            lines.append(
+                f"  - {f.severity.lower()} {f.confidence.lower()} {f.rule_id} ({primary_path}): {f.message}"
+            )
 
-    if output_json_path:
+    if sorted_diagnostics:
         lines.append("")
-        lines.append(f"JSON report written to: {output_json_path}")
+        lines.append("Diagnostics:")
+        for d in sorted_diagnostics[:5]:
+            path = d.path or "-"
+            lines.append(f"  - {d.severity.lower()} {d.code} ({path}): {d.message}")
+        if len(sorted_diagnostics) > 5:
+            lines.append(f"  - ... {len(sorted_diagnostics) - 5} more diagnostics in JSON report")
 
     return "\n".join(lines)
