@@ -1,4 +1,4 @@
-# Project Index
+﻿# Project Index
 
 ## Question
 
@@ -19,6 +19,7 @@ The MVP project index must provide:
 - Cross-role overlap candidates between training, evaluation, and benchmark datasets.
 - Text fingerprints for prompt templates and RAG documents where available.
 - Evaluation result metadata fields discovered from structured result artifacts.
+- Similarity index entries for row-based artifacts when similarity is enabled.
 
 ## Canonical Evaluation Result Metadata
 
@@ -137,6 +138,24 @@ The index must store hashes of normalized content rather than relying on raw con
 
 Hashes must be deterministic and stable across machines.
 
+## Similarity Index
+
+Near-duplicate rules use a deterministic MinHash + LSH similarity index.
+
+The similarity index:
+
+- extracts comparison text from row-based artifacts
+- focuses on configured `similarity.focus_roles` for chat-style `messages` rows
+- falls back to configured `similarity.focus_fields`
+- falls back to canonical structured row text only when no focused text exists
+- computes character shingles using `similarity.shingle_size`
+- computes MinHash signatures using `similarity.num_hashes`
+- groups candidates using `similarity.bands`
+- confirms candidate pairs using exact Jaccard similarity over shingle sets
+- emits findings only when Jaccard similarity is greater than or equal to `similarity.threshold`
+
+The similarity index is evidence-generating but approximate in candidate selection. Final findings must include exact Jaccard similarity so users can verify why the finding fired.
+
 ## Artifact Fingerprints
 
 Artifact fingerprints are `sha256` hashes over normalized artifact content.
@@ -171,7 +190,8 @@ MVP limit behavior:
 
 - Cross-artifact contamination checks use a shared project index.
 - MVP normalization is exact and conservative.
-- The MVP avoids fuzzy matching, embeddings, and model inference.
+- Near-duplicate checks use deterministic MinHash + LSH plus exact Jaccard confirmation.
+- The scanner avoids embeddings and model inference.
 - Index data is derived from artifacts, not raw filesystem reads inside rules.
 
 ## Open Questions
@@ -187,3 +207,4 @@ None.
 ## Future Considerations
 
 In EvalProof v1.1, the `SimilarityIndex` was added as a reusable, additive extension to the `ProjectIndex` for deterministic near-duplicate candidate discovery using MinHash and LSH. Embedding-based or model-assisted similarity checks remain deferred unless explicitly required by future specifications.
+

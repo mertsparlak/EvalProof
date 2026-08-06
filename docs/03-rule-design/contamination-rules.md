@@ -1,12 +1,12 @@
-# Contamination Rules
+﻿# Contamination Rules
 
 ## Question
 
-Which contamination rules exist in the MVP?
+Which contamination rules exist in the current scanner?
 
 ## Rule Set
 
-The MVP includes only the rules in this document.
+EvalProof includes only the rules in this document.
 
 ## Rules
 
@@ -29,6 +29,29 @@ Impact: evaluation results may be inflated because evaluation samples may have a
 
 Recommendation: remove overlapping records from one split and regenerate dataset fingerprints.
 
+### `contamination.train_eval_near_duplicate`
+
+Detects near-duplicate records between training datasets and evaluation or benchmark datasets using the similarity engine defined in [Project Index](../02-architecture/project-index.md).
+
+Default severity: `high`
+
+Default confidence: `likely`
+
+Default CI behavior: this rule can fail CI under the default `fail_on: high`.
+
+Required evidence:
+
+- training artifact path and row where available
+- evaluation or benchmark artifact path and row where available
+- Jaccard similarity score
+- configured similarity threshold
+
+Applicability: this rule uses `similarity.focus_roles` and `similarity.focus_fields` to avoid comparing static system instructions when structured chat-like rows are present.
+
+Impact: evaluation results may be inflated because near-duplicate evaluation samples may have appeared in training data.
+
+Recommendation: remove or rewrite near-duplicate records, then rerun the scan.
+
 ### `contamination.duplicate_eval_sample`
 
 Detects duplicate normalized records within evaluation or benchmark datasets.
@@ -47,6 +70,69 @@ Required evidence:
 Impact: duplicated samples can overweight repeated cases and distort metrics.
 
 Recommendation: deduplicate the evaluation artifact or justify intentional weighting outside the MVP scanner.
+
+### `contamination.duplicate_eval_near_duplicate`
+
+Detects near-duplicate records within evaluation or benchmark datasets.
+
+Default severity: `medium`
+
+Default confidence: `likely`
+
+Default CI behavior: this rule must not fail CI under the default `fail_on: high`.
+
+Required evidence:
+
+- artifact path
+- related row locations where available
+- Jaccard similarity score
+- configured similarity threshold
+
+Impact: near-duplicate samples can overweight repeated cases and distort metrics.
+
+Recommendation: deduplicate or rewrite near-duplicate evaluation samples.
+
+### `contamination.duplicate_train_sample`
+
+Detects exact normalized duplicate records within training datasets.
+
+Default severity: `medium`
+
+Default confidence: `confirmed`
+
+Default CI behavior: this rule must not fail CI under the default `fail_on: high`.
+
+Required evidence:
+
+- artifact path
+- duplicate row locations where available
+- normalized record hash
+- duplicate count
+
+Impact: duplicated training rows can waste training budget and increase memorization risk.
+
+Recommendation: deduplicate the training artifact unless the weighting is intentional.
+
+### `contamination.duplicate_train_near_duplicate`
+
+Detects near-duplicate records within training datasets.
+
+Default severity: `low`
+
+Default confidence: `likely`
+
+Default CI behavior: this rule must not fail CI under the default `fail_on: high`.
+
+Required evidence:
+
+- artifact path
+- related row locations where available
+- Jaccard similarity score
+- configured similarity threshold
+
+Impact: near-duplicate training rows can increase overfitting and memorization risk.
+
+Recommendation: review near-duplicate training rows and deduplicate when they are accidental.
 
 ### `contamination.rag_answer_leakage`
 
@@ -197,8 +283,9 @@ Recommendation: remove or redact the value and replace it with a safe fixture.
 
 ## Design Decisions
 
-- The MVP rule set is intentionally small.
-- Exact deterministic contamination rules have higher priority than heuristic prompt or security checks.
+- The rule set is intentionally focused on evaluation trust.
+- Exact deterministic contamination rules have higher priority than near-duplicate, prompt, or security checks.
+- Near-duplicate rules are similarity-based, evidence-backed findings with explicit Jaccard scores and configured thresholds.
 - Heuristic rules are included only when they directly affect evaluation trust.
 - Rules outside this document are not part of the MVP.
 
@@ -215,4 +302,5 @@ None.
 
 ## Future Considerations
 
-Near-duplicate contamination, SARIF-specific rule metadata, framework-specific result parsers, and dynamic red-team checks are outside MVP.
+SARIF-specific rule metadata, framework-specific result parsers, and dynamic red-team checks are outside the current scope.
+

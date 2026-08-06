@@ -1,4 +1,4 @@
-# Configuration And Schema
+﻿# Configuration And Schema
 
 ## Question
 
@@ -21,6 +21,7 @@ The MVP supports:
 - severity overrides
 - minimum failing severity
 - scan limits
+- similarity settings for near-duplicate rules
 
 No other configuration is required for MVP.
 
@@ -59,6 +60,14 @@ similarity:
   num_hashes: 64
   bands: 16
   threshold: 0.85
+  focus_roles:
+    - user
+  focus_fields:
+    - prompt
+    - input
+    - query
+    - user
+    - user_message
 ```
 
 Top-level keys outside `include`, `exclude`, `artifacts`, `rules`, `ci`, `limits`, and `similarity` are invalid.
@@ -73,10 +82,35 @@ Schema field types:
 - `ci.fail_on`: severity string
 - `limits.max_file_mb`: positive integer
 - `limits.max_rows_per_artifact`: positive integer
+- `similarity.enabled`: boolean
+- `similarity.shingle_size`: positive integer
+- `similarity.num_hashes`: positive integer
+- `similarity.bands`: positive integer
+- `similarity.threshold`: number between `0.0` and `1.0`
+- `similarity.focus_roles`: list of strings
+- `similarity.focus_fields`: list of strings
 
 Allowed severity strings are `critical`, `high`, `medium`, and `low`.
 
 Invalid role strings, invalid severity strings, invalid rule ids for MVP rules, and wrong field types make the configuration invalid.
+
+## Similarity Defaults
+
+Default `similarity.enabled` is `true`.
+
+Default `similarity.shingle_size` is `3`.
+
+Default `similarity.num_hashes` is `64`.
+
+Default `similarity.bands` is `16`.
+
+Default `similarity.threshold` is `0.85`.
+
+Default `similarity.focus_roles` is `["user"]`.
+
+Default `similarity.focus_fields` is `["prompt", "input", "query", "user", "user_message"]`.
+
+The similarity configuration applies only to near-duplicate rules. Exact-overlap rules do not use MinHash or LSH.
 
 ## Defaults
 
@@ -142,3 +176,4 @@ None.
 ## Future Considerations
 
 Future versions may add suppressions, baselines, profiles, and policy packs after MVP behavior is stable.
+
