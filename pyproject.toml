@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "llm-doctor"
+version = "0.1.0"
+description = "Local-first static preflight scanner for LLM evaluation artifacts"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "pyyaml>=6.0",
+]
+
+[project.scripts]
+llm-doctor = "llm_doctor.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
