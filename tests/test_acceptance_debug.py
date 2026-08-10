@@ -5,13 +5,13 @@ from pathlib import Path
 import tempfile
 import pytest
 
-from llm_doctor.cli import main
-from llm_doctor.artifact import detect_heuristic_roles, create_artifact_from_file
-from llm_doctor.config import Config, load_config
-from llm_doctor.discovery import discover_files
-from llm_doctor.project_index import ProjectIndex
-from llm_doctor.rule_engine import ScanContext, execute_rules, default_registry
-from llm_doctor.rules import register_mvp_rules
+from evalproof.cli import main
+from evalproof.artifact import detect_heuristic_roles, create_artifact_from_file
+from evalproof.config import Config, load_config
+from evalproof.discovery import discover_files
+from evalproof.project_index import ProjectIndex
+from evalproof.rule_engine import ScanContext, execute_rules, default_registry
+from evalproof.rules import register_mvp_rules
 
 
 def test_acceptance_train_eval_overlap_emitted():

@@ -16,10 +16,10 @@ try:
 except ImportError:
     import tomli as tomllib
 
-from llm_doctor.artifact import Artifact
-from llm_doctor.config import Config
-from llm_doctor.finding import Diagnostic, DiagnosticSeverity, DiagnosticCode, canonical_json_dumps
-from llm_doctor.similarity import SimilarityIndex, extract_target_similarity_text
+from evalproof.artifact import Artifact
+from evalproof.config import Config
+from evalproof.finding import Diagnostic, DiagnosticSeverity, DiagnosticCode, canonical_json_dumps
+from evalproof.similarity import SimilarityIndex, extract_target_similarity_text
 
 
 TRIVIAL_LABELS: Set[str] = {"yes", "no", "true", "false"}

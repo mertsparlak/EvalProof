@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Set, Any
 import yaml
 
-from llm_doctor.finding import Severity
+from evalproof.finding import Severity
 
 
 ALLOWED_TOP_LEVEL_KEYS: Set[str] = {

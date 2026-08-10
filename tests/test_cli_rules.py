@@ -1,4 +1,4 @@
-from llm_doctor.cli import main
+from evalproof.cli import main
 
 
 EXPECTED_RULE_IDS = [

@@ -5,7 +5,7 @@ from pathlib import Path
 import re
 from typing import List, Set
 
-from llm_doctor.config import Config
+from evalproof.config import Config
 
 
 def glob_to_regex(pattern: str) -> re.Pattern:

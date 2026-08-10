@@ -4,10 +4,10 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Set, Tuple, Any
 
-from llm_doctor.artifact import Artifact
-from llm_doctor.config import Config
-from llm_doctor.finding import Finding, Diagnostic, DiagnosticSeverity, DiagnosticCode, Severity
-from llm_doctor.project_index import ProjectIndex
+from evalproof.artifact import Artifact
+from evalproof.config import Config
+from evalproof.finding import Finding, Diagnostic, DiagnosticSeverity, DiagnosticCode, Severity
+from evalproof.project_index import ProjectIndex
 
 
 @dataclass

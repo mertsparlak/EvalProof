@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from llm_doctor.cli import main
+from evalproof.cli import main
 
 
 def test_clean_scan_summary_reports_ci_pass(capsys, tmp_path):

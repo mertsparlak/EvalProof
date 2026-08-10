@@ -2,9 +2,9 @@
 
 from typing import List, Set, Tuple
 
-from llm_doctor.finding import Finding, Location, Severity, Confidence
-from llm_doctor.project_index import normalize_plain_text
-from llm_doctor.rule_engine import Rule, ScanContext
+from evalproof.finding import Finding, Location, Severity, Confidence
+from evalproof.project_index import normalize_plain_text
+from evalproof.rule_engine import Rule, ScanContext
 
 
 class RagAnswerLeakageRule(Rule):

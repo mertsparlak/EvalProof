@@ -5,9 +5,9 @@ from pathlib import Path
 import tempfile
 import pytest
 
-from llm_doctor.cli import main
-from llm_doctor.finding import Finding, Location, Severity, Confidence
-from llm_doctor.reporting import (
+from evalproof.cli import main
+from evalproof.finding import Finding, Location, Severity, Confidence
+from evalproof.reporting import (
     sort_findings_deterministically,
     generate_json_report,
     render_terminal_summary,

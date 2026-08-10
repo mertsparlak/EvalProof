@@ -4,8 +4,8 @@ hashlib = __import__("hashlib")
 import re
 from typing import List, Set, Tuple
 
-from llm_doctor.finding import Finding, Location, Severity, Confidence
-from llm_doctor.rule_engine import Rule, ScanContext
+from evalproof.finding import Finding, Location, Severity, Confidence
+from evalproof.rule_engine import Rule, ScanContext
 
 
 EMAIL_REGEX = re.compile(r"\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b")

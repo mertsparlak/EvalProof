@@ -13,7 +13,7 @@ dependencies = [
 ]
 
 [project.scripts]
-evalproof = "llm_doctor.cli:main"
+evalproof = "evalproof.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["."]

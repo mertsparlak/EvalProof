@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from llm_doctor.cli import main
+from evalproof.cli import main
 
 
 def scan_json(root: Path, *extra_args: str) -> tuple[int, dict]:

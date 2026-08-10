@@ -7,18 +7,18 @@ from pathlib import Path
 import sys
 from typing import List, Optional
 
-from llm_doctor.artifact import create_artifact_from_file
-from llm_doctor.config import ALLOWED_SEVERITIES, DEFAULT_FAIL_ON, ConfigError, load_config
-from llm_doctor.discovery import discover_files
-from llm_doctor.finding import Diagnostic, SEVERITY_RANK
-from llm_doctor.project_index import ProjectIndex
-from llm_doctor.reporting import (
+from evalproof.artifact import create_artifact_from_file
+from evalproof.config import ALLOWED_SEVERITIES, DEFAULT_FAIL_ON, ConfigError, load_config
+from evalproof.discovery import discover_files
+from evalproof.finding import Diagnostic, SEVERITY_RANK
+from evalproof.project_index import ProjectIndex
+from evalproof.reporting import (
     generate_json_report,
     render_terminal_summary,
     sort_findings_deterministically,
 )
-from llm_doctor.rule_engine import ScanContext, default_registry, execute_rules
-import llm_doctor.rules  # Ensures built-in MVP rules are registered
+from evalproof.rule_engine import ScanContext, default_registry, execute_rules
+import evalproof.rules  # Ensures built-in MVP rules are registered
 
 
 RULE_CONFIDENCE = {
