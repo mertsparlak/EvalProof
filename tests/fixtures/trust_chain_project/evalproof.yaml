@@ -1,0 +1,11 @@
+limits:
+  max_rows_per_artifact: 100
+similarity:
+  enabled: false
+artifacts:
+  - path: data/eval.jsonl
+    roles: [evaluation_dataset]
+  - path: results/aligned.json
+    roles: [evaluation_result]
+  - path: results/mismatch.json
+    roles: [evaluation_result]

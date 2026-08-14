@@ -288,6 +288,42 @@ The rule checks only the known metric names and explicit scale records defined b
 Impact: the evaluation result contains a mathematically invalid metric value and cannot be trusted as reported.
 
 Recommendation: correct the metric computation or declare the correct unit and bounds before publishing the result.
+
+### `rag.unreachable_context_id`
+
+Detects explicit evaluation or benchmark context references that are absent from the discovered RAG artifact IDs.
+
+Default severity: `high`
+
+Default confidence: `confirmed`
+
+Default CI behavior: this rule can fail CI under the default `fail_on: high` policy.
+
+Applicability:
+
+- evaluation rows use the explicit context reference fields defined by [Project Index](../02-architecture/project-index.md)
+- RAG rows use the explicit scalar ID fields defined by [Project Index](../02-architecture/project-index.md)
+- only top-level structured fields are inspected
+- file names, free-text content, nested metadata, and inferred IDs are ignored
+- a missing RAG artifact or RAG artifact without explicit IDs produces no finding
+
+The rule supports scalar evaluation references and explicit evaluation ID lists. IDs are trimmed, remain case-sensitive, and are compared as normalized scalar values. Evaluation sample IDs in the `id` field are not treated as context references.
+
+Required evidence:
+
+- evaluation artifact path and row
+- reference field names
+- count of missing references
+- stable hashes of missing references
+- searched RAG artifact paths
+- searched RAG ID fields
+
+Raw context ID values must not be written to evidence, messages, or recommendations.
+
+Impact: unreachable retrieval references make evaluation context incomplete or unverifiable.
+
+Recommendation: restore the referenced RAG documents or regenerate the evaluation artifact with valid context IDs.
+
 ### `contamination.untrusted_context_interpolation`
 
 Detects prompt templates that appear to insert retrieved or user-provided context without clear delimiters in evaluation-related prompts.

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import shutil
 from pathlib import Path
 
 from evalproof.cli import main
@@ -350,3 +351,35 @@ artifacts:
         report["scan"].pop("started_at", None)
         report["scan"].pop("completed_at", None)
     assert first == second
+
+
+
+def test_trust_chain_fixture_exercises_result_artifact_contract(tmp_path):
+    source = Path(__file__).parent / "fixtures" / "trust_chain_project"
+    root = tmp_path / "trust_chain_project"
+    shutil.copytree(source, root)
+
+    report = scan_json(root)
+    rule_ids = {finding["rule_id"] for finding in report["findings"]}
+
+    assert report["_return_code"] == 1
+    assert "evaluation.sample_alignment_mismatch" in rule_ids
+    assert "dataset.label_inconsistency" in rule_ids
+    assert "evaluation.metric_out_of_bounds" in rule_ids
+
+    alignment = findings_by_rule(report, "evaluation.sample_alignment_mismatch")
+    assert len(alignment) == 1
+    assert alignment[0]["evidence"]["result_artifact"] == "results/mismatch.json"
+    assert set(alignment[0]["evidence"]["mismatch_types"]) == {"count_mismatch", "missing_ids", "unexpected_ids"}
+
+    label = findings_by_rule(report, "dataset.label_inconsistency")
+    assert len(label) == 1
+    assert label[0]["evidence"]["row_locations"] == [
+        {"path": "data/eval.jsonl", "row": 1},
+        {"path": "data/eval.jsonl", "row": 2},
+    ]
+
+    metric = findings_by_rule(report, "evaluation.metric_out_of_bounds")
+    assert len(metric) == 1
+    assert metric[0]["evidence"]["result_artifact"] == "results/mismatch.json"
+    assert metric[0]["evidence"]["metric_name"] == "accuracy"

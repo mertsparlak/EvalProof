@@ -49,6 +49,7 @@ The scanner includes only contamination-focused and trustworthiness-critical rul
 - Near-duplicate evaluation samples.
 - Near-duplicate training samples.
 - RAG answer leakage.
+- Unreachable RAG context IDs in evaluation artifacts.
 - Missing reproducibility metadata.
 - Prompt or dataset fingerprint mismatch where evidence exists.
 - Unsafe prompt interpolation that affects evaluation validity.

@@ -16,6 +16,7 @@ EXPECTED_RULE_IDS = [
     "dataset.label_inconsistency",
     "evaluation.metric_out_of_bounds",
     "evaluation.sample_alignment_mismatch",
+    "rag.unreachable_context_id",
 ]
 
 

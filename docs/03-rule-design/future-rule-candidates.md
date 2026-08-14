@@ -30,18 +30,11 @@ A candidate may be promoted only when all of these are true:
 - `merge`: should be handled by an existing rule or diagnostic instead of becoming a new rule.
 - `defer`: plausible, but not reliable enough yet or needs stronger artifact contracts.
 - `reject`: outside EvalProof's trust boundary or too subjective/noisy.
+- `implemented`: promoted into the current rule contract.
 
 ## Recommended Next Rule Batch
 
-The first new-rule slice is the evaluation trust chain:
-
-1. `evaluation.sample_alignment_mismatch`
-2. `dataset.label_inconsistency`
-3. `evaluation.metric_out_of_bounds`
-
-The sample alignment rule replaces the narrower `evaluation.unmatched_evaluation_sample_count` candidate. Count mismatch is one evidence subtype of sample alignment, alongside missing, unexpected, or duplicate explicit IDs.
-
-These rules are promoted only after the shared Project Index contracts are implemented and each rule has positive, negative, evidence, and determinism tests.
+The evaluation trust-chain slice and `rag.unreachable_context_id` are now implemented. No additional rule is promoted by this change. Future promotion must continue to satisfy the objective-evidence and false-positive criteria in this document.
 ## Dataset Integrity Candidates
 
 ### `dataset.empty_or_malformed_record`
@@ -310,25 +303,9 @@ Promotion requirement: define chunk boundaries. Without explicit chunks, use par
 
 ### `rag.unreachable_context_id`
 
-Status: `promote`
+Status: `implemented`
 
-Problem: evaluation samples reference a `doc_id`, `context_id`, `source_id`, or similar retrieval context id that cannot be found in the RAG corpus artifacts.
-
-Required evidence:
-
-- evaluation artifact path and row
-- referenced context id field
-- referenced context id value or stable hash
-- searched RAG id fields
-
-Default confidence: `confirmed`
-
-Default severity if promoted: `high`
-
-Default CI behavior: can fail default CI
-
-Promotion requirement: define canonical context-id aliases for evaluation rows and RAG documents.
-
+The candidate is implemented as `rag.unreachable_context_id`. The current finding contract is defined in [Contamination Rules](contamination-rules.md), and the extraction contract is defined in [Project Index](../02-architecture/project-index.md). This section remains only as a promotion history record.
 ## Security And Safety Candidates
 
 ### `security.hardcoded_credential_exposure`

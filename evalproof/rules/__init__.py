@@ -15,6 +15,7 @@ from evalproof.rules.duplicate_train_near_duplicate import DuplicateTrainNearDup
 from evalproof.rules.sample_alignment_mismatch import SampleAlignmentMismatchRule
 from evalproof.rules.label_inconsistency import LabelInconsistencyRule
 from evalproof.rules.metric_out_of_bounds import MetricOutOfBoundsRule
+from evalproof.rules.unreachable_context_id import UnreachableContextIdRule
 
 
 def register_mvp_rules():
@@ -32,6 +33,7 @@ def register_mvp_rules():
     default_registry.register(SampleAlignmentMismatchRule())
     default_registry.register(LabelInconsistencyRule())
     default_registry.register(MetricOutOfBoundsRule())
+    default_registry.register(UnreachableContextIdRule())
 
 
 register_mvp_rules()

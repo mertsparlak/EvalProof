@@ -95,6 +95,34 @@ A metric is indexable only when it has a numeric value and either:
 - a supported `unit` or `metric_unit`: `fraction`, `percent`, or `nonnegative`.
 
 Unit-derived bounds are [0, 1], [0, 100], and [0, +infinity] respectively. Unknown metric names and metrics without explicit scale evidence are ignored.
+
+## Explicit RAG Context References
+
+The index extracts context references only from top-level structured row fields.
+
+Evaluation and benchmark rows support these scalar fields:
+
+- `doc_id`
+- `document_id`
+- `context_id`
+- `source_id`
+- `chunk_id`
+
+They also support these list fields:
+
+- `doc_ids`
+- `document_ids`
+- `context_ids`
+- `source_ids`
+- `chunk_ids`
+- `retrieved_context_ids`
+
+RAG document rows support the scalar fields above plus `id`. RAG list fields are not used as corpus identifiers in the MVP.
+
+Context identifiers are trimmed, remain case-sensitive, and accept only non-empty strings or finite numeric scalar values. Booleans, nested objects, nested metadata, filenames, and free-text matches are ignored. The generic `id` field is a RAG document identifier only; an evaluation row's `id` remains a sample identifier.
+
+Each extracted reference also has a stable SHA-256 hash for evidence that must not expose the raw identifier.
+
 ## Normalization
 
 Normalization must be deterministic and conservative.
@@ -238,6 +266,7 @@ MVP limit behavior:
 - Result-to-dataset association requires a matching computed dataset fingerprint.
 - Sample identity is explicit-ID based; positional row matching is not a trust signal.
 - Metric bounds are checked only when the result declares an explicit scale.
+- RAG context references are extracted from explicit top-level fields and compared without case folding.
 
 ## Open Questions
 

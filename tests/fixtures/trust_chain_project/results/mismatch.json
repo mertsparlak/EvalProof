@@ -1,0 +1,1 @@
+{"dataset_fingerprint":"sha256:dce9c97e0389f451940420b5672bf9d0a2a5d823af3d54f8cd94933ebfd4541c","samples":[{"id":"sample-1","score":1.0},{"id":"sample-4","score":0.0}],"metrics":{"accuracy":{"value":1.2,"bounds":[0,1]}}}
