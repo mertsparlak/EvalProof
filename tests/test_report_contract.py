@@ -31,7 +31,10 @@ def test_json_report_matches_public_contract(tmp_path):
     assert set(report) == {"schema_version", "tool", "scan", "summary", "findings", "diagnostics"}
     assert report["schema_version"] == "1.0"
     assert report["tool"] == {"name": "evalproof", "version": "0.0.0"}
-    assert set(report["scan"]) == {"root", "started_at", "completed_at", "config_path"}
+    assert set(report["scan"]) == {"root", "started_at", "completed_at", "config_path", "rules"}
+    assert report["scan"]["rules"]["mode"] == "all"
+    assert report["scan"]["rules"]["ids"]
+    assert report["scan"]["rules"]["ids"] == sorted(report["scan"]["rules"]["ids"])
     assert report["scan"]["root"] == "."
     assert report["scan"]["config_path"] == "evalproof.yaml"
     assert set(report["summary"]["findings_by_severity"]) == {"critical", "high", "medium", "low"}

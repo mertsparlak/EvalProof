@@ -14,6 +14,26 @@ evalproof scan [path]
 
 If `path` is omitted, the scanner uses the current working directory.
 
+The rule discovery command is:
+
+```text
+evalproof rules
+```
+
+`evalproof rules` lists all built-in rules in deterministic rule ID order. It does not read configuration, discover files, build a project index, execute a scan, or write a report. It has no JSON output mode.
+
+## Rule Selection
+
+The `scan` command accepts an optional comma-separated rule allowlist:
+
+```text
+evalproof scan [path] --rules <rule-id>,<rule-id>
+```
+
+When `--rules` is absent, all registered rules run except rules disabled by configuration. When it is present, only the selected rule IDs are candidates, and `rules.disabled` still takes precedence.
+
+Rule IDs are case-sensitive. Whitespace around comma-separated IDs is ignored and duplicate IDs are removed. Empty IDs, unknown IDs, and selections that resolve to no enabled rules are invalid CLI usage and return exit code `2` before discovery starts. Rule execution and report order remain deterministic regardless of the order supplied on the command line.
+
 ## Supported Options
 
 ```text
@@ -22,9 +42,10 @@ If `path` is omitted, the scanner uses the current working directory.
 --output <path>      Write JSON report to a file. Requires --json.
 --fail-on <severity> Override configured failing severity.
 --no-color           Disable terminal colors.
+--rules <ids>        Run only selected comma-separated rule IDs.
 ```
 
-No other CLI options are required for MVP.
+Tag, wildcard, prefix, and regular-expression rule selection are not supported.
 
 ## Default Behavior
 
@@ -58,6 +79,7 @@ The terminal summary must include:
 
 - scan root
 - number of artifacts scanned
+- active rule mode and active rule count
 - number of findings by severity
 - highest-severity findings with rule id, path, and message
 - path to JSON report if written
@@ -74,7 +96,7 @@ The CLI must not require network access.
 
 ## Design Decisions
 
-- `scan` is the only required MVP command.
+- `scan` remains the scanning command; `rules` is the read-only rule discovery command.
 - JSON output is the machine-readable contract.
 - Every completed scan writes a JSON report file.
 - Exit code `1` means trust findings crossed the configured threshold, not that the scanner crashed.
@@ -92,5 +114,5 @@ None.
 
 ## Future Considerations
 
-Future commands may add rule listing, config initialization, SARIF output, baselines, or suppressions after the MVP is stable.
+Future commands may add config initialization, SARIF output, baselines, or suppressions after the MVP is stable.
 

@@ -394,6 +394,40 @@ Impact: sensitive data can make evaluation artifacts unsafe to share, store, or 
 
 Recommendation: remove or redact the value and replace it with a safe fixture.
 
+### `prompt.unresolved_placeholder`
+
+Detects template-like placeholder patterns left in rendered evaluation or benchmark input fields.
+
+Default severity: `medium`
+
+Default confidence: `heuristic`
+
+Default CI behavior: this rule must not fail CI under the MVP default `fail_on: high`.
+
+Applicability:
+
+- `evaluation_dataset` and `benchmark_dataset` artifacts only
+- string values in the canonical `prompt`, `question`, and `input` fields only
+- `prompt_template` artifacts, training datasets, message lists, nested context, and free-text files are excluded
+
+Supported placeholder patterns are `{variable}`, `{{ variable }}`, and `${variable}`. The rule reports one finding per affected artifact row and input field, grouping all detected patterns in that field.
+
+Required evidence:
+
+- artifact path
+- row and field location
+- placeholder syntax classes
+- stable hash of the normalized input
+- detected placeholder count
+
+Raw input values and placeholder names must not be written to evidence.
+
+This is a heuristic rule because static scanning cannot prove whether a placeholder-like value was rendered before model execution.
+
+Impact: an evaluation may use an unresolved template value instead of the intended rendered input, reducing trust in the result.
+
+Recommendation: render the evaluation input before scanning and verify that template variables are populated.
+
 ## Design Decisions
 
 - The rule set is intentionally focused on evaluation trust.

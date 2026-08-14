@@ -189,31 +189,31 @@ Reason: count mismatch is implemented as the `evaluation.sample_alignment_mismat
 
 ### `prompt.unresolved_placeholder`
 
-Status: `promote`
+Status: `implemented`
 
-Problem: evaluation prompt templates or rendered evaluation inputs still contain unresolved placeholders such as `{user_input}`, `{{ prompt }}`, or `${question}`.
+The current implementation checks only string values in `prompt`, `question`, and `input` fields of `evaluation_dataset` and `benchmark_dataset` rows. Prompt template artifacts, training datasets, message lists, and free-text fields are excluded.
 
 Required evidence:
 
-- prompt or evaluation artifact path
-- line, row, or field location
-- placeholder name
-- placeholder syntax
-- nearby snippet
+- artifact path
+- row and field location
+- placeholder syntax class
+- stable input hash
+- detected placeholder count
 
-Default confidence: `likely`
+Default confidence: `heuristic`
 
-Default severity if promoted: `medium`
+Default severity: `medium`
 
-Default CI behavior: should not fail default CI unless later promoted to `high` for rendered evaluation inputs
+Default CI behavior: must not fail default CI
 
 False-positive risks:
 
-- documentation examples
-- intentionally literal braces
+- intentionally literal braces in evaluation input values
+- placeholder-like syntax that is not an unresolved template
 - templating instructions in prompt authoring docs
 
-Promotion requirement: scope the rule to prompt templates and evaluation artifacts only.
+The implementation deliberately reports this as heuristic because static scanning cannot prove whether a placeholder was rendered before model execution.
 
 ### `prompt.excessive_length_truncation_risk`
 
@@ -416,6 +416,25 @@ Status: `merge`
 Reason: this is already covered by `contamination.fingerprint_mismatch` when both referenced and computed fingerprints are comparable.
 
 Future work should improve the existing fingerprint rule rather than create a parallel dataset-version rule.
+
+## Future Dynamic Attack Layer
+
+Dynamic attack generation is not a static rule and is outside the current scanner.
+
+In a future layer, training-data patterns may be used only to generate attack hypotheses. A model weakness must not be inferred from dataset content alone. A weakness finding would require executing generated prompts against a target model and preserving the observed model output as evidence.
+
+That layer requires separate contracts for:
+
+- target model runner
+- attack prompt generator
+- execution budget
+- sandbox and security boundaries
+- model version and seed reproducibility
+- response judge or scorer
+- attack evidence format
+- model-call errors and rate-limit handling
+
+It must not run during the offline static scan, must not be required by default, and must not be coupled to the static `Rule` interface until a separate architecture review approves the execution and evidence model.
 
 ## Rejected Or Deferred Themes
 

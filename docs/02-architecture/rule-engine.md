@@ -41,6 +41,14 @@ The MVP registers built-in rule groups during scan startup.
 
 Internal rule groups may be organized like plugins, but external plugin loading is outside MVP.
 
+## Rule Selection
+
+The CLI may provide a comma-separated allowlist through `scan --rules`. The CLI parses and normalizes the list, then the registry validates every ID before discovery begins.
+
+When no allowlist is provided, all registered rules are candidates. When an allowlist is provided, only those IDs are candidates. Configuration-disabled rules are removed after allowlist filtering and always take precedence. An unknown ID, empty ID, or selection that leaves no enabled rule is an invalid CLI request.
+
+The registry returns enabled rules in deterministic `rule_id` order. Rule implementations do not receive the CLI selection and do not decide whether they are enabled.
+
 ## Rule Output
 
 Rules emit findings matching [Finding Model And Schema](../01-concepts/finding-model-and-schema.md).
@@ -59,11 +67,13 @@ Rules must not depend on:
 - network state
 - model output
 - absolute machine-specific paths
+- the order in which rule IDs were supplied on the CLI
 
 ## Design Decisions
 
 - Rules are project-scoped to support contamination checks across artifacts.
 - Rule ids are stable because they appear in reports, configuration, and future suppressions.
+- Rule selection is a registry concern; disabled configuration always takes precedence over a CLI allowlist.
 - External plugin loading is deferred.
 - Rules emit findings only; all rendering and exit-code behavior stays outside rules.
 
