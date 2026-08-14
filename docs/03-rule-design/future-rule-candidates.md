@@ -8,7 +8,7 @@ Which rule candidates may be considered after the current scanner is stable, and
 
 This document is a candidate backlog, not an implementation contract.
 
-A rule listed here is not part of the current scanner until it is promoted into [Contamination Rules](contamination-rules.md) with complete evidence, severity, confidence, CI behavior, and tests.
+A rule listed here is not part of the current scanner until it is promoted into [Contamination Rules](contamination-rules.md) with complete evidence, severity, confidence, CI behavior, and tests. Promoted candidates may remain here as historical design records; the current contract is always the Contamination Rules document.
 
 This document exists to prevent rule sprawl. EvalProof should remain known for trustworthy evaluation artifact findings, not broad lint noise.
 
@@ -33,16 +33,15 @@ A candidate may be promoted only when all of these are true:
 
 ## Recommended Next Rule Batch
 
-The strongest first new-rule batch should be small:
+The first new-rule slice is the evaluation trust chain:
 
-1. `dataset.label_inconsistency`
-2. `evaluation.metric_out_of_bounds`
-3. `evaluation.unmatched_evaluation_sample_count`
-4. `rag.unreachable_context_id`
-5. `prompt.unresolved_placeholder`
+1. `evaluation.sample_alignment_mismatch`
+2. `dataset.label_inconsistency`
+3. `evaluation.metric_out_of_bounds`
 
-These candidates have objective evidence, strong actionability, and low implementation ambiguity compared with the rest of the backlog.
+The sample alignment rule replaces the narrower `evaluation.unmatched_evaluation_sample_count` candidate. Count mismatch is one evidence subtype of sample alignment, alongside missing, unexpected, or duplicate explicit IDs.
 
+These rules are promoted only after the shared Project Index contracts are implemented and each rule has positive, negative, evidence, and determinism tests.
 ## Dataset Integrity Candidates
 
 ### `dataset.empty_or_malformed_record`
@@ -115,25 +114,26 @@ Default CI behavior: can fail default CI
 False-positive risks:
 
 - multi-answer tasks where multiple references are valid
-- prompts with hidden context fields not included in normalization
+- prompts with unknown context fields that are not included in normalization
 
 Promotion requirement: define canonical input fields and canonical target fields in the project index before implementation.
 
 ## Evaluation Integrity Candidates
 
-### `evaluation.metric_out_of_bounds`
+### `evaluation.sample_alignment_mismatch`
 
 Status: `promote`
 
-Problem: evaluation result artifacts contain metrics impossible for their declared metric scale, such as accuracy above 1.0, percentage metrics above 100, or negative loss where the metric definition disallows it.
+Problem: evaluation result rows do not align with the fingerprint-matched evaluation or benchmark dataset by count or explicit sample ID.
 
 Required evidence:
 
 - result artifact path
-- metric name
-- metric value
-- accepted bounds
-- field path or JSON pointer when available
+- matched dataset artifact path or paths
+- dataset fingerprint
+- dataset and result counts
+- mismatch types
+- limited missing, unexpected, or duplicate IDs when available
 
 Default confidence: `confirmed`
 
@@ -141,8 +141,30 @@ Default severity if promoted: `high`
 
 Default CI behavior: can fail default CI
 
-Promotion requirement: start with a small allowlist of metric names and bounds. Unknown metrics must not emit findings.
+Promotion requirement: use only fingerprint-associated artifacts; never use positional row matching as identity.
 
+### `evaluation.metric_out_of_bounds`
+
+Status: `promote`
+
+Problem: evaluation result artifacts contain known metric values outside an explicitly declared unit or numeric bounds contract.
+
+Required evidence:
+
+- result artifact path
+- metric name
+- metric value
+- accepted bounds
+- explicit unit or bounds evidence
+- field path
+
+Default confidence: `confirmed`
+
+Default severity if promoted: `high`
+
+Default CI behavior: can fail default CI
+
+Promotion requirement: unknown metrics and values without explicit scale evidence must not emit findings.
 ### `evaluation.zero_variance_score`
 
 Status: `defer`
@@ -167,31 +189,9 @@ Promotion requirement: define minimum sample count and supported result shapes.
 
 ### `evaluation.unmatched_evaluation_sample_count`
 
-Status: `promote`
+Status: `merge`
 
-Problem: the number of evaluation samples does not match the number of predictions, scores, or result records.
-
-Required evidence:
-
-- evaluation dataset artifact path
-- result artifact path
-- dataset sample count
-- result sample count
-- count source fields or row extraction method
-
-Default confidence: `confirmed` when both counts are directly observable; otherwise `likely`
-
-Default severity if promoted: `high`
-
-Default CI behavior: can fail default CI when confidence is `confirmed` or `likely`
-
-False-positive risks:
-
-- filtered evaluation subsets
-- partial debugging runs
-
-Promotion requirement: emit only when the result artifact claims to correspond to the dataset or references a comparable dataset id, version, or fingerprint.
-
+Reason: count mismatch is implemented as the `evaluation.sample_alignment_mismatch` evidence subtype. It must not become a second rule with overlapping result-to-dataset association logic.
 ## Prompt Integrity Candidates
 
 ### `prompt.unresolved_placeholder`
@@ -459,6 +459,8 @@ These are constrained by [Design Principles](../00-product/design-principles.md)
 - Security candidates are supporting contamination/trust checks, not a separate scanner product.
 - Heuristic candidates must not fail default CI.
 - The first new-rule batch should prioritize objective evidence over coverage breadth.
+- Sample alignment is the canonical evaluation-result correspondence rule; count mismatch is not a separate rule.
+- Explicit metric scale is required before metric bounds findings can be trusted.
 
 ## Open Questions
 

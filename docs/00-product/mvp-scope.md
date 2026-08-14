@@ -1,4 +1,4 @@
-﻿# MVP Scope
+# MVP Scope
 
 ## Question
 
@@ -54,7 +54,7 @@ The scanner includes only contamination-focused and trustworthiness-critical rul
 - Unsafe prompt interpolation that affects evaluation validity.
 - Secret-like or PII-like exposure in evaluation artifacts when it affects artifact trust.
 
-Exact MVP rules are defined in [Contamination Rules](../03-rule-design/contamination-rules.md).
+The current built-in rule set is defined in [Contamination Rules](../03-rule-design/contamination-rules.md). This MVP scope document defines product boundaries; later rule additions must preserve those boundaries.
 
 ## Included Outputs
 

@@ -12,6 +12,9 @@ from evalproof.rules.train_eval_near_duplicate import TrainEvalNearDuplicateRule
 from evalproof.rules.duplicate_eval_near_duplicate import DuplicateEvalNearDuplicateRule
 from evalproof.rules.duplicate_train_sample import DuplicateTrainSampleRule
 from evalproof.rules.duplicate_train_near_duplicate import DuplicateTrainNearDuplicateRule
+from evalproof.rules.sample_alignment_mismatch import SampleAlignmentMismatchRule
+from evalproof.rules.label_inconsistency import LabelInconsistencyRule
+from evalproof.rules.metric_out_of_bounds import MetricOutOfBoundsRule
 
 
 def register_mvp_rules():
@@ -26,6 +29,9 @@ def register_mvp_rules():
     default_registry.register(DuplicateEvalNearDuplicateRule())
     default_registry.register(DuplicateTrainSampleRule())
     default_registry.register(DuplicateTrainNearDuplicateRule())
+    default_registry.register(SampleAlignmentMismatchRule())
+    default_registry.register(LabelInconsistencyRule())
+    default_registry.register(MetricOutOfBoundsRule())
 
 
 register_mvp_rules()

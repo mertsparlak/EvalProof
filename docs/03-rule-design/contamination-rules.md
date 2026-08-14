@@ -1,4 +1,4 @@
-﻿# Contamination Rules
+# Contamination Rules
 
 ## Question
 
@@ -192,7 +192,7 @@ Recommendation: add the missing metadata to the result artifact or regenerate th
 
 ### `contamination.fingerprint_mismatch`
 
-Detects mismatch between referenced prompt or dataset fingerprints and available artifact fingerprints when both sides provide comparable values.
+Detects when a referenced prompt or dataset fingerprint does not match any available comparable artifact.
 
 Default severity: `high`
 
@@ -200,17 +200,94 @@ Default confidence: `confirmed`
 
 Required evidence:
 
-- result or config artifact path
+- result artifact path
 - referenced fingerprint
-- computed or declared artifact fingerprint
-- related artifact path
+- candidate artifact paths
+- artifact type
 
-Artifact fingerprint computation is defined in [Project Index](../02-architecture/project-index.md). This rule must not emit a finding when either side lacks a comparable fingerprint.
+A matching artifact is determined by the computed fingerprint rules in [Project Index](../02-architecture/project-index.md). Matching artifacts are treated as one content-equivalent group. If no artifact matches, this rule emits one result-centered finding. It must not emit one mismatch finding per unrelated candidate artifact.
 
 Impact: the result may not correspond to the available prompt or dataset artifact.
 
 Recommendation: update references, restore the correct artifact version, or regenerate the result.
 
+### `evaluation.sample_alignment_mismatch`
+
+Detects count or explicit sample-ID mismatches between an evaluation result and its fingerprint-matched evaluation or benchmark dataset.
+
+Default severity: `high`
+
+Default confidence: `confirmed`
+
+Required evidence:
+
+- result artifact path
+- matched dataset artifact path
+- matched dataset artifact paths
+- dataset fingerprint
+- dataset and result counts
+- mismatch types
+- limited missing, unexpected, or duplicate IDs when available
+
+Applicability:
+
+- the result must reference a dataset fingerprint matching one or more evaluation or benchmark artifacts
+- both artifacts must expose observable row collections
+- sample ID comparison runs only when every row on both sides exposes an ID alias
+- positional row matching and order differences are not findings
+
+MVP sample ID aliases are `id`, `sample_id`, `example_id`, `record_id`, and `case_id`.
+
+Impact: reported metrics may have been computed over a different or incomplete set of evaluation samples.
+
+Recommendation: regenerate the result with the fingerprint-matched dataset and preserve stable sample IDs.
+
+### `dataset.label_inconsistency`
+
+Detects different target values assigned to the same normalized evaluation or benchmark input and context.
+
+Default severity: `high`
+
+Default confidence: `confirmed`
+
+Required evidence:
+
+- artifact paths
+- normalized input hash
+- input field
+- target fields
+- conflicting target count
+- hashed target values
+- row locations
+
+Canonical input aliases are `prompt`, `question`, and `input`. Canonical target aliases are the answer aliases defined by [Project Index](../02-architecture/project-index.md). Context-bearing fields are included in the identity when present so examples with different contexts are not incorrectly grouped.
+
+Impact: conflicting targets make benchmark labels ambiguous and reduce confidence in evaluation results.
+
+Recommendation: resolve the annotation conflict or include the missing context that distinguishes the examples.
+
+### `evaluation.metric_out_of_bounds`
+
+Detects known evaluation metrics whose numeric values violate an explicit unit or bounds contract.
+
+Default severity: `high`
+
+Default confidence: `confirmed`
+
+Required evidence:
+
+- result artifact path
+- metric name
+- observed value
+- accepted bounds
+- explicit unit or bounds evidence
+- metric field path
+
+The rule checks only the known metric names and explicit scale records defined by [Project Index](../02-architecture/project-index.md). Unknown metrics and values without a unit or numeric bounds do not produce findings.
+
+Impact: the evaluation result contains a mathematically invalid metric value and cannot be trusted as reported.
+
+Recommendation: correct the metric computation or declare the correct unit and bounds before publishing the result.
 ### `contamination.untrusted_context_interpolation`
 
 Detects prompt templates that appear to insert retrieved or user-provided context without clear delimiters in evaluation-related prompts.

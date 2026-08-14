@@ -1,4 +1,4 @@
-﻿# Project Index
+# Project Index
 
 ## Question
 
@@ -53,6 +53,48 @@ The MVP must use conservative alias mapping only. Accepted aliases:
 
 Nested metadata may be read from top-level objects named `metadata`, `eval`, `evaluation`, or `run`. If a field cannot be mapped through these aliases, it is treated as missing.
 
+## Evaluation Result Rows And Sample IDs
+
+Evaluation result rows use the same row extraction rules as structured dataset artifacts. Result rows are read from a root array or the first matching `examples`, `samples`, `records`, `rows`, `data`, or `items` array.
+
+The canonical sample ID aliases are:
+
+- `id`
+- `sample_id`
+- `example_id`
+- `record_id`
+- `case_id`
+
+A sample alignment rule may compare IDs only when every row on both sides exposes one of these scalar fields. Result order is never treated as identity.
+
+A result is associated with dataset artifacts for alignment only when its `dataset_fingerprint` matches the computed fingerprint of one or more evaluation or benchmark artifacts. If no matching artifact exists, fingerprint mismatch owns the finding and alignment emits nothing.
+
+## Explicit Metric Records
+
+The index extracts metric records only from evaluation result artifacts.
+
+Supported metric names are:
+
+- `accuracy`
+- `accuracy_percent`
+- `exact_match`
+- `f1`
+- `precision`
+- `recall`
+- `bleu`
+- `rouge`
+- `loss`
+- `perplexity`
+- `pass_rate`
+- `success_rate`
+- `win_rate`
+
+A metric is indexable only when it has a numeric value and either:
+
+- a numeric two-element `bounds` or `metric_bounds` field; or
+- a supported `unit` or `metric_unit`: `fraction`, `percent`, or `nonnegative`.
+
+Unit-derived bounds are [0, 1], [0, 100], and [0, +infinity] respectively. Unknown metric names and metrics without explicit scale evidence are ignored.
 ## Normalization
 
 Normalization must be deterministic and conservative.
@@ -193,6 +235,9 @@ MVP limit behavior:
 - Near-duplicate checks use deterministic MinHash + LSH plus exact Jaccard confirmation.
 - The scanner avoids embeddings and model inference.
 - Index data is derived from artifacts, not raw filesystem reads inside rules.
+- Result-to-dataset association requires a matching computed dataset fingerprint.
+- Sample identity is explicit-ID based; positional row matching is not a trust signal.
+- Metric bounds are checked only when the result declares an explicit scale.
 
 ## Open Questions
 

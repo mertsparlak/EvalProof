@@ -217,7 +217,7 @@ artifacts:
         mismatch[0],
         "high",
         "confirmed",
-        {"result_artifact", "referenced_fingerprint", "computed_fingerprint", "related_artifact_path"},
+        {"result_artifact", "referenced_fingerprint", "candidate_artifact_paths", "artifact_type"},
     )
     assert mismatch[0]["locations"][0]["path"] == "results/comparable.json"
 

@@ -1,4 +1,4 @@
-﻿# EvalProof
+# EvalProof
 
 Verify your LLM evaluation artifacts before you trust the results.
 
@@ -58,6 +58,9 @@ Trust and safety checks:
 - `contamination.missing_repro_metadata`
 - `contamination.fingerprint_mismatch`
 - `contamination.untrusted_context_interpolation`
+- `evaluation.sample_alignment_mismatch`
+- `dataset.label_inconsistency`
+- `evaluation.metric_out_of_bounds`
 
 ## Configuration
 
