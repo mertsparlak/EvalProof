@@ -20,7 +20,7 @@ except ImportError:
 from evalproof.artifact import Artifact
 from evalproof.config import Config
 from evalproof.finding import Diagnostic, DiagnosticSeverity, DiagnosticCode, canonical_json_dumps
-from evalproof.similarity import SimilarityIndex, extract_target_similarity_text
+from evalproof.similarity import SimilarityCandidate, SimilarityIndex, extract_target_similarity_text
 
 
 TRIVIAL_LABELS: Set[str] = {"yes", "no", "true", "false"}
@@ -179,6 +179,7 @@ class ProjectIndex:
         self.eval_metadata: Dict[str, Dict[str, Any]] = {}
         self.metric_records: List[MetricRecord] = []
         self.diagnostics: List[Diagnostic] = []
+        self._similarity_candidates_cache: Dict[float, List[SimilarityCandidate]] = {}
 
         # Similarity Index for Near-Duplicate Detection
         sim_cfg = config.similarity
@@ -191,6 +192,7 @@ class ProjectIndex:
 
     def build(self, artifacts: List[Artifact]):
         """Index derived facts across all candidate artifacts."""
+        self._similarity_candidates_cache.clear()
         for art in artifacts:
             self.artifacts_by_path[art.path] = art
             for r in art.roles:
@@ -218,6 +220,15 @@ class ProjectIndex:
 
             # Process artifact content and fingerprints
             self._index_artifact_content(art)
+
+    def get_similarity_candidates(self, threshold: Optional[float] = None) -> List[SimilarityCandidate]:
+        """Return cached near-duplicate candidates for the requested threshold."""
+        resolved_threshold = self.config.similarity.threshold if threshold is None else float(threshold)
+        if resolved_threshold not in self._similarity_candidates_cache:
+            self._similarity_candidates_cache[resolved_threshold] = self.similarity_index.find_all_pairs(
+                threshold=resolved_threshold
+            )
+        return self._similarity_candidates_cache[resolved_threshold]
 
     def _index_artifact_content(self, art: Artifact):
         text = art.read_text()
