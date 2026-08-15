@@ -19,6 +19,7 @@ EXPECTED_RULE_IDS = [
     "evaluation.metric_out_of_bounds",
     "evaluation.sample_alignment_mismatch",
     "prompt.unresolved_placeholder",
+    "rag.empty_referenced_document",
     "rag.unreachable_context_id",
 ]
 

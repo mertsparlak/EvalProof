@@ -138,6 +138,8 @@ They also support these list fields:
 
 RAG document rows support the scalar fields above plus `id`. RAG list fields are not used as corpus identifiers in the MVP.
 
+For referenced-document integrity, RAG rows may expose content through the scalar fields `text`, `content`, `document`, `body`, `chunk`, or `page_content`. Nested content and free-text document IDs are not used.
+
 Context identifiers are trimmed, remain case-sensitive, and accept only non-empty strings or finite numeric scalar values. Booleans, nested objects, nested metadata, filenames, and free-text matches are ignored. The generic `id` field is a RAG document identifier only; an evaluation row's `id` remains a sample identifier.
 
 Each extracted reference also has a stable SHA-256 hash for evidence that must not expose the raw identifier.

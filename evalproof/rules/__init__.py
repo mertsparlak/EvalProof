@@ -19,6 +19,7 @@ from evalproof.rules.unreachable_context_id import UnreachableContextIdRule
 from evalproof.rules.unresolved_placeholder import UnresolvedPlaceholderRule
 from evalproof.rules.sample_id_collision import SampleIdCollisionRule
 from evalproof.rules.empty_evaluation_input import EmptyEvaluationInputRule
+from evalproof.rules.empty_referenced_document import EmptyReferencedDocumentRule
 
 
 def register_mvp_rules():
@@ -40,6 +41,7 @@ def register_mvp_rules():
     default_registry.register(UnresolvedPlaceholderRule())
     default_registry.register(SampleIdCollisionRule())
     default_registry.register(EmptyEvaluationInputRule())
+    default_registry.register(EmptyReferencedDocumentRule())
 
 
 register_mvp_rules()
