@@ -254,7 +254,7 @@ artifacts:
     sensitive_findings = findings_by_rule(report, "contamination.sensitive_value_exposure")
     assert len(sensitive_findings) == 1
     assert sensitive_findings[0]["evidence"]["detector_type"] == "email"
-    assert_rule_contract(sensitive_findings[0], "medium", "heuristic", {"artifact_path", "line_number", "detector_type", "redacted_value"})
+    assert_rule_contract(sensitive_findings[0], "medium", "heuristic", {"artifact_path", "detector_type", "exposure_count", "distinct_value_count", "sample_locations", "redacted_values", "evidence_truncated"})
     assert "support@example.com" not in json.dumps(sensitive_findings[0])
 
 

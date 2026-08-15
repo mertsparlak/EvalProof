@@ -41,10 +41,15 @@ Default CI behavior: this rule can fail CI under the default `fail_on: high`.
 
 Required evidence:
 
-- training artifact path and row where available
 - evaluation or benchmark artifact path and row where available
+- training artifact path and row where available
 - Jaccard similarity score
 - configured similarity threshold
+- total `overlap_count`
+- bounded `matched_training_records`
+- `evidence_truncated` when related-record evidence exceeds the cap
+
+This rule emits one finding per affected evaluation row. It retains the total match count and includes at most 20 related training records. Snippets are not included in evidence.
 
 Applicability: this rule uses `similarity.focus_roles` and `similarity.focus_fields` to avoid comparing static system instructions when structured chat-like rows are present.
 
@@ -83,10 +88,15 @@ Default CI behavior: this rule must not fail CI under the default `fail_on: high
 
 Required evidence:
 
-- artifact path
-- related row locations where available
-- Jaccard similarity score
+- deterministic `artifact_paths`
+- `near_duplicate_pair_count`
+- `affected_row_count`
+- maximum Jaccard similarity score
 - configured similarity threshold
+- at most 20 deterministic `sample_pairs`
+- `evidence_truncated`
+
+Aggregation: this rule emits one finding per artifact pair, including when both artifacts are the same file. Counts preserve the complete scope; sample pairs are bounded for report size. Snippets are not included in evidence.
 
 Impact: near-duplicate samples can overweight repeated cases and distort metrics.
 
@@ -125,10 +135,15 @@ Default CI behavior: this rule must not fail CI under the default `fail_on: high
 
 Required evidence:
 
-- artifact path
-- related row locations where available
-- Jaccard similarity score
+- deterministic `artifact_paths`
+- `near_duplicate_pair_count`
+- `affected_row_count`
+- maximum Jaccard similarity score
 - configured similarity threshold
+- at most 20 deterministic `sample_pairs`
+- `evidence_truncated`
+
+Aggregation: this rule emits one finding per artifact pair, including when both artifacts are the same file. Counts preserve the complete scope; sample pairs are bounded for report size. Snippets are not included in evidence.
 
 Impact: near-duplicate training rows can increase overfitting and memorization risk.
 
@@ -375,9 +390,14 @@ Default CI behavior: this rule must not fail CI under the MVP default `fail_on: 
 Required evidence:
 
 - artifact path
-- location
 - detector type
-- redacted value or stable hash
+- `exposure_count`
+- `distinct_value_count`
+- at most 20 `sample_locations`
+- at most 20 `redacted_values`
+- `evidence_truncated`
+
+Aggregation: this rule emits one finding per artifact and detector type. Counts preserve the complete number of matches; locations and redacted hashes are bounded to keep reports small. Raw values and snippets are never included.
 
 Applicability: this rule applies only to evaluation artifacts and artifacts directly referenced by evaluation artifacts. It must not become a repository-wide general secret scanner.
 

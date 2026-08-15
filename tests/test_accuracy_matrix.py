@@ -31,11 +31,11 @@ FINDING_KEYS = {
 
 REQUIRED_EVIDENCE_KEYS = {
     "contamination.train_eval_overlap": {"training_artifact", "evaluation_artifact", "normalized_record_hash"},
-    "contamination.train_eval_near_duplicate": {"training_artifact", "evaluation_artifact", "similarity_score", "configured_threshold"},
+    "contamination.train_eval_near_duplicate": {"training_artifact", "evaluation_artifact", "similarity_score", "configured_threshold", "matched_training_records", "evidence_truncated"},
     "contamination.duplicate_eval_sample": {"artifact_path", "duplicate_row_locations", "normalized_record_hash"},
-    "contamination.duplicate_eval_near_duplicate": {"artifact_path", "evaluation_row", "duplicate_row", "similarity_score", "configured_threshold"},
+    "contamination.duplicate_eval_near_duplicate": {"artifact_paths", "near_duplicate_pair_count", "affected_row_count", "max_similarity_score", "configured_threshold", "sample_pairs", "evidence_truncated"},
     "contamination.duplicate_train_sample": {"artifact_path", "duplicate_row_locations", "normalized_record_hash"},
-    "contamination.duplicate_train_near_duplicate": {"artifact_path", "training_row", "duplicate_row", "similarity_score", "configured_threshold"},
+    "contamination.duplicate_train_near_duplicate": {"artifact_paths", "near_duplicate_pair_count", "affected_row_count", "max_similarity_score", "configured_threshold", "sample_pairs", "evidence_truncated"},
     "contamination.rag_answer_leakage": {"evaluation_artifact", "evaluation_row", "answer_field", "rag_artifact"},
     "contamination.missing_repro_metadata": {"result_artifact", "missing_metadata_fields"},
     "contamination.fingerprint_mismatch": {"result_artifact", "referenced_fingerprint", "candidate_artifact_paths"},
@@ -44,7 +44,7 @@ REQUIRED_EVIDENCE_KEYS = {
     "evaluation.metric_out_of_bounds": {"result_artifact", "metric_name", "observed_value", "accepted_bounds", "field_path"},
     "rag.unreachable_context_id": {"evaluation_artifact", "evaluation_row", "missing_reference_count", "rag_artifact_paths", "searched_id_fields"},
     "contamination.untrusted_context_interpolation": {"prompt_artifact", "variable_name", "line_number"},
-    "contamination.sensitive_value_exposure": {"artifact_path", "line_number", "detector_type", "redacted_value"},
+    "contamination.sensitive_value_exposure": {"artifact_path", "detector_type", "exposure_count", "distinct_value_count", "sample_locations", "redacted_values", "evidence_truncated"},
     "prompt.unresolved_placeholder": {"artifact_path", "row", "field", "input_hash", "syntax_classes", "detected_count"},
     "dataset.sample_id_collision": {"artifact_path", "sample_id_fields", "sample_id_hash", "row_locations"},
     "dataset.empty_evaluation_input": {"artifact_path", "affected_count", "input_fields", "row_locations", "row_hashes"},

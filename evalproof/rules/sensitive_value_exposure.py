@@ -1,12 +1,12 @@
 """Rule: contamination.sensitive_value_exposure"""
 
-hashlib = __import__("hashlib")
+import hashlib
 import re
-from typing import List, Set, Tuple
+from typing import Any, Dict, List
 
-from evalproof.finding import Finding, Location, Severity, Confidence
+from evalproof.finding import Confidence, Finding, Location, Severity
 from evalproof.rule_engine import Rule, ScanContext
-
+from evalproof.rules._evidence import cap_evidence_items
 
 EMAIL_REGEX = re.compile(r"\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b")
 PHONE_REGEX = re.compile(r"\b(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b")
@@ -47,109 +47,60 @@ class SensitiveValueExposureRule(Rule):
     def evaluate(self, ctx: ScanContext) -> List[Finding]:
         findings: List[Finding] = []
         eval_roles = set(self.artifact_roles)
-
         target_arts = [a for a in ctx.artifacts.values() if any(r in eval_roles for r in a.roles)]
 
-        for art in target_arts:
-            text = art.read_text()
-            lines = text.splitlines()
+        for art in sorted(target_arts, key=lambda item: item.path):
+            matches: Dict[str, Dict[str, Any]] = {}
 
-            for line_idx, line in enumerate(lines, start=1):
-                # 1. Private key
+            def add_match(detector_type: str, line_number: int, value: str) -> None:
+                group = matches.setdefault(detector_type, {"count": 0, "lines": set(), "redacted": set()})
+                group["count"] += 1
+                group["lines"].add(line_number)
+                group["redacted"].add(redact_value(detector_type, value))
+
+            for line_idx, line in enumerate(art.read_text().splitlines(), start=1):
                 if PRIVATE_KEY_MARKER in line:
-                    redacted = redact_value("private_key", PRIVATE_KEY_MARKER)
-                    loc = Location(role="primary", path=art.path, line=line_idx)
-                    findings.append(
-                        Finding(
-                            rule_id=self.id,
-                            severity=self.default_severity,
-                            confidence=Confidence.HEURISTIC.value,
-                            title=self.title,
-                            message=f"Private key detected at line {line_idx} in evaluation artifact '{art.path}'.",
-                            impact="Sensitive data can make evaluation artifacts unsafe to share, store, or use in CI.",
-                            recommendation="Remove or redact the value and replace it with a safe fixture.",
-                            locations=[loc],
-                            evidence={
-                                "artifact_path": art.path,
-                                "line_number": line_idx,
-                                "detector_type": "private_key",
-                                "redacted_value": redacted,
-                            },
-                        )
-                    )
-
-                # 2. API key / Secret / Token
+                    add_match("private_key", line_idx, PRIVATE_KEY_MARKER)
                 for match in API_KEY_REGEX.finditer(line):
-                    secret_val = match.group(1)
-                    redacted = redact_value("api_key", secret_val)
-                    loc = Location(role="primary", path=art.path, line=line_idx)
-                    findings.append(
-                        Finding(
-                            rule_id=self.id,
-                            severity=self.default_severity,
-                            confidence=Confidence.HEURISTIC.value,
-                            title=self.title,
-                            message=f"API key or secret-like value detected at line {line_idx} in evaluation artifact '{art.path}'.",
-                            impact="Sensitive data can make evaluation artifacts unsafe to share, store, or use in CI.",
-                            recommendation="Remove or redact the value and replace it with a safe fixture.",
-                            locations=[loc],
-                            evidence={
-                                "artifact_path": art.path,
-                                "line_number": line_idx,
-                                "detector_type": "api_key",
-                                "redacted_value": redacted,
-                            },
-                        )
-                    )
-
-                # 3. Email
+                    add_match("api_key", line_idx, match.group(1))
                 for match in EMAIL_REGEX.finditer(line):
-                    email_val = match.group(0)
-                    redacted = redact_value("email", email_val)
-                    loc = Location(role="primary", path=art.path, line=line_idx)
-                    findings.append(
-                        Finding(
-                            rule_id=self.id,
-                            severity=self.default_severity,
-                            confidence=Confidence.HEURISTIC.value,
-                            title=self.title,
-                            message=f"Email address detected at line {line_idx} in evaluation artifact '{art.path}'.",
-                            impact="Sensitive data can make evaluation artifacts unsafe to share, store, or use in CI.",
-                            recommendation="Remove or redact the value and replace it with a safe fixture.",
-                            locations=[loc],
-                            evidence={
-                                "artifact_path": art.path,
-                                "line_number": line_idx,
-                                "detector_type": "email",
-                                "redacted_value": redacted,
-                            },
-                        )
-                    )
-
-                # 4. Phone
+                    add_match("email", line_idx, match.group(0))
                 for match in PHONE_REGEX.finditer(line):
                     phone_val = match.group(0)
-                    digits = re.sub(r"\D", "", phone_val)
-                    if len(digits) >= 10:
-                        redacted = redact_value("phone", phone_val)
-                        loc = Location(role="primary", path=art.path, line=line_idx)
-                        findings.append(
-                            Finding(
-                                rule_id=self.id,
-                                severity=self.default_severity,
-                                confidence=Confidence.HEURISTIC.value,
-                                title=self.title,
-                                message=f"Phone-like number detected at line {line_idx} in evaluation artifact '{art.path}'.",
-                                impact="Sensitive data can make evaluation artifacts unsafe to share, store, or use in CI.",
-                                recommendation="Remove or redact the value and replace it with a safe fixture.",
-                                locations=[loc],
-                                evidence={
-                                    "artifact_path": art.path,
-                                    "line_number": line_idx,
-                                    "detector_type": "phone",
-                                    "redacted_value": redacted,
-                                },
-                            )
-                        )
+                    if len(re.sub(r"\D", "", phone_val)) >= 10:
+                        add_match("phone", line_idx, phone_val)
+
+            for detector_type in sorted(matches):
+                group = matches[detector_type]
+                all_locations = [{"line": line} for line in sorted(group["lines"])]
+                all_redacted = sorted(group["redacted"])
+                sample_locations, locations_truncated = cap_evidence_items(all_locations)
+                redacted_values, values_truncated = cap_evidence_items(all_redacted)
+                evidence_truncated = locations_truncated or values_truncated
+                first_line = all_locations[0]["line"]
+                findings.append(
+                    Finding(
+                        rule_id=self.id,
+                        severity=self.default_severity,
+                        confidence=Confidence.HEURISTIC.value,
+                        title=self.title,
+                        message=(
+                            f"{group['count']} {detector_type} exposure(s) detected in "
+                            f"evaluation artifact '{art.path}'."
+                        ),
+                        impact="Sensitive data can make evaluation artifacts unsafe to share, store, or use in CI.",
+                        recommendation="Remove or redact the values and replace them with safe fixtures.",
+                        locations=[Location(role="primary", path=art.path, line=first_line)],
+                        evidence={
+                            "artifact_path": art.path,
+                            "detector_type": detector_type,
+                            "exposure_count": group["count"],
+                            "distinct_value_count": len(all_redacted),
+                            "sample_locations": sample_locations,
+                            "redacted_values": redacted_values,
+                            "evidence_truncated": evidence_truncated,
+                        },
+                    )
+                )
 
         return findings

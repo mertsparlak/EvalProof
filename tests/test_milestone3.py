@@ -250,5 +250,5 @@ def test_rule_sensitive_value_exposure():
         assert len(sens_findings) >= 2
         # Verify evidence redaction format <type>:sha256:...
         for f in sens_findings:
-            assert f.evidence["redacted_value"].startswith("<")
-            assert ":sha256:" in f.evidence["redacted_value"]
+            assert all(value.startswith("<") for value in f.evidence["redacted_values"])
+            assert all(":sha256:" in value for value in f.evidence["redacted_values"])

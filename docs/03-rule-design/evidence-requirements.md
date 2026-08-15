@@ -32,6 +32,16 @@ Evidence must not include:
 
 If a rule detects secret-like or PII-like content, evidence should include redacted values or stable hashes, not the full sensitive value.
 
+## Evidence Volume And Aggregation
+
+Rules that can match many records must preserve complete counts while bounding repeated evidence. The shared maximum for related evidence is 20 items.
+
+- `sample_pairs`, `matched_training_records`, `sample_locations`, and `redacted_values` must be deterministic.
+- When more than 20 items exist, the rule keeps the first 20 after deterministic sorting and sets `evidence_truncated` to `true`.
+- Counts such as `near_duplicate_pair_count`, `overlap_count`, and `exposure_count` describe the complete observed set, not only the samples included in evidence.
+- Aggregated findings must state their grouping scope in the rule contract. Bounding evidence must not silently discard the total count.
+- Raw record snippets are not used as a substitute for bounded, verifiable locations and hashes.
+
 ## Confidence Mapping
 
 Use `confirmed` when deterministic evidence directly proves the issue.
