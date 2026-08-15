@@ -1,0 +1,1 @@
+Plain text artifact used to verify deterministic indexing coverage.

@@ -1,0 +1,107 @@
+version: 1
+
+cases:
+  contaminated:
+    path: ../contaminated_project
+  trust_chain:
+    path: ../trust_chain_project
+  identity_rag:
+    path: identity_rag_project
+  heuristic:
+    path: heuristic_project
+  near_duplicate:
+    path: near_duplicate_project
+  clean:
+    path: clean_project
+  formats:
+    path: format_project
+
+rules:
+  contamination.train_eval_overlap:
+    confidence: confirmed
+    positive: contaminated
+    negative: clean
+    abstention: clean
+  contamination.train_eval_near_duplicate:
+    confidence: likely
+    positive: contaminated
+    negative: clean
+  contamination.duplicate_eval_sample:
+    confidence: confirmed
+    positive: contaminated
+    negative: clean
+    abstention: clean
+  contamination.duplicate_eval_near_duplicate:
+    confidence: likely
+    positive: near_duplicate
+    negative: clean
+  contamination.duplicate_train_sample:
+    confidence: confirmed
+    positive: contaminated
+    negative: clean
+    abstention: clean
+  contamination.duplicate_train_near_duplicate:
+    confidence: likely
+    positive: near_duplicate
+    negative: clean
+  contamination.rag_answer_leakage:
+    confidence: likely
+    positive: contaminated
+    negative: clean
+  contamination.missing_repro_metadata:
+    confidence: confirmed
+    positive: contaminated
+    negative: clean
+    abstention: clean
+  contamination.fingerprint_mismatch:
+    confidence: confirmed
+    positive: contaminated
+    negative: clean
+    abstention: clean
+  evaluation.sample_alignment_mismatch:
+    confidence: confirmed
+    positive: trust_chain
+    negative: clean
+    abstention: clean
+  dataset.label_inconsistency:
+    confidence: confirmed
+    positive: trust_chain
+    negative: clean
+    abstention: clean
+  evaluation.metric_out_of_bounds:
+    confidence: confirmed
+    positive: trust_chain
+    negative: clean
+    abstention: clean
+  rag.unreachable_context_id:
+    confidence: confirmed
+    positive: identity_rag
+    negative: clean
+    abstention: clean
+  contamination.untrusted_context_interpolation:
+    confidence: heuristic
+    positive: heuristic
+    negative: clean
+  contamination.sensitive_value_exposure:
+    confidence: heuristic
+    positive: contaminated
+    negative: clean
+  prompt.unresolved_placeholder:
+    confidence: heuristic
+    positive: heuristic
+    negative: clean
+  dataset.sample_id_collision:
+    confidence: confirmed
+    positive: identity_rag
+    negative: clean
+    abstention: clean
+  dataset.empty_evaluation_input:
+    confidence: confirmed
+    positive: identity_rag
+    negative: clean
+    abstention: clean
+  rag.empty_referenced_document:
+    confidence: confirmed
+    positive: identity_rag
+    negative: clean
+    abstention: clean

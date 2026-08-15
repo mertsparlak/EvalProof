@@ -1,0 +1,15 @@
+artifacts:
+  - path: data.json
+    roles: [evaluation_dataset]
+  - path: data.jsonl
+    roles: [evaluation_dataset]
+  - path: data.csv
+    roles: [evaluation_dataset]
+  - path: data.yaml
+    roles: [evaluation_dataset]
+  - path: data.toml
+    roles: [evaluation_dataset]
+  - path: prompt.md
+    roles: [prompt_template]
+  - path: notes.txt
+    roles: [prompt_template]

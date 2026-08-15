@@ -1,0 +1,7 @@
+similarity:
+  enabled: false
+artifacts:
+  - path: eval.jsonl
+    roles: [evaluation_dataset]
+  - path: rag.jsonl
+    roles: [rag_document]

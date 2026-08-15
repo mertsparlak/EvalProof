@@ -54,6 +54,16 @@ Bad:
 
 > Improve your data quality.
 
+## Rule Validation Coverage
+
+Every built-in rule must have test coverage for:
+
+- at least one positive artifact that should emit the rule
+- at least one negative boundary artifact that should not emit the rule
+- an abstention or ambiguity artifact for confirmed rules when applicability evidence is absent or intent is not objectively knowable
+
+The coverage tests must assert the standardized finding fields, rule-specific evidence presence, confidence class, deterministic fingerprints, and sensitive-value redaction. This is a test requirement for maintaining the rule set; it does not add runtime report fields or change the finding schema.
+
 ## Design Decisions
 
 - Evidence is mandatory for every finding.
