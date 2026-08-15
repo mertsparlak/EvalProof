@@ -51,6 +51,8 @@ class TrainEvalOverlapRule(Rule):
                 # Group overlap by train_path and eval_path
                 for train_path, train_row in train_locs:
                     for eval_path, eval_row in eval_locs:
+                        if train_path == eval_path:
+                            continue
                         loc_source = Location(role="source", path=train_path, row=train_row)
                         loc_target = Location(role="target", path=eval_path, row=eval_row)
 

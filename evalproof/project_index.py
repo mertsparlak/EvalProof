@@ -280,6 +280,88 @@ class ProjectIndex:
             )
         return self._similarity_candidates_cache[resolved_threshold]
 
+    def get_artifact_coverage(self, active_rules: List[Any]) -> List[Dict[str, Any]]:
+        """Return deterministic, report-safe coverage metadata for indexed artifacts."""
+        coverage: List[Dict[str, Any]] = []
+        diagnostics_by_path: Dict[str, List[Diagnostic]] = {}
+        for diagnostic in self.diagnostics:
+            if diagnostic.path:
+                diagnostics_by_path.setdefault(diagnostic.path, []).append(diagnostic)
+
+        for path in sorted(self.artifacts_by_path):
+            artifact = self.artifacts_by_path[path]
+            path_diagnostics = []
+            seen_diagnostic_ids: Set[int] = set()
+            for diagnostic in diagnostics_by_path.get(path, []) + list(artifact.diagnostics):
+                if id(diagnostic) in seen_diagnostic_ids:
+                    continue
+                seen_diagnostic_ids.add(id(diagnostic))
+                path_diagnostics.append(diagnostic)
+            diagnostic_codes = sorted({diagnostic.code for diagnostic in path_diagnostics})
+            rejected_rows = sum(
+                1
+                for diagnostic in path_diagnostics
+                if diagnostic.code == DiagnosticCode.ARTIFACT_ROW_PARSE_FAILED.value
+            )
+            truncated = any(
+                diagnostic.code == DiagnosticCode.ARTIFACT_ROW_LIMIT_REACHED.value
+                for diagnostic in path_diagnostics
+            )
+            has_file_size_limit = any(
+                diagnostic.code == DiagnosticCode.ARTIFACT_FILE_SIZE_LIMIT_EXCEEDED.value
+                for diagnostic in path_diagnostics
+            )
+            has_parse_failure = any(
+                diagnostic.code == DiagnosticCode.ARTIFACT_PARSE_FAILED.value
+                for diagnostic in path_diagnostics
+            )
+            has_row_partial = rejected_rows > 0 or truncated
+            fingerprint = self.artifact_fingerprints.get(path)
+            rows_indexed = len(self.rows_by_artifact[path]) if path in self.rows_by_artifact else None
+
+            if has_file_size_limit or (has_parse_failure and fingerprint is None) or fingerprint is None:
+                index_status = "skipped"
+                reasons = []
+                if has_file_size_limit:
+                    reasons.append("file_size_limit")
+                if has_parse_failure:
+                    reasons.append("parse_failed")
+                if not reasons:
+                    reasons.append("no_indexable_content")
+            elif has_row_partial:
+                index_status = "partial"
+                reasons = []
+                if rejected_rows > 0:
+                    reasons.append("row_parse_failures")
+                if truncated:
+                    reasons.append("row_limit")
+            else:
+                index_status = "indexed"
+                reasons = ["complete"]
+
+            role_matched_rule_ids = sorted(
+                rule.id
+                for rule in active_rules
+                if set(rule.artifact_roles).intersection(artifact.roles)
+            )
+            coverage.append(
+                {
+                    "path": path,
+                    "format": artifact.format,
+                    "roles": sorted(artifact.roles),
+                    "role_source": artifact.role_source,
+                    "index_status": index_status,
+                    "index_reasons": reasons,
+                    "rows_indexed": rows_indexed,
+                    "rows_rejected": rejected_rows,
+                    "truncated": truncated,
+                    "fingerprint": fingerprint,
+                    "diagnostic_codes": diagnostic_codes,
+                    "role_matched_rule_ids": role_matched_rule_ids,
+                }
+            )
+        return coverage
+
     def _index_artifact_content(self, art: Artifact):
         text = art.read_text()
 

@@ -51,6 +51,8 @@ evalproof scan . --rules contamination.train_eval_overlap,prompt.unresolved_plac
 
 Without `--rules`, all registered rules run except rules disabled in `evalproof.yaml`. Rule selection is recorded in the JSON report.
 
+The JSON report also records which artifacts were indexed, which roles came from configuration or heuristics, and whether any artifact was only partially indexed.
+
 ## What It Detects
 
 Exact contamination:

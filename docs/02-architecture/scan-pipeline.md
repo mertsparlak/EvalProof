@@ -17,9 +17,10 @@ An MVP scan must execute in this order:
 7. Execute enabled rules.
 8. Apply severity overrides.
 9. Collect findings and scan diagnostics.
-10. Sort findings deterministically.
-11. Render reports.
-12. Return exit code.
+10. Build deterministic artifact coverage metadata.
+11. Sort findings deterministically.
+12. Render reports.
+13. Return exit code.
 
 ## Discovery
 
@@ -38,6 +39,8 @@ Detection must preserve malformed artifact information when possible.
 The project index is built after artifact detection and before rule execution.
 
 Indexing provides shared cross-artifact data needed by contamination rules. Its responsibilities are defined in [Project Index](project-index.md).
+
+Indexing also records artifact coverage status, row counts, fingerprints, role source, and artifact-scoped diagnostics for the JSON report.
 
 ## Rule Execution
 

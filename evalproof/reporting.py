@@ -48,6 +48,7 @@ def generate_json_report(
     completed_at: str,
     rule_mode: str = "all",
     active_rule_ids: Optional[List[str]] = None,
+    artifact_coverage: Optional[List[Dict[str, Any]]] = None,
 ) -> Dict[str, Any]:
     """Generate machine-readable JSON report structure matching json-report.md v1.0."""
     sorted_findings = sort_findings_deterministically(findings)
@@ -78,6 +79,7 @@ def generate_json_report(
                 "mode": rule_mode,
                 "ids": sorted(active_rule_ids or []),
             },
+            "artifacts": artifact_coverage or [],
         },
         "summary": {
             "artifacts_scanned": artifacts_scanned,
@@ -107,6 +109,7 @@ def render_terminal_summary(
     no_color: bool = False,
     rule_mode: str = "all",
     active_rule_ids: Optional[List[str]] = None,
+    artifact_coverage: Optional[List[Dict[str, Any]]] = None,
 ) -> str:
     """Render human-readable terminal summary for local and CI usage."""
     sorted_findings = sort_findings_deterministically(findings)
@@ -129,6 +132,18 @@ def render_terminal_summary(
         f"Findings: {len(sorted_findings)} total | critical={counts['critical']} high={counts['high']} medium={counts['medium']} low={counts['low']}",
         f"Diagnostics: {len(sorted_diagnostics)}",
     ]
+
+    coverage = artifact_coverage or []
+    indexed = sum(item.get("index_status") == "indexed" for item in coverage)
+    partial = sum(item.get("index_status") == "partial" for item in coverage)
+    skipped = sum(item.get("index_status") == "skipped" for item in coverage)
+    role_conflicts = sum(
+        "artifact.role_conflict" in item.get("diagnostic_codes", [])
+        for item in coverage
+    )
+    lines.append(
+        f"Coverage: indexed={indexed} partial={partial} skipped={skipped} role_conflicts={role_conflicts}"
+    )
 
     if output_json_path:
         lines.append(f"JSON report: {output_json_path}")

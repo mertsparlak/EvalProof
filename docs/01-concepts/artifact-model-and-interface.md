@@ -18,6 +18,7 @@ Every artifact must expose:
 - `path`: repository-relative path.
 - `format`: detected file format.
 - `roles`: zero or more artifact roles.
+- `role_source`: `config` or `heuristic`.
 - `metadata`: structured metadata discovered during detection.
 - `content`: access handle for text, rows, or structured data.
 
@@ -70,6 +71,8 @@ Allowed MVP roles:
 - `unknown`
 
 An artifact may have multiple roles. Configuration overrides take precedence over heuristic role detection.
+
+`role_source` is `config` when roles came from an explicit artifact override. It is `heuristic` when roles came from path and filename detection, including the `unknown` fallback.
 
 ## Role Detection Heuristics
 
@@ -125,6 +128,8 @@ Heuristic detection uses lowercase repository-relative POSIX paths.
 - supported format is JSON, YAML, or TOML
 
 An artifact may receive multiple heuristic roles if multiple rules match. For example, `eval/results/baseline.json` may be both `evaluation_dataset` and `evaluation_result`; rules decide applicability from artifact role and readable content.
+
+If heuristic detection assigns `training_dataset` together with `evaluation_dataset` or `benchmark_dataset`, core emits an `artifact.role_conflict` warning diagnostic. The artifact remains available to rules, but cross-split rules must never compare the same artifact path with itself. Explicit multi-role configuration is treated as intentional and does not emit this diagnostic.
 
 ## Content Access
 
