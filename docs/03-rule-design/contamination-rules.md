@@ -428,6 +428,76 @@ Impact: an evaluation may use an unresolved template value instead of the intend
 
 Recommendation: render the evaluation input before scanning and verify that template variables are populated.
 
+### `dataset.sample_id_collision`
+
+Detects one explicit sample ID assigned to multiple rows within the same evaluation or benchmark artifact.
+
+Default severity: `high`
+
+Default confidence: `confirmed`
+
+Default CI behavior: this rule can fail CI under the default `fail_on: high`.
+
+Applicability:
+
+- `evaluation_dataset` and `benchmark_dataset` artifacts only
+- the artifact must expose scalar values through the sample ID aliases defined in [Project Index](../02-architecture/project-index.md)
+- IDs are trimmed and case-sensitive
+- comparisons are scoped to one artifact; IDs from separate artifacts are not assumed to share a namespace
+- booleans and empty values are ignored
+
+Required evidence:
+
+- artifact path
+- sample ID field names
+- stable sample ID hash
+- row locations
+- row hashes
+- duplicate count
+- distinct content count
+
+Raw sample IDs and row contents must not be written to evidence, messages, or recommendations.
+
+Impact: duplicate identities make sample-level results ambiguous and can duplicate or overwrite evaluation results.
+
+Recommendation: assign one stable, unique sample ID to each evaluation row and regenerate dependent result artifacts.
+
+### `dataset.empty_evaluation_input`
+
+Detects evaluation or benchmark rows where all present canonical input fields are explicitly empty.
+
+Default severity: `high`
+
+Default confidence: `confirmed`
+
+Default CI behavior: this rule can fail CI under the default `fail_on: high`.
+
+Applicability:
+
+- `evaluation_dataset` and `benchmark_dataset` artifacts only
+- canonical fields are `prompt`, `question`, and `input`
+- at least one canonical field must be present
+- all present canonical fields must be `null`, empty, or whitespace-only strings
+- rows containing a `messages` field are excluded because message-list schemas are outside this rule's contract
+- unsupported input value types and rows without canonical input fields are ignored
+
+The rule emits one finding per artifact and includes at most 20 row locations in evidence. The total affected row count is always included.
+
+Required evidence:
+
+- artifact path
+- affected row count
+- input field names
+- limited row locations
+- row hashes
+- whether evidence locations were truncated
+
+Raw input values must not be written to evidence, messages, or recommendations.
+
+Impact: empty evaluation inputs do not exercise the intended model behavior and can make reported metrics untrustworthy.
+
+Recommendation: populate each evaluation row with a non-empty canonical input or use an explicitly supported message-based schema.
+
 ## Design Decisions
 
 - The rule set is intentionally focused on evaluation trust.

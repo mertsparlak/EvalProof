@@ -8,15 +8,13 @@ from evalproof.finding import Confidence, Finding, Location, Severity
 from evalproof.project_index import (
     ANSWER_FIELD_ALIASES,
     CONTEXT_FIELD_ALIASES,
+    INPUT_FIELD_ALIASES,
     canonical_json_dumps,
     extract_scalar_field,
     normalize_plain_text,
     normalize_row_data,
 )
 from evalproof.rule_engine import Rule, ScanContext
-
-
-INPUT_FIELD_ALIASES = ["prompt", "question", "input"]
 
 
 class LabelInconsistencyRule(Rule):
