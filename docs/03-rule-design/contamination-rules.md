@@ -555,6 +555,46 @@ Impact: empty evaluation inputs do not exercise the intended model behavior and 
 
 Recommendation: populate each evaluation row with a non-empty canonical input or use an explicitly supported message-based schema.
 
+### `rag.duplicate_chunk_in_corpus`
+
+Detects normalized exact duplicate chunk or document records in a RAG corpus when the scan contains an evaluation or benchmark artifact.
+
+Default severity: `medium`
+
+Default confidence: `confirmed`
+
+Default CI behavior: this rule does not fail CI under the default `fail_on: high`.
+
+Applicability:
+
+- RAG artifacts must have the `rag_document` role
+- configuration artifacts are not treated as evaluation datasets
+- supported scalar content fields are `text`, `content`, `document`, `body`, `chunk`, and `page_content`
+- only non-empty string values in top-level content fields are considered
+- the first supported non-empty content field in alias order is used for each row
+- normalization trims text, normalizes line endings, and collapses consecutive whitespace; comparison remains case-sensitive
+- nested metadata, non-string values, and free-text files are ignored
+- near-duplicate and fuzzy matching are not performed
+- artifacts with parse, row-limit, or file-size diagnostics are ignored to avoid incomplete comparisons
+
+The rule emits one finding per normalized exact content group with at least two rows. Duplicate groups may occur within one RAG artifact or across multiple RAG artifacts.
+
+Required evidence:
+
+- RAG artifact paths
+- observed content field names
+- stable normalized content hash
+- duplicate row count and artifact count
+- bounded row locations including field names
+- bounded row hashes
+- whether evidence was truncated
+
+Raw chunk content, document IDs, and row values must not be written to evidence, messages, or recommendations.
+
+Impact: duplicate retrieval content can overweight the same evidence and distort retrieval-grounded evaluation.
+
+Recommendation: deduplicate the RAG corpus records and regenerate the index before evaluating retrieval behavior.
+
 ### `rag.empty_or_corrupted_document`
 
 Detects empty RAG artifacts or explicitly empty RAG records when the scan contains an evaluation or benchmark artifact.

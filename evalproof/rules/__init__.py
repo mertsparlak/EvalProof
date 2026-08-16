@@ -22,6 +22,7 @@ from evalproof.rules.empty_evaluation_input import EmptyEvaluationInputRule
 from evalproof.rules.empty_referenced_document import EmptyReferencedDocumentRule
 from evalproof.rules.partial_sample_id_coverage import PartialSampleIdCoverageRule
 from evalproof.rules.empty_or_corrupted_document import EmptyOrCorruptedDocumentRule
+from evalproof.rules.duplicate_chunk_in_corpus import DuplicateChunkInCorpusRule
 
 
 def register_mvp_rules():
@@ -46,6 +47,7 @@ def register_mvp_rules():
     default_registry.register(EmptyReferencedDocumentRule())
     default_registry.register(PartialSampleIdCoverageRule())
     default_registry.register(EmptyOrCorruptedDocumentRule())
+    default_registry.register(DuplicateChunkInCorpusRule())
 
 
 register_mvp_rules()
