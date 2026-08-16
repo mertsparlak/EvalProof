@@ -3,6 +3,7 @@
 import json
 from typing import Any, Dict, List, Optional
 
+from evalproof import __version__
 from evalproof.finding import Diagnostic, Finding, SEVERITY_RANK, Severity
 
 
@@ -68,7 +69,7 @@ def generate_json_report(
         "schema_version": "1.0",
         "tool": {
             "name": "evalproof",
-            "version": "0.0.0",
+            "version": __version__,
         },
         "scan": {
             "root": scan_root,

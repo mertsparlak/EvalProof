@@ -8,8 +8,16 @@ EvalProof is not an evaluation framework, benchmark runner, prompt optimizer, ob
 
 ## Install
 
+Install from a source checkout:
+
 ```powershell
-pip install -e .
+python -m pip install .
+```
+
+For local development with editable imports:
+
+```powershell
+python -m pip install -e .
 ```
 
 ## First Scan
@@ -133,6 +141,19 @@ similarity:
 ```powershell
 evalproof scan . --json --output evalproof_report.json --fail-on high
 ```
+
+GitHub Actions can use the same installed CLI contract:
+
+```yaml
+- uses: actions/checkout@v4
+- uses: actions/setup-python@v5
+  with:
+    python-version: "3.13"
+- run: python -m pip install .
+- run: evalproof scan . --json --output "$RUNNER_TEMP/evalproof_report.json" --fail-on high
+```
+
+EvalProof does not require a custom GitHub Action. The workflow installs the package and evaluates the CLI exit code.
 
 Exit codes:
 
