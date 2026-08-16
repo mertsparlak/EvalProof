@@ -78,6 +78,7 @@ Trust and safety checks:
 - `dataset.label_inconsistency`
 - `dataset.sample_id_collision`
 - `dataset.empty_evaluation_input`
+- `dataset.partial_sample_id_coverage`
 - `evaluation.metric_out_of_bounds`
 - `rag.unreachable_context_id`
 - `rag.empty_referenced_document`

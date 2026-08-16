@@ -7,6 +7,8 @@ cases:
     path: ../trust_chain_project
   identity_rag:
     path: identity_rag_project
+  partial_id:
+    path: partial_id_project
   heuristic:
     path: heuristic_project
   near_duplicate:
@@ -98,6 +100,11 @@ rules:
   dataset.empty_evaluation_input:
     confidence: confirmed
     positive: identity_rag
+    negative: clean
+    abstention: clean
+  dataset.partial_sample_id_coverage:
+    confidence: confirmed
+    positive: partial_id
     negative: clean
     abstention: clean
   rag.empty_referenced_document:

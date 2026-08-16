@@ -482,6 +482,43 @@ Impact: duplicate identities make sample-level results ambiguous and can duplica
 
 Recommendation: assign one stable, unique sample ID to each evaluation row and regenerate dependent result artifacts.
 
+### `dataset.partial_sample_id_coverage`
+
+Detects evaluation or benchmark artifacts where only some indexed rows have an explicit sample ID.
+
+Default severity: `medium`
+
+Default confidence: `confirmed`
+
+Default CI behavior: this rule does not fail CI under the default `fail_on: high`.
+
+Applicability:
+
+- `evaluation_dataset` and `benchmark_dataset` artifacts only
+- sample IDs are extracted from the scalar aliases defined in [Project Index](../02-architecture/project-index.md)
+- IDs are trimmed and case-sensitive; booleans, empty values, and unsupported value types are ignored
+- the rule is silent when every indexed row has an ID or when no indexed row has an ID
+- the rule is silent when parsing, row limits, or file-size limits make the artifact index incomplete
+
+The rule emits one finding per artifact. Evidence is bounded to 20 missing row locations and row hashes; the total row count, identified count, missing count, and coverage ratio are always included.
+
+Required evidence:
+
+- artifact path
+- total indexed row count
+- identified row count
+- missing ID row count
+- coverage ratio
+- observed sample ID field names
+- bounded missing row locations and row hashes
+- whether evidence was truncated
+
+Raw sample IDs and row contents must not be written to evidence, messages, or recommendations.
+
+Impact: partial sample identity coverage prevents complete row-level alignment between evaluation data and dependent result artifacts.
+
+Recommendation: assign a stable sample ID to every evaluation row and regenerate dependent result artifacts.
+
 ### `dataset.empty_evaluation_input`
 
 Detects evaluation or benchmark rows where all present canonical input fields are explicitly empty.
