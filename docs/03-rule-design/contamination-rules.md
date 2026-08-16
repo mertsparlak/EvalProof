@@ -555,6 +555,45 @@ Impact: empty evaluation inputs do not exercise the intended model behavior and 
 
 Recommendation: populate each evaluation row with a non-empty canonical input or use an explicitly supported message-based schema.
 
+### `rag.empty_or_corrupted_document`
+
+Detects empty RAG artifacts or explicitly empty RAG records when the scan contains an evaluation or benchmark artifact.
+
+Default severity: `medium`
+
+Default confidence: `confirmed`
+
+Default CI behavior: this rule does not fail CI under the default `fail_on: high`.
+
+Applicability:
+
+- RAG artifacts must have the `rag_document` role
+- configuration artifacts are not treated as evaluation datasets
+- a whitespace-only artifact is empty
+- a structured row is empty only when it exposes at least one supported content field and all present values are null, empty, or whitespace-only
+- a whole parse failure or an artifact with only malformed rows is corrupted when no usable rows were indexed
+- row limits, file-size limits, and partial indexes with usable rows are ignored to avoid findings based on incomplete content
+- rows without a supported content field are ignored
+
+The rule emits one finding per RAG artifact. Evidence is bounded to 20 row locations and row hashes.
+
+Required evidence:
+
+- artifact path
+- state: `empty` or `corrupted`
+- empty record count and indexed row count
+- observed trimmed text length
+- observed content field names
+- bounded row locations and row hashes
+- relevant corruption diagnostic codes
+- whether evidence was truncated
+
+Raw document content, context IDs, and row values must not be written to evidence, messages, or recommendations.
+
+Impact: empty or unreadable RAG content can make retrieval-grounded evaluation incomplete or untrustworthy.
+
+Recommendation: remove the empty or corrupted document, restore its content, and regenerate the evaluation corpus.
+
 ### `rag.empty_referenced_document`
 
 Detects evaluation context references that resolve only to empty RAG records.

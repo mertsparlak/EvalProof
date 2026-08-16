@@ -81,6 +81,7 @@ Trust and safety checks:
 - `dataset.partial_sample_id_coverage`
 - `evaluation.metric_out_of_bounds`
 - `rag.unreachable_context_id`
+- `rag.empty_or_corrupted_document`
 - `rag.empty_referenced_document`
 - `prompt.unresolved_placeholder` (heuristic; does not fail default CI)
 

@@ -41,6 +41,7 @@ RULE_CONFIDENCE = {
     "dataset.sample_id_collision": "confirmed",
     "dataset.empty_evaluation_input": "confirmed",
     "dataset.partial_sample_id_coverage": "confirmed",
+    "rag.empty_or_corrupted_document": "confirmed",
     "rag.empty_referenced_document": "confirmed",
 }
 

@@ -107,6 +107,11 @@ rules:
     positive: partial_id
     negative: clean
     abstention: clean
+  rag.empty_or_corrupted_document:
+    confidence: confirmed
+    positive: identity_rag
+    negative: clean
+    abstention: clean
   rag.empty_referenced_document:
     confidence: confirmed
     positive: identity_rag

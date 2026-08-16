@@ -42,8 +42,9 @@ The following dataset rules were promoted in v1.10 or later and are now part of 
 - `dataset.empty_evaluation_input`
 - `dataset.partial_sample_id_coverage` (promoted in v1.14)
 
-The following RAG rule was promoted in v1.11 and is now part of the active contract:
+The following RAG rules were promoted in v1.11 or later and are now part of the active contract:
 
+- `rag.empty_or_corrupted_document` (promoted in v1.15)
 - `rag.empty_referenced_document`
 
 ## Dataset Integrity Candidates
@@ -281,7 +282,9 @@ Promotion requirement: define a narrow detector that avoids judging prompt style
 
 ### `rag.empty_or_corrupted_document`
 
-Status: `promote`
+Status: `implemented`
+
+The candidate is implemented as `rag.empty_or_corrupted_document`. The current finding contract is defined in [Contamination Rules](contamination-rules.md).
 
 Problem: RAG corpus artifacts referenced by evaluation are empty, whitespace-only, or unreadable enough to make retrieval-grounded evaluation untrustworthy.
 
@@ -295,9 +298,9 @@ Default confidence: `confirmed`
 
 Default severity if promoted: `medium`
 
-Default CI behavior: should not fail default CI unless the document is explicitly referenced by evaluation artifacts
+Default CI behavior: must not fail default CI
 
-Relationship to diagnostics: parse failures remain diagnostics; this rule may emit only when the artifact role is RAG corpus and the empty/corrupted document affects evaluation trust.
+Relationship to diagnostics: parse failures remain diagnostics; the implemented rule emits only for RAG artifacts in scans that contain an evaluation or benchmark artifact.
 
 ### `rag.duplicate_chunk_in_corpus`
 

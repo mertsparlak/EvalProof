@@ -21,6 +21,7 @@ from evalproof.rules.sample_id_collision import SampleIdCollisionRule
 from evalproof.rules.empty_evaluation_input import EmptyEvaluationInputRule
 from evalproof.rules.empty_referenced_document import EmptyReferencedDocumentRule
 from evalproof.rules.partial_sample_id_coverage import PartialSampleIdCoverageRule
+from evalproof.rules.empty_or_corrupted_document import EmptyOrCorruptedDocumentRule
 
 
 def register_mvp_rules():
@@ -44,6 +45,7 @@ def register_mvp_rules():
     default_registry.register(EmptyEvaluationInputRule())
     default_registry.register(EmptyReferencedDocumentRule())
     default_registry.register(PartialSampleIdCoverageRule())
+    default_registry.register(EmptyOrCorruptedDocumentRule())
 
 
 register_mvp_rules()
