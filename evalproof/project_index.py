@@ -52,6 +52,7 @@ CONTEXT_FIELD_ALIASES: List[str] = [
     "sources",
     "chunks",
 ]
+SIMILARITY_DISCRIMINATOR_ALIASES: Set[str] = set(CONTEXT_FIELD_ALIASES + ANSWER_FIELD_ALIASES)
 ROW_COLLECTION_KEYS: List[str] = ["examples", "samples", "records", "rows", "data", "items"]
 KNOWN_METRIC_NAMES: Set[str] = {
     "accuracy",
@@ -110,6 +111,27 @@ def compute_row_hash(row_obj: Any) -> str:
     norm_obj = normalize_row_data(row_obj)
     canonical_str = canonical_json_dumps(norm_obj)
     digest = hashlib.sha256(canonical_str.encode("utf-8")).hexdigest()
+    return f"sha256:{digest}"
+
+
+def compute_similarity_discriminator(row_obj: Any) -> Optional[str]:
+    """Hash explicit context/target fields used to disambiguate eval rows."""
+    if not isinstance(row_obj, dict):
+        return None
+
+    discriminator: Dict[str, Any] = {}
+    for key, value in sorted(row_obj.items(), key=lambda item: str(item[0]).lower()):
+        normalized_key = str(key).lower()
+        if normalized_key not in SIMILARITY_DISCRIMINATOR_ALIASES:
+            continue
+        normalized_value = normalize_row_data(value)
+        if normalized_value is None or normalized_value == "" or normalized_value == [] or normalized_value == {}:
+            continue
+        discriminator[normalized_key] = normalized_value
+
+    if not discriminator:
+        return None
+    digest = hashlib.sha256(canonical_json_dumps(discriminator).encode("utf-8")).hexdigest()
     return f"sha256:{digest}"
 
 
@@ -646,6 +668,7 @@ class ProjectIndex:
                 "row_number": row_num,
                 "roles": list(art.roles),
                 "exact_hash": r_hash,
+                "similarity_discriminator": compute_similarity_discriminator(row_data),
             },
         )
 
