@@ -1,51 +1,137 @@
-# EvalProof
+﻿# EvalProof
 
-EvalProof is a local-first static preflight scanner for LLM evaluation artifacts.
+Verify your LLM evaluation artifacts before you trust the results.
 
-Primary promise:
+EvalProof is a local-first static preflight scanner for LLM evaluation artifacts. It detects contamination, duplication, reproducibility gaps, RAG answer leakage, unsafe context interpolation, and sensitive values before teams trust benchmark results or deploy LLM systems.
 
-> Before you trust an LLM evaluation, run EvalProof.
+EvalProof is not an evaluation framework, benchmark runner, prompt optimizer, observability platform, LLMOps platform, or generic security scanner.
 
-This repository currently contains the frozen MVP foundation documentation. It is intended to be sufficient for another coding agent to implement the MVP without making architectural decisions.
+## Install
 
-## Read First
+```powershell
+pip install -e .
+```
 
-1. [Positioning](docs/00-product/positioning.md)
-2. [Non-Goals](docs/00-product/non-goals.md)
-3. [Design Principles](docs/00-product/design-principles.md)
-4. [MVP Scope](docs/00-product/mvp-scope.md)
-5. [Success Criteria](docs/00-product/success-criteria.md)
+## First Scan
 
-## Core Concepts
+```powershell
+evalproof scan .
+```
 
-- [Evaluation Contamination](docs/01-concepts/evaluation-contamination.md)
-- [Finding Model And Schema](docs/01-concepts/finding-model-and-schema.md)
-- [Artifact Model And Interface](docs/01-concepts/artifact-model-and-interface.md)
+Default behavior:
 
-## Architecture
+- scans the target folder
+- prints a terminal summary
+- writes `evalproof_report.json` into the scanned folder
+- exits with `1` if any finding meets or exceeds the configured `fail_on` severity
 
-- [System Overview](docs/02-architecture/system-overview.md)
-- [Scan Pipeline](docs/02-architecture/scan-pipeline.md)
-- [Project Index](docs/02-architecture/project-index.md)
-- [Rule Engine](docs/02-architecture/rule-engine.md)
-- [Configuration And Schema](docs/02-architecture/configuration-and-schema.md)
+Machine-readable output:
 
-## Rule Design
+```powershell
+evalproof scan . --json
+```
 
-- [Evidence Requirements](docs/03-rule-design/evidence-requirements.md)
+Custom report path:
+
+```powershell
+evalproof scan . --json --output reports/evalproof_report.json
+```
+
+## What It Detects
+
+Exact contamination:
+
+- `contamination.train_eval_overlap`
+- `contamination.duplicate_eval_sample`
+- `contamination.duplicate_train_sample`
+
+Near-duplicate contamination:
+
+- `contamination.train_eval_near_duplicate`
+- `contamination.duplicate_eval_near_duplicate`
+- `contamination.duplicate_train_near_duplicate`
+
+Trust and safety checks:
+
+- `contamination.rag_answer_leakage`
+- `contamination.sensitive_value_exposure`
+- `contamination.missing_repro_metadata`
+- `contamination.fingerprint_mismatch`
+- `contamination.untrusted_context_interpolation`
+
+## Configuration
+
+EvalProof works without configuration. Add `evalproof.yaml` at the scan root only when defaults are not enough.
+
+```yaml
+include:
+  - "**/*"
+
+exclude:
+  - ".git/**"
+  - "node_modules/**"
+  - ".venv/**"
+
+artifacts:
+  - path: "data/train.jsonl"
+    roles: ["training_dataset"]
+  - path: "data/eval.jsonl"
+    roles: ["evaluation_dataset"]
+
+rules:
+  disabled:
+    - "contamination.untrusted_context_interpolation"
+  severity:
+    contamination.train_eval_overlap: critical
+
+ci:
+  fail_on: high
+
+limits:
+  max_file_mb: 100
+  max_rows_per_artifact: 250000
+
+similarity:
+  enabled: true
+  shingle_size: 3
+  num_hashes: 64
+  bands: 16
+  threshold: 0.85
+  focus_roles: ["user"]
+  focus_fields: ["prompt", "input", "query", "user", "user_message"]
+```
+
+## CI
+
+```powershell
+evalproof scan . --json --output evalproof_report.json --fail-on high
+```
+
+Exit codes:
+
+- `0`: scan completed and no finding met the failing severity
+- `1`: scan completed and at least one finding met the failing severity
+- `2`: invalid CLI usage
+- `3`: invalid configuration
+- `4`: scan root is unreadable or not found
+- `5`: output path cannot be written
+- `6`: unexpected internal error
+
+## Documentation
+
+Design source of truth:
+
+- [Positioning](docs/00-product/positioning.md)
+- [Non-Goals](docs/00-product/non-goals.md)
+- [Design Principles](docs/00-product/design-principles.md)
+- [MVP Scope](docs/00-product/mvp-scope.md)
 - [Contamination Rules](docs/03-rule-design/contamination-rules.md)
-
-## CLI And Reports
-
+- [Configuration And Schema](docs/02-architecture/configuration-and-schema.md)
 - [CLI Contract And Exit Codes](docs/05-cli-and-reports/cli-contract-and-exit-codes.md)
 - [JSON Report](docs/05-cli-and-reports/json-report.md)
 
-## Implementation Boundary
+## Development
 
-The MVP is not an evaluation framework, benchmark runner, prompt engineering tool, observability platform, LLMOps platform, or generic security scanner.
-
-The MVP is a static rule-driven scanner that detects evidence-backed contamination and trust issues in LLM evaluation artifacts.
-
-## Documentation Status
-
-The MVP documentation structure is frozen. Do not add new foundation documents, modules, features, or scope unless a critical architectural flaw is found.
+```powershell
+python -m pytest -q
+```

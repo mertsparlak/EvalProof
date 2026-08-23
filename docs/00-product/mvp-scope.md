@@ -1,12 +1,12 @@
-# MVP Scope
+﻿# MVP Scope
 
 ## Question
 
-What exactly is included in the MVP?
+What exactly is included in the current local-first scanner scope?
 
-## MVP Definition
+## Scope Definition
 
-The MVP is a local CLI scanner that detects evidence-backed contamination and trust issues in LLM evaluation artifacts and produces deterministic findings as terminal and JSON reports.
+EvalProof is a local CLI scanner that detects evidence-backed contamination and trust issues in LLM evaluation artifacts and produces deterministic findings as terminal and JSON reports.
 
 The MVP command is defined in [CLI Contract And Exit Codes](../05-cli-and-reports/cli-contract-and-exit-codes.md).
 
@@ -40,10 +40,14 @@ Role detection may use filename and directory heuristics, but configuration over
 
 ## Included Rule Families
 
-The MVP includes only contamination-focused and trustworthiness-critical rules:
+The scanner includes only contamination-focused and trustworthiness-critical rules:
 
 - Train/eval contamination.
 - Duplicate evaluation samples.
+- Duplicate training samples.
+- Near-duplicate train/eval contamination.
+- Near-duplicate evaluation samples.
+- Near-duplicate training samples.
 - RAG answer leakage.
 - Missing reproducibility metadata.
 - Prompt or dataset fingerprint mismatch where evidence exists.
@@ -54,11 +58,12 @@ Exact MVP rules are defined in [Contamination Rules](../03-rule-design/contamina
 
 ## Included Outputs
 
-The MVP must produce:
+The scanner must produce:
 
 - A human-readable terminal summary.
 - Deterministic findings in a JSON report.
 - Deterministic exit codes suitable for CI.
+- An automatically saved `evalproof_report.json` in the scanned folder when no explicit output path is provided.
 
 The JSON contract is defined in [JSON Report](../05-cli-and-reports/json-report.md).
 
@@ -68,11 +73,11 @@ Excluded scope is defined in [Non-Goals](non-goals.md). This document does not r
 
 ## Design Decisions
 
-- The MVP is a CLI-first scanner.
+- EvalProof is a CLI-first scanner.
 - JSON output is required because it is the machine-readable contract for CI and future integrations.
 - SARIF is not required for the MVP.
 - External plugins are not required for the MVP.
-- The MVP includes security-sensitive checks only when they directly affect evaluation artifact trust.
+- Security-sensitive checks are included only when they directly affect evaluation artifact trust.
 
 ## Open Questions
 
@@ -90,3 +95,4 @@ None.
 ## Future Considerations
 
 Future versions may add SARIF, baselines, suppressions, dynamic checks, or integrations after the MVP proves the contamination scanner.
+

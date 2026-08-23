@@ -1,4 +1,4 @@
-# CLI Contract And Exit Codes
+﻿# CLI Contract And Exit Codes
 
 ## Question
 
@@ -30,9 +30,11 @@ No other CLI options are required for MVP.
 
 Without `--json`, the CLI prints a human-readable terminal summary.
 
-With `--json`, the CLI prints the JSON report defined in [JSON Report](json-report.md).
+The scanner writes a JSON report to `evalproof_report.json` in the scanned folder when no explicit output path is provided.
 
-`--output` is valid only with `--json` in the MVP. When `--output` is used with `--json`, JSON is written to the output path and terminal output should remain concise. Using `--output` without `--json` is invalid CLI usage.
+With `--json`, the CLI prints the JSON report defined in [JSON Report](json-report.md) and still writes the default report file unless `--output` is provided.
+
+`--output` is valid only with `--json`. When `--output` is used with `--json`, JSON is written to the output path and terminal output remains concise. Using `--output` without `--json` is invalid CLI usage.
 
 ## Exit Codes
 
@@ -74,6 +76,7 @@ The CLI must not require network access.
 
 - `scan` is the only required MVP command.
 - JSON output is the machine-readable contract.
+- Every completed scan writes a JSON report file.
 - Exit code `1` means trust findings crossed the configured threshold, not that the scanner crashed.
 - Invalid configuration and internal errors use distinct exit codes.
 
@@ -90,3 +93,4 @@ None.
 ## Future Considerations
 
 Future commands may add rule listing, config initialization, SARIF output, baselines, or suppressions after the MVP is stable.
+
