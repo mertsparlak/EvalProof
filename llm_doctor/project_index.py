@@ -19,6 +19,7 @@ except ImportError:
 from llm_doctor.artifact import Artifact
 from llm_doctor.config import Config
 from llm_doctor.finding import Diagnostic, DiagnosticSeverity, DiagnosticCode, canonical_json_dumps
+from llm_doctor.similarity import SimilarityIndex
 
 
 TRIVIAL_LABELS: Set[str] = {"yes", "no", "true", "false"}
@@ -116,6 +117,15 @@ class ProjectIndex:
         self.artifact_fingerprints: Dict[str, str] = {}
         self.eval_metadata: Dict[str, Dict[str, Any]] = {}
         self.diagnostics: List[Diagnostic] = []
+
+        # Similarity Index for Near-Duplicate Detection
+        sim_cfg = config.similarity
+        self.similarity_index = SimilarityIndex(
+            shingle_size=sim_cfg.shingle_size,
+            num_hashes=sim_cfg.num_hashes,
+            bands=sim_cfg.bands,
+            threshold=sim_cfg.threshold,
+        )
 
     def build(self, artifacts: List[Artifact]):
         """Index derived facts across all candidate artifacts."""
@@ -219,6 +229,9 @@ class ProjectIndex:
             self.record_hashes.setdefault(r_hash, []).append((art.path, idx))
             normalized_row_json_strings.append(canonical_json_dumps(normalize_row_data(parsed)))
 
+            # Index into Similarity Engine
+            self._index_row_for_similarity(art, idx, parsed, r_hash)
+
             # Check answer extraction
             self._check_answer_extraction(art, idx, parsed)
 
@@ -290,6 +303,9 @@ class ProjectIndex:
             valid_rows.append(rec)
             self.record_hashes.setdefault(r_hash, []).append((art.path, row_idx))
             normalized_row_json_strings.append(canonical_json_dumps(normalize_row_data(parsed_obj)))
+
+            # Index into Similarity Engine
+            self._index_row_for_similarity(art, row_idx, parsed_obj, r_hash)
 
             # Check answer extraction
             self._check_answer_extraction(art, row_idx, parsed_obj)
@@ -398,9 +414,27 @@ class ProjectIndex:
                 rec = RowRecord(artifact_path=art.path, row_num=idx, row_data=item, row_hash=r_hash)
                 valid_rows.append(rec)
                 self.record_hashes.setdefault(r_hash, []).append((art.path, idx))
+                self._index_row_for_similarity(art, idx, item, r_hash)
                 self._check_answer_extraction(art, idx, item)
 
             self.rows_by_artifact[art.path] = valid_rows
+
+    def _index_row_for_similarity(self, art: Artifact, row_num: int, row_data: Any, r_hash: str):
+        """Index dataset row text into Similarity Engine for near-duplicate checks."""
+        if not self.config.similarity.enabled:
+            return
+        row_str = canonical_json_dumps(normalize_row_data(row_data))
+        item_id = f"{art.path}:row:{row_num}"
+        self.similarity_index.add_item(
+            item_id=item_id,
+            text=row_str,
+            metadata={
+                "path": art.path,
+                "row_number": row_num,
+                "roles": list(art.roles),
+                "exact_hash": r_hash,
+            },
+        )
 
     def _check_answer_extraction(self, art: Artifact, row_num: int, row_data: Any):
         """Check if structured row has answer-like fields for RAG answer leakage."""
