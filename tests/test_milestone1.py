@@ -86,7 +86,7 @@ def test_config_defaults():
     assert cfg.include == DEFAULT_INCLUDES
     assert cfg.exclude == DEFAULT_EXCLUDES
     assert cfg.fail_on == DEFAULT_FAIL_ON
-    assert cfg.limits.max_file_mb == 50
+    assert cfg.limits.max_file_mb == 100
     assert cfg.limits.max_rows_per_artifact == 250000
 
 
