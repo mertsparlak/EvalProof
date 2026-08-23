@@ -1,6 +1,6 @@
 """contamination.train_eval_near_duplicate rule implementation."""
 
-from typing import List, Set, Tuple
+from typing import List, Set, Tuple, Dict, Any
 from llm_doctor.finding import Finding, Severity, Confidence, Location
 from llm_doctor.rule_engine import Rule, ScanContext
 
@@ -39,11 +39,11 @@ class TrainEvalNearDuplicateRule(Rule):
         threshold = ctx.config.similarity.threshold
         candidates = ctx.project_index.similarity_index.find_all_pairs(threshold=threshold)
 
-        findings: List[Finding] = []
-        emitted_pairs: Set[Tuple[str, str]] = set()
-
         train_roles = {"training_dataset"}
         eval_roles = {"evaluation_dataset", "benchmark_dataset"}
+
+        # Map: (eval_path, eval_row) -> aggregated match information
+        eval_groups: Dict[Tuple[str, int], Dict[str, Any]] = {}
 
         for cand in candidates:
             src_meta = cand.metadata.get("source_metadata", {})
@@ -85,34 +85,72 @@ class TrainEvalNearDuplicateRule(Rule):
             eval_path = eval_meta.get("path", "")
             eval_row = eval_meta.get("row_number", 1)
 
-            pair_key = (f"{train_path}:{train_row}", f"{eval_path}:{eval_row}")
-            if pair_key in emitted_pairs:
-                continue
-            emitted_pairs.add(pair_key)
+            eval_key = (eval_path, eval_row)
+            if eval_key not in eval_groups:
+                eval_groups[eval_key] = {
+                    "eval_path": eval_path,
+                    "eval_row": eval_row,
+                    "eval_text": eval_text,
+                    "max_similarity_score": sim_score,
+                    "matched_training_records": [],
+                    "seen_train_keys": set(),
+                }
 
-            loc_source = Location(role="source", path=train_path, row=train_row)
+            group = eval_groups[eval_key]
+            train_key = (train_path, train_row)
+            if train_key not in group["seen_train_keys"]:
+                group["seen_train_keys"].add(train_key)
+                group["matched_training_records"].append({
+                    "path": train_path,
+                    "row": train_row,
+                    "similarity_score": sim_score,
+                    "snippet": train_text[:200],
+                })
+                if sim_score > group["max_similarity_score"]:
+                    group["max_similarity_score"] = sim_score
+
+        findings: List[Finding] = []
+        for (eval_path, eval_row), group in eval_groups.items():
+            matched_train = group["matched_training_records"]
+            first_train = matched_train[0]
+            train_path = first_train["path"]
+            train_row = first_train["row"]
+            sim_score = group["max_similarity_score"]
+            match_count = len(matched_train)
+
             loc_target = Location(role="target", path=eval_path, row=eval_row)
+            loc_source = Location(role="source", path=train_path, row=train_row)
+
+            if match_count == 1:
+                msg = (
+                    f"Near-duplicate evaluation record in '{eval_path}' (row {eval_row}) resembles "
+                    f"training record in '{train_path}' (row {train_row}) with similarity score {sim_score:.4f}."
+                )
+            else:
+                msg = (
+                    f"Near-duplicate evaluation record in '{eval_path}' (row {eval_row}) resembles "
+                    f"{match_count} training records (highest similarity score: {sim_score:.4f})."
+                )
 
             finding = Finding(
                 rule_id=self.id,
                 severity=self.default_severity,
                 confidence=Confidence.LIKELY.value,
                 title=self.title,
-                message=(
-                    f"Near-duplicate record in '{train_path}' (row {train_row}) also appears in "
-                    f"'{eval_path}' (row {eval_row}) with similarity score {sim_score:.4f}."
-                ),
+                message=msg,
                 impact="Near-duplicate records between training and evaluation splits inflate evaluation scores due to data leakage.",
                 recommendation="Remove or replace near-duplicate evaluation samples to ensure benchmark validity.",
-                locations=[loc_source, loc_target],
+                locations=[loc_target, loc_source],
                 evidence={
-                    "training_artifact": train_path,
-                    "training_row": train_row,
                     "evaluation_artifact": eval_path,
                     "evaluation_row": eval_row,
+                    "training_artifact": train_path,
+                    "training_row": train_row,
                     "similarity_score": sim_score,
-                    "training_snippet": train_text[:200],
-                    "evaluation_snippet": eval_text[:200],
+                    "overlap_count": match_count,
+                    "evaluation_snippet": group["eval_text"][:200],
+                    "training_snippet": first_train["snippet"],
+                    "matched_training_records": matched_train,
                 },
             )
             findings.append(finding)
