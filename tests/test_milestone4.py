@@ -46,7 +46,7 @@ def test_sort_findings_deterministically():
 def test_generate_json_report_schema():
     report = generate_json_report(
         scan_root=".",
-        config_path="llm-doctor.yaml",
+        config_path="evalproof.yaml",
         artifacts_scanned=2,
         findings=[],
         diagnostics=[],
@@ -54,7 +54,7 @@ def test_generate_json_report_schema():
         completed_at="2026-01-01T00:00:01Z",
     )
     assert report["schema_version"] == "1.0"
-    assert report["tool"]["name"] == "llm-doctor"
+    assert report["tool"]["name"] == "evalproof"
     assert report["scan"]["root"] == "."
     assert report["summary"]["artifacts_scanned"] == 2
     assert report["summary"]["findings_total"] == 0
@@ -94,7 +94,7 @@ def test_cli_exit_code_2_invalid_fail_on():
 def test_cli_exit_code_3_invalid_config():
     with tempfile.TemporaryDirectory() as tmp_dir:
         p = Path(tmp_dir)
-        (p / "llm-doctor.yaml").write_text("invalid_top_key: 123\n", encoding="utf-8")
+        (p / "evalproof.yaml").write_text("invalid_top_key: 123\n", encoding="utf-8")
 
         ret = main(["scan", tmp_dir])
         assert ret == 3

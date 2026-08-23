@@ -16,14 +16,14 @@ Terminal output is for humans. JSON output is for tools.
 {
   "schema_version": "1.0",
   "tool": {
-    "name": "llm-doctor",
+    "name": "evalproof",
     "version": "0.0.0"
   },
   "scan": {
     "root": ".",
     "started_at": "2026-01-01T00:00:00Z",
     "completed_at": "2026-01-01T00:00:01Z",
-    "config_path": "llm-doctor.yaml"
+    "config_path": "evalproof.yaml"
   },
   "summary": {
     "artifacts_scanned": 0,

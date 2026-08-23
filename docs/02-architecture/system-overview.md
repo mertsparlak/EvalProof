@@ -6,7 +6,7 @@ What are the major system parts and boundaries?
 
 ## Architecture
 
-LLM Doctor uses this pipeline:
+EvalProof uses this pipeline:
 
 ```text
 Files

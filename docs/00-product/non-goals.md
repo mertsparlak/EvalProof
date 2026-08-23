@@ -14,7 +14,7 @@ This document protects the MVP from scope drift. If a feature is listed here, an
 
 The MVP must not run model evaluations, benchmark suites, prompt sweeps, model comparisons, or regression tests.
 
-Reason: LLM Doctor validates whether evaluation artifacts can be trusted. Evaluation frameworks already execute evaluations.
+Reason: EvalProof validates whether evaluation artifacts can be trusted. Evaluation frameworks already execute evaluations.
 
 ### Model Calls
 
@@ -32,7 +32,7 @@ Reason: subjective prompt quality is outside the contamination wedge. Prompt che
 
 The MVP must not collect traces, monitor production traffic, store spans, analyze latency, or build runtime dashboards.
 
-Reason: observability tools operate after or during runtime. LLM Doctor is a preflight scanner.
+Reason: observability tools operate after or during runtime. EvalProof is a preflight scanner.
 
 ### LLMOps Platform Features
 

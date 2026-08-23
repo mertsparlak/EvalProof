@@ -1,4 +1,4 @@
-"""CLI entry point and command handler for llm-doctor."""
+"""CLI entry point and command handler for evalproof."""
 
 import argparse
 from datetime import datetime, timezone
@@ -151,8 +151,8 @@ def main(sys_args: Optional[List[str]] = None) -> int:
         sys_args = sys.argv[1:]
 
     parser = argparse.ArgumentParser(
-        prog="llm-doctor",
-        description="LLM Doctor static preflight scanner for LLM evaluation artifacts",
+        prog="evalproof",
+        description="EvalProof static preflight scanner for LLM evaluation artifacts",
         add_help=True,
     )
 

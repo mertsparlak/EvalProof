@@ -121,7 +121,7 @@ Heuristic detection uses lowercase repository-relative POSIX paths.
 
 `configuration`:
 
-- filename is `llm-doctor.yaml`, `llm-doctor.yml`, `config.yaml`, `config.yml`, `config.json`, `settings.yaml`, `settings.yml`, or `settings.json`
+- filename is `evalproof.yaml`, `evalproof.yml`, `config.yaml`, `config.yml`, `config.json`, `settings.yaml`, `settings.yml`, or `settings.json`
 - supported format is JSON, YAML, or TOML
 
 An artifact may receive multiple heuristic roles if multiple rules match. For example, `eval/results/baseline.json` may be both `evaluation_dataset` and `evaluation_result`; rules decide applicability from artifact role and readable content.

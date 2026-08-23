@@ -104,7 +104,7 @@ def detect_heuristic_roles(posix_path: str, fmt: str) -> Set[str]:
 
     # configuration
     if fmt in {"json", "yaml", "toml"}:
-        if filename in {"llm-doctor.yaml", "llm-doctor.yml", "config.yaml", "config.yml", "config.json", "settings.yaml", "settings.yml", "settings.json"}:
+        if filename in {"evalproof.yaml", "evalproof.yml", "config.yaml", "config.yml", "config.json", "settings.yaml", "settings.yml", "settings.json"}:
             roles.add("configuration")
 
     if not roles:

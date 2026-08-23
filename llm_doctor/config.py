@@ -204,7 +204,7 @@ def parse_and_validate_config_dict(data: Any, config_path: Optional[str] = None)
 
 
 def load_config(scan_root: str, explicit_config_path: Optional[str] = None) -> Config:
-    """Load configuration from explicit path or default llm-doctor.yaml in scan root."""
+    """Load configuration from explicit path or default evalproof.yaml in scan root."""
     scan_root_path = Path(scan_root)
 
     if explicit_config_path:
@@ -221,8 +221,8 @@ def load_config(scan_root: str, explicit_config_path: Optional[str] = None) -> C
         rel_config_path = str(target_path.relative_to(scan_root_path)).replace("\\", "/") if target_path.is_relative_to(scan_root_path) else str(target_path)
         return parse_and_validate_config_dict(content, config_path=rel_config_path)
 
-    # Default lookup: llm-doctor.yaml or llm-doctor.yml
-    for name in ["llm-doctor.yaml", "llm-doctor.yml"]:
+    # Default lookup: evalproof.yaml or evalproof.yml
+    for name in ["evalproof.yaml", "evalproof.yml"]:
         candidate = scan_root_path / name
         if candidate.exists() and candidate.is_file():
             try:
