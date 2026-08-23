@@ -16,6 +16,7 @@ ALLOWED_TOP_LEVEL_KEYS: Set[str] = {
     "rules",
     "ci",
     "limits",
+    "similarity",
 }
 
 ALLOWED_ROLES: Set[str] = {
@@ -76,6 +77,15 @@ class LimitsConfig:
 
 
 @dataclass
+class SimilarityConfig:
+    enabled: bool = True
+    shingle_size: int = 3
+    num_hashes: int = 64
+    bands: int = 16
+    threshold: float = 0.85
+
+
+@dataclass
 class Config:
     include: List[str] = field(default_factory=lambda: list(DEFAULT_INCLUDES))
     exclude: List[str] = field(default_factory=lambda: list(DEFAULT_EXCLUDES))
@@ -84,6 +94,7 @@ class Config:
     rule_severities: Dict[str, str] = field(default_factory=dict)
     fail_on: str = DEFAULT_FAIL_ON
     limits: LimitsConfig = field(default_factory=LimitsConfig)
+    similarity: SimilarityConfig = field(default_factory=SimilarityConfig)
     config_path: Optional[str] = None
 
 
@@ -199,6 +210,45 @@ def parse_and_validate_config_dict(data: Any, config_path: Optional[str] = None)
             if not isinstance(val, int) or isinstance(val, bool) or val <= 0:
                 raise ConfigError("'limits.max_rows_per_artifact' must be a positive integer.")
             cfg.limits.max_rows_per_artifact = val
+
+    # 7. similarity
+    if "similarity" in data:
+        sim_data = data["similarity"]
+        if not isinstance(sim_data, dict):
+            raise ConfigError("'similarity' must be an object.")
+        for key in sim_data:
+            if key not in {"enabled", "shingle_size", "num_hashes", "bands", "threshold"}:
+                raise ConfigError(f"Invalid key under 'similarity': '{key}'.")
+
+        if "enabled" in sim_data:
+            val = sim_data["enabled"]
+            if not isinstance(val, bool):
+                raise ConfigError("'similarity.enabled' must be a boolean.")
+            cfg.similarity.enabled = val
+
+        if "shingle_size" in sim_data:
+            val = sim_data["shingle_size"]
+            if not isinstance(val, int) or isinstance(val, bool) or val <= 0:
+                raise ConfigError("'similarity.shingle_size' must be a positive integer.")
+            cfg.similarity.shingle_size = val
+
+        if "num_hashes" in sim_data:
+            val = sim_data["num_hashes"]
+            if not isinstance(val, int) or isinstance(val, bool) or val <= 0:
+                raise ConfigError("'similarity.num_hashes' must be a positive integer.")
+            cfg.similarity.num_hashes = val
+
+        if "bands" in sim_data:
+            val = sim_data["bands"]
+            if not isinstance(val, int) or isinstance(val, bool) or val <= 0:
+                raise ConfigError("'similarity.bands' must be a positive integer.")
+            cfg.similarity.bands = val
+
+        if "threshold" in sim_data:
+            val = sim_data["threshold"]
+            if not isinstance(val, (int, float)) or isinstance(val, bool) or not (0.0 <= val <= 1.0):
+                raise ConfigError("'similarity.threshold' must be a float between 0.0 and 1.0.")
+            cfg.similarity.threshold = float(val)
 
     return cfg
 

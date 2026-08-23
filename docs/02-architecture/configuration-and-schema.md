@@ -52,9 +52,16 @@ ci:
 limits:
   max_file_mb: 100
   max_rows_per_artifact: 250000
+
+similarity:
+  enabled: true
+  shingle_size: 3
+  num_hashes: 64
+  bands: 16
+  threshold: 0.85
 ```
 
-Top-level keys outside `include`, `exclude`, `artifacts`, `rules`, `ci`, and `limits` are invalid for the MVP.
+Top-level keys outside `include`, `exclude`, `artifacts`, `rules`, `ci`, `limits`, and `similarity` are invalid.
 
 Schema field types:
 
