@@ -10,6 +10,8 @@ from llm_doctor.rules.untrusted_context_interpolation import UntrustedContextInt
 from llm_doctor.rules.sensitive_value_exposure import SensitiveValueExposureRule
 from llm_doctor.rules.train_eval_near_duplicate import TrainEvalNearDuplicateRule
 from llm_doctor.rules.duplicate_eval_near_duplicate import DuplicateEvalNearDuplicateRule
+from llm_doctor.rules.duplicate_train_sample import DuplicateTrainSampleRule
+from llm_doctor.rules.duplicate_train_near_duplicate import DuplicateTrainNearDuplicateRule
 
 
 def register_mvp_rules():
@@ -22,6 +24,8 @@ def register_mvp_rules():
     default_registry.register(SensitiveValueExposureRule())
     default_registry.register(TrainEvalNearDuplicateRule())
     default_registry.register(DuplicateEvalNearDuplicateRule())
+    default_registry.register(DuplicateTrainSampleRule())
+    default_registry.register(DuplicateTrainNearDuplicateRule())
 
 
 register_mvp_rules()

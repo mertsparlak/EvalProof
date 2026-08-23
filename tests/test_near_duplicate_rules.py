@@ -157,3 +157,44 @@ def test_deterministic_repeated_runs():
         for item1, item2 in zip(f1, f2):
             assert item1.fingerprint == item2.fingerprint
             assert item1.evidence == item2.evidence
+
+
+def test_duplicate_train_sample_and_near_duplicate_rules():
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        p = Path(tmp_dir)
+
+        # Internal duplicates in train.jsonl
+        train_content = (
+            '{"prompt": "Exact training duplicate entry."}\n'
+            '{"prompt": "Exact training duplicate entry."}\n'
+            '{"prompt": "Machine learning model optimization techniques."}\n'
+            '{"prompt": "Machine learning model optimization technique!"}\n'
+        )
+
+        (p / "train.jsonl").write_text(train_content, encoding="utf-8")
+
+        cfg = Config(similarity=SimilarityConfig(enabled=True, threshold=0.85))
+        art_train = create_artifact_from_file(tmp_dir, "train.jsonl", cfg)
+
+        idx = ProjectIndex(cfg)
+        idx.build([art_train])
+
+        ctx = ScanContext(
+            scan_root=tmp_dir,
+            config=cfg,
+            artifacts={"train.jsonl": art_train},
+            project_index=idx,
+        )
+
+        findings, _ = execute_rules(ctx)
+
+        exact_train_dup = [f for f in findings if f.rule_id == "contamination.duplicate_train_sample"]
+        near_train_dup = [f for f in findings if f.rule_id == "contamination.duplicate_train_near_duplicate"]
+
+        assert len(exact_train_dup) == 1
+        assert exact_train_dup[0].evidence["duplicate_count"] == 2
+
+        assert len(near_train_dup) == 1
+        assert near_train_dup[0].evidence["training_row"] == 4
+        assert near_train_dup[0].evidence["duplicate_row"] == 3
+
