@@ -109,17 +109,20 @@ def run_scan(args: argparse.Namespace) -> int:
         completed_at=completed_at,
     )
 
-    if args.output:
-        try:
-            output_file_path = Path(args.output)
-            if not output_file_path.is_absolute():
-                output_file_path = Path.cwd() / output_file_path
-            output_file_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(output_file_path, "w", encoding="utf-8") as f:
-                json.dump(json_report_dict, f, indent=2, ensure_ascii=False)
-        except Exception as err:
-            print(f"Error writing output to '{args.output}': {err}", file=sys.stderr)
-            return 5
+    output_path = args.output
+    if not output_path:
+        output_path = str(Path(scan_root) / "evalproof_report.json")
+
+    try:
+        output_file_path = Path(output_path)
+        if not output_file_path.is_absolute():
+            output_file_path = Path.cwd() / output_file_path
+        output_file_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(output_file_path, "w", encoding="utf-8") as f:
+            json.dump(json_report_dict, f, indent=2, ensure_ascii=False)
+    except Exception as err:
+        print(f"Error writing output to '{output_path}': {err}", file=sys.stderr)
+        return 5
 
     if args.json:
         if not args.output:
@@ -132,10 +135,11 @@ def run_scan(args: argparse.Namespace) -> int:
             scan_root=scan_root,
             artifacts_scanned=len(artifacts_map),
             findings=sorted_findings,
-            output_json_path=args.output,
+            output_json_path=output_file_path,
             no_color=args.no_color,
         )
         print(summary_text)
+        print(f"\nReport automatically saved to: {output_file_path}")
 
     # 7. Calculate exit code based on fail_on threshold
     fail_on_rank = SEVERITY_RANK.get(fail_on.lower(), 3)
