@@ -74,8 +74,8 @@ def detect_heuristic_roles(posix_path: str, fmt: str) -> Set[str]:
 
     # evaluation_dataset
     if fmt in {"json", "jsonl", "csv", "yaml", "toml"}:
-        if any(seg in p_check for seg in ["/eval/", "/evals/", "/evaluation/", "/test/", "/tests/"]) or \
-           any(kw in filename for kw in ["eval", "evaluation", "test", "golden", "expected"]):
+        if any(seg in p_check for seg in ["/eval/", "/evals/", "/evaluation/", "/test/", "/tests/", "/val/", "/valid/", "/validation/"]) or \
+           any(kw in filename for kw in ["eval", "evaluation", "test", "golden", "expected", "val", "valid", "validation"]):
             roles.add("evaluation_dataset")
 
     # benchmark_dataset
