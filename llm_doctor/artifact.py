@@ -1,0 +1,188 @@
+"""Artifact model, format detection, role detection heuristics, and content access."""
+
+from dataclasses import dataclass, field
+import hashlib
+import json
+import os
+from pathlib import Path
+from typing import Dict, List, Optional, Set, Any, Union
+import yaml
+
+try:
+    import tomllib  # Python 3.11+
+except ImportError:
+    import tomli as tomllib  # Fallback if needed
+
+from llm_doctor.config import Config, ArtifactOverride
+from llm_doctor.finding import Diagnostic, DiagnosticSeverity, DiagnosticCode
+
+
+# Format mapping
+EXTENSION_FORMAT_MAP: Dict[str, str] = {
+    ".json": "json",
+    ".jsonl": "jsonl",
+    ".ndjson": "jsonl",
+    ".csv": "csv",
+    ".yaml": "yaml",
+    ".yml": "yaml",
+    ".toml": "toml",
+    ".md": "markdown",
+    ".markdown": "markdown",
+    ".txt": "plain_text",
+    ".text": "plain_text",
+}
+
+SUPPORTED_ROLES: Set[str] = {
+    "training_dataset",
+    "evaluation_dataset",
+    "benchmark_dataset",
+    "evaluation_result",
+    "prompt_template",
+    "rag_document",
+    "configuration",
+    "unknown",
+}
+
+
+def compute_artifact_id(rel_posix_path: str) -> str:
+    """Compute artifact ID: sha256:<sha256 of repository-relative POSIX path>."""
+    p = rel_posix_path.replace("\\", "/")
+    if p.startswith("./"):
+        p = p[2:]
+    digest = hashlib.sha256(p.encode("utf-8")).hexdigest()
+    return f"sha256:{digest}"
+
+
+def detect_file_format(posix_path: str) -> Optional[str]:
+    """Detect file format based on extension."""
+    ext = Path(posix_path).suffix.lower()
+    return EXTENSION_FORMAT_MAP.get(ext)
+
+
+def detect_heuristic_roles(posix_path: str, fmt: str) -> Set[str]:
+    """Detect artifact roles based on documented path and filename heuristics."""
+    p_lower = posix_path.lower()
+    p_check = f"/{p_lower}"
+    filename = Path(p_lower).name
+    roles: Set[str] = set()
+
+    # training_dataset
+    if fmt in {"json", "jsonl", "csv", "yaml", "toml"}:
+        if any(seg in p_check for seg in ["/train/", "/training/", "/finetune/"]) or \
+           any(kw in filename for kw in ["train", "training", "finetune"]):
+            roles.add("training_dataset")
+
+    # evaluation_dataset
+    if fmt in {"json", "jsonl", "csv", "yaml", "toml"}:
+        if any(seg in p_check for seg in ["/eval/", "/evals/", "/evaluation/", "/test/", "/tests/"]) or \
+           any(kw in filename for kw in ["eval", "evaluation", "test", "golden", "expected"]):
+            roles.add("evaluation_dataset")
+
+    # benchmark_dataset
+    if fmt in {"json", "jsonl", "csv", "yaml", "toml"}:
+        if any(seg in p_check for seg in ["/benchmark/", "/benchmarks/", "/leaderboard/"]) or \
+           any(kw in filename for kw in ["benchmark", "bench", "leaderboard"]):
+            roles.add("benchmark_dataset")
+
+    # evaluation_result
+    if fmt in {"json", "jsonl", "csv", "yaml", "toml"}:
+        if any(seg in p_check for seg in ["/result/", "/results/", "/report/", "/reports/", "/run/", "/runs/"]) or \
+           any(kw in filename for kw in ["result", "results", "scores", "metrics", "baseline", "run"]):
+            roles.add("evaluation_result")
+
+    # prompt_template
+    if fmt in {"markdown", "plain_text", "json", "yaml", "toml"}:
+        if any(seg in p_check for seg in ["/prompt/", "/prompts/", "/template/", "/templates/"]) or \
+           any(kw in filename for kw in ["prompt", "template", "system", "instruction"]):
+            roles.add("prompt_template")
+
+    # rag_document
+    if fmt in {"markdown", "plain_text", "json", "jsonl", "csv", "yaml", "toml"}:
+        if any(seg in p_check for seg in ["/rag/", "/retrieval/", "/corpus/", "/knowledge/", "/kb/", "/docs/", "/documents/"]) or \
+           any(kw in filename for kw in ["corpus", "knowledge", "retrieval", "context", "source"]):
+            roles.add("rag_document")
+
+    # configuration
+    if fmt in {"json", "yaml", "toml"}:
+        if filename in {"llm-doctor.yaml", "llm-doctor.yml", "config.yaml", "config.yml", "config.json", "settings.yaml", "settings.yml", "settings.json"}:
+            roles.add("configuration")
+
+    if not roles:
+        roles.add("unknown")
+
+    return roles
+
+
+@dataclass
+class Artifact:
+    id: str
+    path: str  # repository-relative POSIX path
+    format: str
+    roles: Set[str] = field(default_factory=set)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    full_disk_path: Optional[str] = None
+    diagnostics: List[Diagnostic] = field(default_factory=list)
+
+    def read_text(self) -> str:
+        """Read artifact full raw text."""
+        if not self.full_disk_path or not os.path.exists(self.full_disk_path):
+            return ""
+        with open(self.full_disk_path, "r", encoding="utf-8", errors="replace") as f:
+            return f.read()
+
+
+def create_artifact_from_file(
+    scan_root: str,
+    posix_path: str,
+    config: Config,
+) -> Optional[Artifact]:
+    """Detect format and roles for a file, returning an Artifact or None if not candidate."""
+    full_disk_path = str(Path(scan_root) / posix_path)
+
+    # Check explicit config overrides for role
+    config_override_roles: Optional[List[str]] = None
+    for override in config.artifacts:
+        if override.path == posix_path:
+            config_override_roles = override.roles
+            break
+
+    fmt = detect_file_format(posix_path)
+
+    # If unsupported extension
+    if fmt is None:
+        if config_override_roles is not None:
+            # Treat configured file with unsupported extension as plain_text with diagnostic
+            fmt = "plain_text"
+            art = Artifact(
+                id=compute_artifact_id(posix_path),
+                path=posix_path,
+                format=fmt,
+                roles=set(config_override_roles),
+                full_disk_path=full_disk_path,
+            )
+            art.diagnostics.append(
+                Diagnostic(
+                    severity=DiagnosticSeverity.WARNING.value,
+                    code=DiagnosticCode.ARTIFACT_UNSUPPORTED_EXTENSION.value,
+                    message=f"Configured artifact path '{posix_path}' has unsupported extension; treating as plain text.",
+                    path=posix_path,
+                )
+            )
+            return art
+        else:
+            # Files with unsupported extensions are not candidates unless configured
+            return None
+
+    # Supported format detected
+    if config_override_roles is not None:
+        assigned_roles = set(config_override_roles)
+    else:
+        assigned_roles = detect_heuristic_roles(posix_path, fmt)
+
+    return Artifact(
+        id=compute_artifact_id(posix_path),
+        path=posix_path,
+        format=fmt,
+        roles=assigned_roles,
+        full_disk_path=full_disk_path,
+    )
