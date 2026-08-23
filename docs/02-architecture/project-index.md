@@ -223,6 +223,8 @@ Trivial labels are:
 - single letters
 - single digits
 
+For `dataset.label_inconsistency`, the same canonical aliases may contain either one scalar target or a list of scalar targets. List values are trimmed, deduplicated, sorted deterministically, and compared as a target set. A scalar and a single-value list with the same normalized value are equivalent. Empty values, booleans, and nested target objects are ignored by this rule. This list handling does not broaden scalar-only RAG answer extraction.
+
 ## Hashing
 
 The index must store hashes of normalized content rather than relying on raw content for comparisons.

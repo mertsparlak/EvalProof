@@ -11,6 +11,7 @@ from evalproof.project_index import (
     INPUT_FIELD_ALIASES,
     canonical_json_dumps,
     extract_scalar_field,
+    extract_target_values,
     normalize_plain_text,
     normalize_row_data,
 )
@@ -24,7 +25,7 @@ class LabelInconsistencyRule(Rule):
 
     @property
     def title(self) -> str:
-        return "Conflicting labels for the same evaluation input"
+        return "Conflicting target assignments for the same evaluation input"
 
     @property
     def default_severity(self) -> str:
@@ -52,7 +53,7 @@ class LabelInconsistencyRule(Rule):
                 continue
             for row in ctx.project_index.rows_by_artifact.get(artifact.path, []):
                 input_field = extract_scalar_field(row.row_data, INPUT_FIELD_ALIASES)
-                target_field = extract_scalar_field(row.row_data, ANSWER_FIELD_ALIASES)
+                target_field = extract_target_values(row.row_data, ANSWER_FIELD_ALIASES)
                 if input_field is None or target_field is None:
                     continue
 
@@ -67,8 +68,13 @@ class LabelInconsistencyRule(Rule):
                 }
                 identity_json = canonical_json_dumps(identity)
                 input_hash = hashlib.sha256(identity_json.encode("utf-8")).hexdigest()
-                normalized_target = normalize_plain_text(target_field[1])
-                grouped[input_hash][normalized_target].append(
+                target_values = target_field[1]
+                target_signature = (
+                    target_values[0]
+                    if len(target_values) == 1
+                    else canonical_json_dumps(list(target_values))
+                )
+                grouped[input_hash][target_signature].append(
                     (artifact.path, row.row_num, input_field[0], target_field[0])
                 )
 
@@ -95,9 +101,9 @@ class LabelInconsistencyRule(Rule):
                     severity=self.default_severity,
                     confidence=Confidence.CONFIRMED.value,
                     title=self.title,
-                    message=f"Input hash {input_hash} has {len(target_groups)} conflicting target values.",
-                    impact="Conflicting targets make the evaluation result ambiguous and reduce confidence in the benchmark labels.",
-                    recommendation="Resolve the annotation conflict or include the missing context that distinguishes the examples.",
+                    message=f"Input hash {input_hash} has {len(target_groups)} conflicting target assignments.",
+                    impact="Conflicting target assignments make the evaluation result ambiguous and reduce confidence in benchmark annotations.",
+                    recommendation="Verify the annotation set and include missing context if the rows represent different cases.",
                     locations=[
                         Location(role="primary", path=path, row=row)
                         for path, row, _, _ in conflicting_rows

@@ -61,6 +61,12 @@ Without `--rules`, all registered rules run except rules disabled in `evalproof.
 
 The JSON report also records which artifacts were indexed, which roles came from configuration or heuristics, and whether any artifact was only partially indexed.
 
+## Input Shape Boundary
+
+EvalProof applies rules to the canonical fields and artifact roles documented in [Project Index](docs/02-architecture/project-index.md). Provider-specific nested schemas are not inferred automatically. Normalize them into the canonical input and target fields before scanning, or use explicit artifact role overrides in evalproof.yaml.
+
+For dataset.label_inconsistency, canonical target fields may contain a scalar or a list of scalar values. List order and repeated values are normalized deterministically. Nested target objects remain outside the current contract.
+
 ## What It Detects
 
 Exact contamination:

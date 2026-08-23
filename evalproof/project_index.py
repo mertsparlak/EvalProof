@@ -241,6 +241,27 @@ def extract_scalar_field(row_data: Any, aliases: List[str]) -> Optional[Tuple[st
     return None
 
 
+def extract_target_values(row_data: Any, aliases: List[str]) -> Optional[Tuple[str, Tuple[str, ...]]]:
+    """Extract a canonical target as a deterministic set of scalar values."""
+    if not isinstance(row_data, dict):
+        return None
+
+    for alias in aliases:
+        if alias not in row_data:
+            continue
+        raw_values = row_data[alias] if isinstance(row_data[alias], list) else [row_data[alias]]
+        normalized_values = set()
+        for value in raw_values:
+            if value is None or isinstance(value, bool) or not isinstance(value, (str, int, float)):
+                continue
+            normalized = normalize_plain_text(str(value))
+            if normalized:
+                normalized_values.add(normalized)
+        if normalized_values:
+            return alias, tuple(sorted(normalized_values))
+    return None
+
+
 class ProjectIndex:
     def __init__(self, config: Config):
         self.config = config

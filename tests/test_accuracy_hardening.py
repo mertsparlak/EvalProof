@@ -5,6 +5,7 @@ from pathlib import Path
 
 from evalproof.artifact import ArtifactOverride, create_artifact_from_file
 from evalproof.config import Config, SimilarityConfig
+import evalproof.rules  # noqa: F401
 from evalproof.project_index import ProjectIndex
 from evalproof.rule_engine import ScanContext, execute_rules
 
@@ -132,3 +133,120 @@ def test_jsonl_unicode_line_separator_inside_string_is_not_a_parse_error(tmp_pat
 
     assert len(index.rows_by_artifact["eval.jsonl"]) == 2
     assert not [diagnostic for diagnostic in index.diagnostics if diagnostic.code == "artifact.row_parse_failed"]
+
+
+def test_label_inconsistency_detects_conflicting_canonical_target_lists(tmp_path):
+    (tmp_path / "eval.jsonl").write_text(
+        "\n".join(
+            [
+                json.dumps({"prompt": "same", "answer": ["first", "accepted"]}),
+                json.dumps({"prompt": "same", "answer": ["second", "accepted"]}),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    config = Config(
+        artifacts=[ArtifactOverride(path="eval.jsonl", roles=["evaluation_dataset"])]
+    )
+
+    findings = _scan_findings(tmp_path, "eval.jsonl", config)
+
+    label_findings = [
+        finding for finding in findings if finding.rule_id == "dataset.label_inconsistency"
+    ]
+    assert len(label_findings) == 1
+    assert label_findings[0].evidence["conflicting_target_count"] == 2
+
+
+def test_label_inconsistency_ignores_target_list_order_and_duplicates(tmp_path):
+    (tmp_path / "eval.jsonl").write_text(
+        "\n".join(
+            [
+                json.dumps({"prompt": "same", "answer": ["first", "accepted", "first"]}),
+                json.dumps({"prompt": "same", "answer": [" accepted ", "first"]}),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    config = Config(
+        artifacts=[ArtifactOverride(path="eval.jsonl", roles=["evaluation_dataset"])]
+    )
+
+    findings = _scan_findings(tmp_path, "eval.jsonl", config)
+
+    assert not [
+        finding for finding in findings if finding.rule_id == "dataset.label_inconsistency"
+    ]
+
+
+
+
+def test_label_inconsistency_treats_scalar_and_singleton_list_as_same_target(tmp_path):
+    (tmp_path / "eval.jsonl").write_text(
+        "\n".join(
+            [
+                json.dumps({"prompt": "same", "answer": "accepted"}),
+                json.dumps({"prompt": "same", "answer": [" accepted "]}),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    config = Config(
+        artifacts=[ArtifactOverride(path="eval.jsonl", roles=["evaluation_dataset"])]
+    )
+
+    findings = _scan_findings(tmp_path, "eval.jsonl", config)
+
+    assert not [
+        finding for finding in findings if finding.rule_id == "dataset.label_inconsistency"
+    ]
+
+
+def test_label_inconsistency_ignores_nested_target_objects(tmp_path):
+    (tmp_path / "eval.jsonl").write_text(
+        "\n".join(
+            [
+                json.dumps({"prompt": "same", "answer": {"text": ["first"]}}),
+                json.dumps({"prompt": "same", "answer": {"text": ["second"]}}),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    config = Config(
+        artifacts=[ArtifactOverride(path="eval.jsonl", roles=["evaluation_dataset"])]
+    )
+
+    findings = _scan_findings(tmp_path, "eval.jsonl", config)
+
+    assert not [
+        finding for finding in findings if finding.rule_id == "dataset.label_inconsistency"
+    ]
+
+
+def test_label_inconsistency_evidence_does_not_contain_raw_targets(tmp_path):
+    (tmp_path / "eval.jsonl").write_text(
+        "\n".join(
+            [
+                json.dumps({"prompt": "same", "answer": ["secret-alpha", "accepted"]}),
+                json.dumps({"prompt": "same", "answer": ["secret-beta", "accepted"]}),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    config = Config(
+        artifacts=[ArtifactOverride(path="eval.jsonl", roles=["evaluation_dataset"])]
+    )
+
+    findings = _scan_findings(tmp_path, "eval.jsonl", config)
+    label_finding = next(
+        finding for finding in findings if finding.rule_id == "dataset.label_inconsistency"
+    )
+
+    evidence_text = json.dumps(label_finding.evidence, sort_keys=True)
+    assert "secret-alpha" not in evidence_text
+    assert "secret-beta" not in evidence_text
