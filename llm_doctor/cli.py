@@ -3,23 +3,65 @@
 import argparse
 from datetime import datetime, timezone
 import json
-import os
 from pathlib import Path
 import sys
 from typing import List, Optional
 
 from llm_doctor.artifact import create_artifact_from_file
-from llm_doctor.config import load_config, ConfigError, ALLOWED_SEVERITIES
+from llm_doctor.config import ALLOWED_SEVERITIES, DEFAULT_FAIL_ON, ConfigError, load_config
 from llm_doctor.discovery import discover_files
-from llm_doctor.finding import Diagnostic, DiagnosticSeverity, DiagnosticCode, SEVERITY_RANK
+from llm_doctor.finding import Diagnostic, SEVERITY_RANK
 from llm_doctor.project_index import ProjectIndex
 from llm_doctor.reporting import (
     generate_json_report,
     render_terminal_summary,
     sort_findings_deterministically,
 )
-from llm_doctor.rule_engine import ScanContext, execute_rules
+from llm_doctor.rule_engine import ScanContext, default_registry, execute_rules
 import llm_doctor.rules  # Ensures built-in MVP rules are registered
+
+
+RULE_CONFIDENCE = {
+    "contamination.train_eval_overlap": "confirmed",
+    "contamination.train_eval_near_duplicate": "likely",
+    "contamination.duplicate_eval_sample": "confirmed",
+    "contamination.duplicate_eval_near_duplicate": "likely",
+    "contamination.duplicate_train_sample": "confirmed",
+    "contamination.duplicate_train_near_duplicate": "likely",
+    "contamination.rag_answer_leakage": "likely",
+    "contamination.missing_repro_metadata": "confirmed",
+    "contamination.fingerprint_mismatch": "confirmed",
+    "contamination.untrusted_context_interpolation": "heuristic",
+    "contamination.sensitive_value_exposure": "heuristic",
+}
+
+
+def rule_fails_default_ci(rule_id: str, severity: str) -> bool:
+    confidence = RULE_CONFIDENCE.get(rule_id, "likely")
+    if confidence == "heuristic":
+        return False
+    return SEVERITY_RANK.get(severity.lower(), 0) >= SEVERITY_RANK[DEFAULT_FAIL_ON]
+
+
+def render_rules_listing() -> str:
+    lines = ["EvalProof Built-in Rules", ""]
+    for rule in sorted(default_registry.get_all_rules(), key=lambda r: r.id):
+        confidence = RULE_CONFIDENCE.get(rule.id, "likely")
+        ci_behavior = "fails default CI" if rule_fails_default_ci(rule.id, rule.default_severity) else "does not fail default CI"
+        tags = ",".join(rule.tags)
+        lines.append(
+            f"- {rule.id} | severity={rule.default_severity} | confidence={confidence} | {ci_behavior} | tags={tags} | {rule.title}"
+        )
+    return "\n".join(lines)
+
+
+def has_failing_finding(findings, fail_on: str) -> bool:
+    fail_on_rank = SEVERITY_RANK.get(fail_on.lower(), 3)
+    for finding in findings:
+        finding_rank = SEVERITY_RANK.get(finding.severity.lower(), 0)
+        if finding_rank >= fail_on_rank:
+            return True
+    return False
 
 
 def run_scan(args: argparse.Namespace) -> int:
@@ -34,7 +76,6 @@ def run_scan(args: argparse.Namespace) -> int:
 
     scan_root = str(scan_root_path)
 
-    # 1. Load configuration
     try:
         cfg = load_config(scan_root, explicit_config_path=args.config)
     except ConfigError as err:
@@ -44,13 +85,11 @@ def run_scan(args: argparse.Namespace) -> int:
         print(f"Failed to load configuration: {err}", file=sys.stderr)
         return 3
 
-    # Override fail_on if specified on CLI
     fail_on = args.fail_on if args.fail_on else cfg.fail_on
     if fail_on.lower() not in ALLOWED_SEVERITIES:
         print(f"Invalid CLI usage: invalid --fail-on value '{fail_on}'", file=sys.stderr)
         return 2
 
-    # 2. Discover candidate files
     try:
         candidate_paths = discover_files(scan_root, cfg)
     except FileNotFoundError as err:
@@ -60,17 +99,15 @@ def run_scan(args: argparse.Namespace) -> int:
         print(f"Error discovering files: {err}", file=sys.stderr)
         return 4
 
-    # 3. Detect artifacts and roles
     artifacts_map = {}
     collected_diagnostics: List[Diagnostic] = []
 
     for rel_path in candidate_paths:
-        art = create_artifact_from_file(scan_root, rel_path, cfg)
-        if art is not None:
-            artifacts_map[art.path] = art
-            collected_diagnostics.extend(art.diagnostics)
+        artifact = create_artifact_from_file(scan_root, rel_path, cfg)
+        if artifact is not None:
+            artifacts_map[artifact.path] = artifact
+            collected_diagnostics.extend(artifact.diagnostics)
 
-    # 4. Build project index
     try:
         project_idx = ProjectIndex(cfg)
         project_idx.build(list(artifacts_map.values()))
@@ -79,7 +116,6 @@ def run_scan(args: argparse.Namespace) -> int:
         print(f"Unexpected internal error building project index: {err}", file=sys.stderr)
         return 6
 
-    # 5. Execute rules
     try:
         ctx = ScanContext(
             scan_root=scan_root,
@@ -94,11 +130,9 @@ def run_scan(args: argparse.Namespace) -> int:
         return 6
 
     completed_at = datetime.now(timezone.utc).isoformat()
-
-    # Sort findings
     sorted_findings = sort_findings_deterministically(findings)
+    ci_failed = has_failing_finding(sorted_findings, fail_on)
 
-    # 6. Render report & handle output
     json_report_dict = generate_json_report(
         scan_root=".",
         config_path=cfg.config_path,
@@ -128,27 +162,21 @@ def run_scan(args: argparse.Namespace) -> int:
         if not args.output:
             print(json.dumps(json_report_dict, indent=2, ensure_ascii=False))
         else:
-            # When --output is used with --json, terminal output should remain concise
             print(f"Scan complete. JSON report written to {args.output}")
     else:
         summary_text = render_terminal_summary(
             scan_root=scan_root,
             artifacts_scanned=len(artifacts_map),
             findings=sorted_findings,
-            output_json_path=output_file_path,
+            diagnostics=diagnostics,
+            output_json_path=str(output_file_path),
+            fail_on=fail_on,
+            ci_failed=ci_failed,
             no_color=args.no_color,
         )
         print(summary_text)
-        print(f"\nReport automatically saved to: {output_file_path}")
 
-    # 7. Calculate exit code based on fail_on threshold
-    fail_on_rank = SEVERITY_RANK.get(fail_on.lower(), 3)
-    for f in sorted_findings:
-        f_rank = SEVERITY_RANK.get(f.severity.lower(), 0)
-        if f_rank >= fail_on_rank:
-            return 1
-
-    return 0
+    return 1 if ci_failed else 0
 
 
 def main(sys_args: Optional[List[str]] = None) -> int:
@@ -163,6 +191,7 @@ def main(sys_args: Optional[List[str]] = None) -> int:
 
     subparsers = parser.add_subparsers(dest="command", help="Available subcommands")
     scan_parser = subparsers.add_parser("scan", help="Scan repository for contamination and trust issues")
+    subparsers.add_parser("rules", help="List built-in EvalProof rules")
 
     scan_parser.add_argument("path", nargs="?", default=".", help="Scan root directory (default: current working directory)")
     scan_parser.add_argument("--config", type=str, help="Use an explicit configuration file.")
@@ -171,23 +200,23 @@ def main(sys_args: Optional[List[str]] = None) -> int:
     scan_parser.add_argument("--fail-on", type=str, help="Override configured failing severity.")
     scan_parser.add_argument("--no-color", action="store_true", help="Disable terminal colors.")
 
-    # Parse arguments
     try:
         parsed_args = parser.parse_args(sys_args)
-    except SystemExit as e:
-        # Exit code 2 for invalid CLI usage
+    except SystemExit:
         return 2
+
+    if parsed_args.command == "rules":
+        print(render_rules_listing())
+        return 0
 
     if parsed_args.command != "scan":
-        print("Invalid command. Available command: scan", file=sys.stderr)
+        print("Invalid command. Available commands: scan, rules", file=sys.stderr)
         return 2
 
-    # Validate --output requires --json
     if parsed_args.output and not parsed_args.json:
         print("Invalid CLI usage: --output requires --json.", file=sys.stderr)
         return 2
 
-    # Validate --fail-on if provided
     if parsed_args.fail_on and parsed_args.fail_on.lower() not in ALLOWED_SEVERITIES:
         print(f"Invalid CLI usage: invalid --fail-on value '{parsed_args.fail_on}'.", file=sys.stderr)
         return 2
