@@ -42,6 +42,7 @@ class DiagnosticCode(str, Enum):
     ARTIFACT_UNSUPPORTED_EXTENSION = "artifact.unsupported_extension"
     CONFIG_INVALID = "config.invalid"
     RULE_RECOVERABLE_ERROR = "rule.recoverable_error"
+    ARTIFACT_ROLE_CONFLICT = "artifact.role_conflict"
 
 
 def canonical_json_dumps(obj: Any) -> str:

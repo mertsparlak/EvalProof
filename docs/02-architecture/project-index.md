@@ -20,6 +20,25 @@ The MVP project index must provide:
 - Text fingerprints for prompt templates and RAG documents where available.
 - Evaluation result metadata fields discovered from structured result artifacts.
 - Similarity index entries for row-based artifacts when similarity is enabled.
+- Deterministic artifact coverage metadata for reporting.
+
+## Artifact Coverage
+
+The index exposes report-safe coverage metadata for every discovered artifact. Coverage describes what core indexed; it does not claim that every rule found a violation or that a role heuristic was semantically correct.
+
+Each coverage record contains:
+
+- `path`, `format`, `roles`, and `role_source`.
+- `index_status`: `indexed`, `partial`, or `skipped`.
+- `index_reasons`: deterministic reasons for the status.
+- `rows_indexed`, or `null` for non-row artifacts.
+- `rows_rejected` for malformed row records.
+- `truncated` when the configured row limit stopped indexing.
+- computed `fingerprint`, or `null` when unavailable.
+- `diagnostic_codes` associated with the artifact.
+- `role_matched_rule_ids`, meaning active rules whose declared roles intersect the artifact roles.
+
+Coverage records are sorted by repository-relative POSIX path. A file-size limit or full parse failure produces `skipped`; row parse failures or row limits produce `partial` when a usable fingerprint remains. An artifact without row content but with a valid text or structured fingerprint is `indexed`.
 
 ## Canonical Evaluation Result Metadata
 

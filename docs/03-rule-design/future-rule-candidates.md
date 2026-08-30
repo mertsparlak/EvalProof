@@ -34,7 +34,7 @@ A candidate may be promoted only when all of these are true:
 
 ## Recommended Next Rule Batch
 
-The evaluation trust-chain slice and `rag.unreachable_context_id` are now implemented. No additional rule is promoted by this change. Future promotion must continue to satisfy the objective-evidence and false-positive criteria in this document.
+The evaluation trust-chain slice and `rag.unreachable_context_id` are implemented. Current rule status is maintained below as historical backlog information; the active contract remains [Contamination Rules](contamination-rules.md). Future promotion must continue to satisfy the objective-evidence and false-positive criteria in this document.
 ## Dataset Integrity Candidates
 
 ### `dataset.empty_or_malformed_record`
@@ -85,7 +85,7 @@ Promotion requirement: define minimum row count and accepted label-field aliases
 
 ### `dataset.label_inconsistency`
 
-Status: `promote`
+Status: `implemented`
 
 Problem: the same normalized prompt/input appears with different expected answers or labels inside evaluation or benchmark data.
 
@@ -115,7 +115,7 @@ Promotion requirement: define canonical input fields and canonical target fields
 
 ### `evaluation.sample_alignment_mismatch`
 
-Status: `promote`
+Status: `implemented`
 
 Problem: evaluation result rows do not align with the fingerprint-matched evaluation or benchmark dataset by count or explicit sample ID.
 
@@ -138,7 +138,7 @@ Promotion requirement: use only fingerprint-associated artifacts; never use posi
 
 ### `evaluation.metric_out_of_bounds`
 
-Status: `promote`
+Status: `implemented`
 
 Problem: evaluation result artifacts contain known metric values outside an explicitly declared unit or numeric bounds contract.
 

@@ -140,6 +140,8 @@ def run_scan(args: argparse.Namespace) -> int:
         print(f"Unexpected internal error building project index: {err}", file=sys.stderr)
         return 6
 
+    artifact_coverage = project_idx.get_artifact_coverage(active_rules)
+
     try:
         ctx = ScanContext(
             scan_root=scan_root,
@@ -167,6 +169,7 @@ def run_scan(args: argparse.Namespace) -> int:
         completed_at=completed_at,
         rule_mode=rule_mode,
         active_rule_ids=active_rule_ids,
+        artifact_coverage=artifact_coverage,
     )
 
     output_path = args.output
@@ -201,6 +204,7 @@ def run_scan(args: argparse.Namespace) -> int:
             no_color=args.no_color,
             rule_mode=rule_mode,
             active_rule_ids=active_rule_ids,
+            artifact_coverage=artifact_coverage,
         )
         print(summary_text)
 

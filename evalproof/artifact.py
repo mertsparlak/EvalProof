@@ -119,6 +119,7 @@ class Artifact:
     path: str  # repository-relative POSIX path
     format: str
     roles: Set[str] = field(default_factory=set)
+    role_source: str = "heuristic"
     metadata: Dict[str, Any] = field(default_factory=dict)
     full_disk_path: Optional[str] = None
     diagnostics: List[Diagnostic] = field(default_factory=list)
@@ -158,6 +159,7 @@ def create_artifact_from_file(
                 path=posix_path,
                 format=fmt,
                 roles=set(config_override_roles),
+                role_source="config",
                 full_disk_path=full_disk_path,
             )
             art.diagnostics.append(
@@ -176,13 +178,36 @@ def create_artifact_from_file(
     # Supported format detected
     if config_override_roles is not None:
         assigned_roles = set(config_override_roles)
+        role_source = "config"
     else:
         assigned_roles = detect_heuristic_roles(posix_path, fmt)
+        role_source = "heuristic"
 
-    return Artifact(
+    artifact = Artifact(
         id=compute_artifact_id(posix_path),
         path=posix_path,
         format=fmt,
         roles=assigned_roles,
+        role_source=role_source,
         full_disk_path=full_disk_path,
     )
+
+    incompatible_split_roles = (
+        "training_dataset" in assigned_roles
+        and bool(assigned_roles.intersection({"evaluation_dataset", "benchmark_dataset"}))
+    )
+    if role_source == "heuristic" and incompatible_split_roles:
+        artifact.diagnostics.append(
+            Diagnostic(
+                severity=DiagnosticSeverity.WARNING.value,
+                code=DiagnosticCode.ARTIFACT_ROLE_CONFLICT.value,
+                message=(
+                    f"Artifact '{posix_path}' was heuristically assigned incompatible split roles: "
+                    f"{', '.join(sorted(assigned_roles.intersection({'training_dataset', 'evaluation_dataset', 'benchmark_dataset'})))}."
+                ),
+                path=posix_path,
+                details={"roles": sorted(assigned_roles)},
+            )
+        )
+
+    return artifact

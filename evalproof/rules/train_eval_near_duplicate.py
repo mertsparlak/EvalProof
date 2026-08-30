@@ -85,6 +85,9 @@ class TrainEvalNearDuplicateRule(Rule):
             eval_path = eval_meta.get("path", "")
             eval_row = eval_meta.get("row_number", 1)
 
+            if train_path == eval_path:
+                continue
+
             eval_key = (eval_path, eval_row)
             if eval_key not in eval_groups:
                 eval_groups[eval_key] = {

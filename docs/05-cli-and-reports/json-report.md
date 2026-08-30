@@ -27,7 +27,23 @@ Terminal output is for humans. JSON output is for tools.
     "rules": {
       "mode": "selected",
       "ids": ["contamination.train_eval_overlap"]
-    }
+    },
+    "artifacts": [
+      {
+        "path": "data/eval.jsonl",
+        "format": "jsonl",
+        "roles": ["evaluation_dataset"],
+        "role_source": "config",
+        "index_status": "indexed",
+        "index_reasons": ["complete"],
+        "rows_indexed": 100,
+        "rows_rejected": 0,
+        "truncated": false,
+        "fingerprint": "sha256:...",
+        "diagnostic_codes": [],
+        "role_matched_rule_ids": ["contamination.train_eval_overlap"]
+      }
+    ]
   },
   "summary": {
     "artifacts_scanned": 0,
@@ -52,6 +68,10 @@ The `scan.rules` metadata records the actual rule scope of the scan:
 - `ids` is the deterministic, sorted list of rules that actually executed after configuration-disabled rules were removed.
 
 The rule scope is additive report metadata. Existing top-level fields, finding objects, diagnostics, exit codes, and `schema_version` remain unchanged.
+
+The `scan.artifacts` list is additive report metadata. It is sorted by relative POSIX path and records artifact coverage, role provenance, indexing status, and active role-matched rules. `role_matched_rule_ids` describes role applicability only; it does not claim that the rule emitted or would emit a finding.
+
+Coverage values are defined by [Project Index](../02-architecture/project-index.md). The scanner must not report an artifact as fully indexed when file-size, parse, or row-limit behavior prevents complete indexing.
 
 ## Finding Objects
 
@@ -135,6 +155,7 @@ MVP diagnostic codes:
 - `artifact.unsupported_extension`
 - `config.invalid`
 - `rule.recoverable_error`
+- `artifact.role_conflict`
 
 ## Determinism
 
@@ -163,6 +184,7 @@ Absolute paths must not appear in findings, diagnostics, or fingerprints.
 - Relative paths are required.
 - Deterministic JSON excludes optional scan timing metadata.
 - Active rule scope is recorded so an empty selected scan cannot be mistaken for a full clean scan.
+- Artifact coverage is recorded so a clean result can be distinguished from an incomplete or ambiguously classified scan.
 
 ## Open Questions
 
