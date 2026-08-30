@@ -6,9 +6,9 @@ What is EvalProof, and what is it not?
 
 ## Core Position
 
-EvalProof is a local-first static preflight scanner for LLM evaluation artifacts.
+EvalProof is a local-first static preflight scanner for LLM datasets and evaluation artifacts.
 
-It helps engineers decide whether evaluation artifacts are trustworthy before they rely on benchmark results, regression results, or deployment decisions.
+It helps engineers decide whether training datasets and evaluation artifacts satisfy explicit, verifiable trust contracts before they start training or rely on benchmark, regression, or deployment decisions.
 
 EvalProof does not answer:
 
@@ -16,13 +16,13 @@ EvalProof does not answer:
 
 EvalProof answers:
 
-> Can I trust the artifacts used to evaluate this model or LLM system?
+> Can I trust the dataset and evaluation artifacts used to train or evaluate this model or LLM system?
 
 ## Primary Promise
 
 > Before you trust an LLM evaluation, run EvalProof.
 
-This promise defines the product boundary. Features that do not improve confidence in evaluation artifacts do not belong in the MVP.
+This promise defines the product boundary. Training-dataset checks belong only when they establish an objective preflight fact, such as contamination, duplicate identity, malformed structure, or violation of an explicit contract. Subjective dataset scoring remains outside the product boundary.
 
 ## Primary Wedge
 
@@ -38,11 +38,11 @@ Security-related checks are included only when they affect evaluation trust. Eva
 
 ## Product Category
 
-EvalProof is an artifact trust scanner.
+EvalProof is a dataset and evaluation artifact trust scanner.
 
 It sits before evaluation execution and before production observability:
 
-1. A team prepares datasets, prompts, RAG corpora, and evaluation result files.
+1. A team prepares training or evaluation datasets, prompts, RAG corpora, and evaluation result files.
 2. The team runs EvalProof.
 3. EvalProof reports contamination and trust findings.
 4. The team fixes artifact issues.
@@ -58,7 +58,7 @@ EvalProof is:
 - A local-first command-line tool.
 - An offline-first trust checker.
 - A rule engine that produces standardized findings.
-- A preflight tool for evaluation artifacts.
+- A preflight tool for training datasets and evaluation artifacts.
 - A CI-friendly artifact quality gate.
 - A complement to evaluation frameworks and observability tools.
 
@@ -102,7 +102,7 @@ Finding requirements are defined in [Finding Model And Schema](../01-concepts/fi
 ## Design Decisions
 
 - EvalProof is positioned as an artifact trust scanner, not an evaluation framework.
-- The primary wedge is evaluation contamination detection.
+- The primary wedge remains evaluation contamination detection; explicit training-dataset contracts extend the same evidence-first trust model without creating a general dataset quality product.
 - The primary promise is: "Before you trust an LLM evaluation, run EvalProof."
 - The MVP must remain static, local-first, offline-first, and CI-friendly.
 - Security-related checks are allowed only when they affect evaluation artifact trust.

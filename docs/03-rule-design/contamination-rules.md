@@ -308,6 +308,56 @@ Impact: the evaluation result contains a mathematically invalid metric value and
 
 Recommendation: correct the metric computation or declare the correct unit and bounds before publishing the result.
 
+### `dataset.schema_contract_violation`
+
+Detects records that violate an explicit dataset schema contract declared for an artifact in `evalproof.yaml`.
+
+Default severity: `high`
+
+Default confidence: `confirmed`
+
+Default CI behavior: this rule can fail CI under the default `fail_on: high` policy.
+
+Applicability:
+
+- only artifacts with an explicit `artifacts[].schema` contract are checked
+- only `training_dataset`, `evaluation_dataset`, and `benchmark_dataset` roles are supported
+- field checks apply only to top-level record keys
+- absent optional fields and undeclared extra fields are allowed
+- values are checked without coercion
+- an empty observable record collection satisfies the schema because no record violates it
+- row-limit and file-size-limit diagnostics remain scan coverage facts and do not become schema findings
+
+The accepted configuration syntax, types, path requirements, and invalid-configuration behavior are defined in [Configuration And Schema](../02-architecture/configuration-and-schema.md#explicit-dataset-schema-contracts).
+
+Violation types:
+
+- `artifact_unparseable`: the structured artifact could not be parsed
+- `record_unparseable`: an individual record could not be parsed
+- `record_collection_unavailable`: a structured artifact does not expose an observable record collection
+- `record_not_object`: an observable record is not an object
+- `required_field_missing`: a required field is absent
+- `null_not_allowed`: a present field is null while `nullable` is false
+- `type_mismatch`: a present non-null value does not match the declared type
+
+The rule emits at most one finding per configured artifact. Counts cover every observed violation, while detailed evidence is limited to the first 20 violations in deterministic row, field, and violation-type order.
+
+Required evidence:
+
+- artifact path
+- stable contract fingerprint
+- total violation count
+- affected row count
+- counts by violation type
+- bounded violation samples containing row, field, row hash, violation type, and expected or observed type when applicable
+- whether detailed evidence was truncated
+
+Raw field values and record contents must not be written to evidence, messages, or recommendations.
+
+Impact: records that violate the declared structure can be dropped, misread, or consumed with unintended semantics by training and evaluation pipelines.
+
+Recommendation: correct the affected records or update the explicit schema contract to match the intended dataset structure.
+
 ### `rag.unreachable_context_id`
 
 Detects explicit evaluation or benchmark context references that are absent from the discovered RAG artifact IDs.
@@ -680,6 +730,7 @@ Recommendation: populate the referenced RAG record or regenerate the evaluation 
 - Exact deterministic contamination rules have higher priority than near-duplicate, prompt, or security checks.
 - Near-duplicate rules are similarity-based, evidence-backed findings with explicit Jaccard scores and configured thresholds.
 - Heuristic rules are included only when they directly affect evaluation trust.
+- Training-dataset rules require objective evidence or an explicit user contract; they must not infer readiness or quality.
 - Rules outside this document are not part of the MVP.
 
 ## Open Questions

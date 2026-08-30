@@ -64,12 +64,15 @@ The MVP must not score dataset diversity, representativeness, usefulness, fairne
 
 Reason: those judgments are contextual and usually subjective without domain-specific evidence.
 
+This exclusion does not prohibit deterministic validation against a schema explicitly declared by the user. EvalProof may report an observed contract violation, but it must not infer the intended schema, assign a readiness score, or claim that a schema-compliant dataset is suitable for training.
+
 ## Design Decisions
 
 - MVP scope is intentionally narrower than the long-term architecture.
 - Static contamination and trust checks are in scope; dynamic evaluation and platform features are not.
 - External plugin loading is deferred even though the architecture uses rule groups internally.
 - Security checks are supporting checks, not a separate product pillar.
+- Explicit dataset contract validation is in scope; inferred dataset quality and readiness judgments are not.
 
 ## Open Questions
 

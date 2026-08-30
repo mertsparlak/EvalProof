@@ -46,6 +46,10 @@ Reports must only render findings. Reporters must not apply rule logic, severity
 
 The MVP should choose the simplest design that supports contamination detection, deterministic reports, and CI integration.
 
+### Measurements Are Not Findings
+
+Descriptive measurements may support future reporting, but a measurement alone must not become a finding. A finding requires an objective violated contract, concrete impact, and an actionable recommendation. EvalProof must not turn distributions or counts into implicit quality judgments.
+
 ## Design Decisions
 
 - The MVP optimizes for trustworthiness of findings, not breadth of checks.
@@ -53,6 +57,7 @@ The MVP should choose the simplest design that supports contamination detection,
 - No rule may emit a finding without evidence.
 - The finding schema is the central cross-system contract.
 - Simplicity is preferred when a more complete design would not improve evaluation trust.
+- Explicit user contracts may produce findings; inferred intent and unconfigured quality thresholds may not.
 
 ## Open Questions
 

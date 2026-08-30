@@ -1,8 +1,8 @@
 # EvalProof
 
-Verify your LLM evaluation artifacts before you trust the results.
+Verify your LLM datasets and evaluation artifacts before you trust the results.
 
-EvalProof is a local-first static preflight scanner for LLM evaluation artifacts. It detects contamination, duplication, reproducibility gaps, RAG answer leakage, unsafe context interpolation, and sensitive values before teams trust benchmark results or deploy LLM systems.
+EvalProof is a local-first static preflight scanner for LLM datasets and evaluation artifacts. It detects contamination, duplicate identities, explicit schema violations, reproducibility gaps, RAG trust failures, unsafe context interpolation, and sensitive values before teams train models or trust benchmark results.
 
 EvalProof is not an evaluation framework, benchmark runner, prompt optimizer, observability platform, LLMOps platform, or generic security scanner.
 
@@ -92,6 +92,7 @@ Trust and safety checks:
 - `dataset.label_inconsistency`
 - `dataset.sample_id_collision`
 - `dataset.empty_evaluation_input`
+- `dataset.schema_contract_violation`
 - `dataset.partial_sample_id_coverage`
 - `evaluation.metric_out_of_bounds`
 - `rag.unreachable_context_id`
@@ -116,6 +117,14 @@ exclude:
 artifacts:
   - path: "data/train.jsonl"
     roles: ["training_dataset"]
+    schema:
+      required: ["messages"]
+      fields:
+        messages:
+          type: array
+        sample_id:
+          type: string
+          nullable: true
   - path: "data/eval.jsonl"
     roles: ["evaluation_dataset"]
 
@@ -141,6 +150,8 @@ similarity:
   focus_roles: ["user"]
   focus_fields: ["prompt", "input", "query", "user", "user_message"]
 ```
+
+Schema validation is opt-in and applies only to exact configured training, evaluation, or benchmark dataset paths. EvalProof does not infer schemas, coerce values, or turn schema compliance into a dataset quality score. See [Configuration And Schema](docs/02-architecture/configuration-and-schema.md#explicit-dataset-schema-contracts) for the complete contract.
 
 ## CI
 

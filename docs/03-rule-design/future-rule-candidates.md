@@ -41,6 +41,7 @@ The following dataset rules were promoted in v1.10 or later and are now part of 
 - `dataset.sample_id_collision`
 - `dataset.empty_evaluation_input`
 - `dataset.partial_sample_id_coverage` (promoted in v1.14)
+- `dataset.schema_contract_violation` (promoted in v1.19)
 
 The following RAG rules were promoted in v1.11 or later and are now part of the active contract:
 
@@ -49,6 +50,12 @@ The following RAG rules were promoted in v1.11 or later and are now part of the 
 - `rag.empty_referenced_document`
 
 ## Dataset Integrity Candidates
+
+### `dataset.schema_contract_violation`
+
+Status: `implemented`
+
+The rule validates only schemas explicitly declared for exact training, evaluation, or benchmark artifacts. Schema inference, readiness scoring, and subjective quality judgments remain rejected. The active configuration and finding contracts are defined in [Configuration And Schema](../02-architecture/configuration-and-schema.md#explicit-dataset-schema-contracts) and [Contamination Rules](contamination-rules.md#datasetschema_contract_violation).
 
 ### `dataset.partial_sample_id_coverage`
 

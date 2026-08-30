@@ -84,6 +84,8 @@ Role detection precedence:
 
 Configuration overrides replace heuristic roles for the configured path.
 
+An artifact override may also declare a schema contract for a structured training, evaluation, or benchmark dataset. The contract belongs to configuration rather than the artifact model: core does not infer schemas, and artifacts without an explicit contract remain valid scan inputs. The exact configuration syntax and validation rules are defined only in [Configuration And Schema](../02-architecture/configuration-and-schema.md).
+
 Heuristic detection uses lowercase repository-relative POSIX paths.
 
 `training_dataset`:
@@ -161,6 +163,7 @@ Rules may:
 - Query artifact roles.
 - Read content through artifact access methods.
 - Query project-level indexes described in [Project Index](../02-architecture/project-index.md).
+- Read validated explicit contracts from scan configuration when a rule's contract requires them.
 
 ## Design Decisions
 
@@ -168,6 +171,7 @@ Rules may:
 - Artifact roles are explicit and overrideable.
 - Artifacts may expose streaming row access to avoid loading large datasets.
 - Parse errors are represented as scan data rather than fatal process errors.
+- Dataset schemas are opt-in configuration contracts and are never inferred by artifact discovery.
 
 ## Open Questions
 
