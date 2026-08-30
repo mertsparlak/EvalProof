@@ -5,16 +5,16 @@ from pathlib import Path
 import tempfile
 import pytest
 
-from llm_doctor.artifact import (
+from evalproof.artifact import (
     Artifact,
     compute_artifact_id,
     detect_file_format,
     detect_heuristic_roles,
     create_artifact_from_file,
 )
-from llm_doctor.config import Config, ArtifactOverride
-from llm_doctor.finding import DiagnosticCode, DiagnosticSeverity
-from llm_doctor.project_index import (
+from evalproof.config import Config, ArtifactOverride
+from evalproof.finding import DiagnosticCode, DiagnosticSeverity
+from evalproof.project_index import (
     ProjectIndex,
     normalize_plain_text,
     compute_row_hash,

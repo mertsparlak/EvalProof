@@ -4,7 +4,7 @@ import json
 import shutil
 from pathlib import Path
 
-from llm_doctor.cli import main
+from evalproof.cli import main
 
 
 FIXTURE_ROOT = Path(__file__).parent / "fixtures" / "contaminated_project"

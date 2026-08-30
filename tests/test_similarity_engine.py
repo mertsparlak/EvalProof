@@ -1,8 +1,8 @@
 """Unit tests for the Similarity Engine (MinHash + LSH)."""
 
 import pytest
-from llm_doctor.config import Config, SimilarityConfig
-from llm_doctor.similarity import (
+from evalproof.config import Config, SimilarityConfig
+from evalproof.similarity import (
     normalize_similarity_text,
     extract_shingles,
     compute_minhash_signature,
@@ -131,7 +131,7 @@ def test_similarity_config_integration():
 
 
 def test_extract_target_similarity_text_system_prompt_filtering():
-    from llm_doctor.similarity import extract_target_similarity_text
+    from evalproof.similarity import extract_target_similarity_text
 
     cfg = SimilarityConfig(focus_roles=["user"])
 

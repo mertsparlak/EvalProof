@@ -13,8 +13,8 @@ try:
 except ImportError:
     import tomli as tomllib  # Fallback if needed
 
-from llm_doctor.config import Config, ArtifactOverride
-from llm_doctor.finding import Diagnostic, DiagnosticSeverity, DiagnosticCode
+from evalproof.config import Config, ArtifactOverride
+from evalproof.finding import Diagnostic, DiagnosticSeverity, DiagnosticCode
 
 
 # Format mapping

@@ -3,8 +3,8 @@
 import re
 from typing import List, Set
 
-from llm_doctor.finding import Finding, Location, Severity, Confidence
-from llm_doctor.rule_engine import Rule, ScanContext
+from evalproof.finding import Finding, Location, Severity, Confidence
+from evalproof.rule_engine import Rule, ScanContext
 
 
 TARGET_PLACEHOLDERS: Set[str] = {

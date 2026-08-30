@@ -4,12 +4,12 @@ from pathlib import Path
 import tempfile
 import pytest
 
-from llm_doctor.config import Config, SimilarityConfig
-from llm_doctor.artifact import create_artifact_from_file
-from llm_doctor.project_index import ProjectIndex
-from llm_doctor.rule_engine import ScanContext, execute_rules
-from llm_doctor.rules.train_eval_near_duplicate import TrainEvalNearDuplicateRule
-from llm_doctor.rules.duplicate_eval_near_duplicate import DuplicateEvalNearDuplicateRule
+from evalproof.config import Config, SimilarityConfig
+from evalproof.artifact import create_artifact_from_file
+from evalproof.project_index import ProjectIndex
+from evalproof.rule_engine import ScanContext, execute_rules
+from evalproof.rules.train_eval_near_duplicate import TrainEvalNearDuplicateRule
+from evalproof.rules.duplicate_eval_near_duplicate import DuplicateEvalNearDuplicateRule
 
 
 def test_train_eval_near_duplicate_rule():

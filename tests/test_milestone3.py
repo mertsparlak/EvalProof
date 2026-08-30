@@ -5,12 +5,12 @@ from pathlib import Path
 import tempfile
 import pytest
 
-from llm_doctor.artifact import create_artifact_from_file
-from llm_doctor.config import Config, ArtifactOverride
-from llm_doctor.finding import Severity, Confidence
-from llm_doctor.project_index import ProjectIndex
-from llm_doctor.rule_engine import ScanContext, execute_rules, default_registry
-from llm_doctor.rules import register_mvp_rules
+from evalproof.artifact import create_artifact_from_file
+from evalproof.config import Config, ArtifactOverride
+from evalproof.finding import Severity, Confidence
+from evalproof.project_index import ProjectIndex
+from evalproof.rule_engine import ScanContext, execute_rules, default_registry
+from evalproof.rules import register_mvp_rules
 
 
 @pytest.fixture(autouse=True)

@@ -1,36 +1,36 @@
-"""contamination.duplicate_train_near_duplicate rule implementation."""
+"""contamination.duplicate_eval_near_duplicate rule implementation."""
 
 from typing import List, Set, Tuple, Dict, Any
-from llm_doctor.finding import Finding, Severity, Confidence, Location
-from llm_doctor.rule_engine import Rule, ScanContext
+from evalproof.finding import Finding, Severity, Confidence, Location
+from evalproof.rule_engine import Rule, ScanContext
 
-RULE_ID = "contamination.duplicate_train_near_duplicate"
+RULE_ID = "contamination.duplicate_eval_near_duplicate"
 
 
-class DuplicateTrainNearDuplicateRule(Rule):
+class DuplicateEvalNearDuplicateRule(Rule):
     @property
     def id(self) -> str:
         return RULE_ID
 
     @property
     def title(self) -> str:
-        return "Near-duplicate training record detected"
+        return "Near-duplicate evaluation record detected"
 
     @property
     def default_severity(self) -> str:
-        return Severity.LOW.value
+        return Severity.MEDIUM.value
 
     @property
     def description(self) -> str:
-        return "Detect near-duplicate records within training datasets."
+        return "Detect near-duplicate records within evaluation or benchmark datasets."
 
     @property
     def artifact_roles(self) -> List[str]:
-        return ["training_dataset"]
+        return ["evaluation_dataset", "benchmark_dataset"]
 
     @property
     def tags(self) -> List[str]:
-        return ["dataset_integrity", "near_duplicate", "redundancy"]
+        return ["contamination", "near_duplicate", "duplicate_sample"]
 
     def evaluate(self, ctx: ScanContext) -> List[Finding]:
         if not ctx.config.similarity.enabled:
@@ -39,8 +39,8 @@ class DuplicateTrainNearDuplicateRule(Rule):
         threshold = ctx.config.similarity.threshold
         candidates = ctx.project_index.similarity_index.find_all_pairs(threshold=threshold)
 
-        train_roles = {"training_dataset"}
-        train_groups: Dict[Tuple[str, int], Dict[str, Any]] = {}
+        eval_roles = {"evaluation_dataset", "benchmark_dataset"}
+        eval_groups: Dict[Tuple[str, int], Dict[str, Any]] = {}
         emitted_pairs: Set[Tuple[str, str]] = set()
 
         for cand in candidates:
@@ -50,8 +50,8 @@ class DuplicateTrainNearDuplicateRule(Rule):
             src_roles = set(src_meta.get("roles", []))
             tgt_roles = set(tgt_meta.get("roles", []))
 
-            # Both items must belong to training datasets
-            if not (src_roles.intersection(train_roles) and tgt_roles.intersection(train_roles)):
+            # Both items must belong to evaluation or benchmark datasets
+            if not (src_roles.intersection(eval_roles) and tgt_roles.intersection(eval_roles)):
                 continue
 
             exact_hash_src = src_meta.get("exact_hash")
@@ -77,9 +77,9 @@ class DuplicateTrainNearDuplicateRule(Rule):
                 continue
             emitted_pairs.add(pair_key)
 
-            train_key = (path_b, row_b)
-            if train_key not in train_groups:
-                train_groups[train_key] = {
+            eval_key = (path_b, row_b)
+            if eval_key not in eval_groups:
+                eval_groups[eval_key] = {
                     "path": path_b,
                     "row": row_b,
                     "text": cand.target_text,
@@ -88,7 +88,7 @@ class DuplicateTrainNearDuplicateRule(Rule):
                     "seen_sources": set(),
                 }
 
-            group = train_groups[train_key]
+            group = eval_groups[eval_key]
             src_key = (path_a, row_a)
             if src_key not in group["seen_sources"]:
                 group["seen_sources"].add(src_key)
@@ -103,7 +103,7 @@ class DuplicateTrainNearDuplicateRule(Rule):
                     group["max_similarity_score"] = sim_score
 
         findings: List[Finding] = []
-        for (path_b, row_b), group in train_groups.items():
+        for (path_b, row_b), group in eval_groups.items():
             matched = group["matched_records"]
             first_match = matched[0]
             path_a = first_match["path"]
@@ -115,9 +115,9 @@ class DuplicateTrainNearDuplicateRule(Rule):
             loc_a = Location(role="secondary", path=path_a, row=row_a)
 
             if match_count == 1:
-                msg = f"Near-duplicate training record at row {row_b} resembles row {row_a} in '{path_a}' with similarity score {sim_score:.4f}."
+                msg = f"Near-duplicate evaluation record at row {row_b} resembles row {row_a} in '{path_a}' with similarity score {sim_score:.4f}."
             else:
-                msg = f"Near-duplicate training record at row {row_b} in '{path_b}' resembles {match_count} training records (highest similarity score: {sim_score:.4f})."
+                msg = f"Near-duplicate evaluation record at row {row_b} in '{path_b}' resembles {match_count} evaluation records (highest similarity score: {sim_score:.4f})."
 
             finding = Finding(
                 rule_id=self.id,
@@ -125,17 +125,17 @@ class DuplicateTrainNearDuplicateRule(Rule):
                 confidence=Confidence.LIKELY.value,
                 title=self.title,
                 message=msg,
-                impact="Near-duplicate training records cause data redundancy and model overfitting.",
-                recommendation="Deduplicate training samples to optimize compute efficiency and generalization.",
+                impact="Duplicate or near-duplicate evaluation samples skew evaluation metrics by over-weighting specific test cases.",
+                recommendation="Deduplicate evaluation samples to ensure fair and unweighted evaluation metrics.",
                 locations=[loc_b, loc_a],
                 evidence={
                     "artifact_path": path_b,
-                    "training_row": row_b,
+                    "evaluation_row": row_b,
                     "duplicate_row": row_a,
                     "similarity_score": sim_score,
                     "configured_threshold": threshold,
                     "overlap_count": match_count,
-                    "training_snippet": group["text"][:200],
+                    "evaluation_snippet": group["text"][:200],
                     "duplicate_snippet": first_match["snippet"],
                     "matched_duplicate_records": matched,
                 },

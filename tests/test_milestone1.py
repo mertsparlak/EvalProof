@@ -6,7 +6,7 @@ from pathlib import Path
 import tempfile
 import pytest
 
-from llm_doctor.finding import (
+from evalproof.finding import (
     Finding,
     Location,
     Diagnostic,
@@ -16,7 +16,7 @@ from llm_doctor.finding import (
     Confidence,
     canonical_json_dumps,
 )
-from llm_doctor.config import (
+from evalproof.config import (
     Config,
     ConfigError,
     load_config,
@@ -25,7 +25,7 @@ from llm_doctor.config import (
     DEFAULT_EXCLUDES,
     DEFAULT_FAIL_ON,
 )
-from llm_doctor.discovery import discover_files, glob_to_regex, is_pattern_matched
+from evalproof.discovery import discover_files, glob_to_regex, is_pattern_matched
 
 
 def test_canonical_json_dumps():

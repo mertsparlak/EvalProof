@@ -3,7 +3,7 @@
 import json
 from pathlib import Path
 
-from llm_doctor.cli import main
+from evalproof.cli import main
 
 
 def test_malformed_and_limited_artifacts_emit_diagnostics_without_crashing(tmp_path):

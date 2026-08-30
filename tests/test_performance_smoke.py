@@ -4,7 +4,7 @@ import json
 import time
 from pathlib import Path
 
-from llm_doctor.cli import main
+from evalproof.cli import main
 
 
 def run_scan(root: Path, output_name: str) -> tuple[int, dict, float]:

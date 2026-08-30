@@ -3,7 +3,7 @@
 import json
 from typing import Any, Dict, List, Optional
 
-from llm_doctor.finding import Diagnostic, Finding, SEVERITY_RANK, Severity
+from evalproof.finding import Diagnostic, Finding, SEVERITY_RANK, Severity
 
 
 def sort_findings_deterministically(findings: List[Finding]) -> List[Finding]:

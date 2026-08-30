@@ -1,8 +1,8 @@
 """contamination.train_eval_near_duplicate rule implementation."""
 
 from typing import List, Set, Tuple, Dict, Any
-from llm_doctor.finding import Finding, Severity, Confidence, Location
-from llm_doctor.rule_engine import Rule, ScanContext
+from evalproof.finding import Finding, Severity, Confidence, Location
+from evalproof.rule_engine import Rule, ScanContext
 
 RULE_ID = "contamination.train_eval_near_duplicate"
 
