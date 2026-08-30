@@ -279,6 +279,8 @@ Required evidence:
 
 Canonical input aliases are `prompt`, `question`, and `input`. Canonical target aliases are the answer aliases defined by [Project Index](../02-architecture/project-index.md). Context-bearing fields are included in the identity when present so examples with different contexts are not incorrectly grouped.
 
+Target extraction accepts a scalar or a list of scalar values in these canonical fields. Lists are trimmed, deduplicated, sorted, and compared as sets; scalar and single-value list representations are equivalent. Nested target objects are outside the contract and are ignored. The finding confirms that different assignments were observed; it does not by itself prove which assignment is semantically correct.
+
 Impact: conflicting targets make benchmark labels ambiguous and reduce confidence in evaluation results.
 
 Recommendation: resolve the annotation conflict or include the missing context that distinguishes the examples.
