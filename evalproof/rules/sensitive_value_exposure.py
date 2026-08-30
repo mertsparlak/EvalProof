@@ -63,7 +63,8 @@ class SensitiveValueExposureRule(Rule):
                 group["lines"].add(line_number)
                 group["redacted"].add(redact_value(detector_type, value))
 
-            for line_idx, line in enumerate(art.read_text().splitlines(), start=1):
+            physical_lines = art.read_text().replace("\r\n", "\n").replace("\r", "\n").split("\n")
+            for line_idx, line in enumerate(physical_lines, start=1):
                 if PRIVATE_KEY_MARKER in line:
                     add_match("private_key", line_idx, PRIVATE_KEY_MARKER)
                 for match in API_KEY_REGEX.finditer(line):

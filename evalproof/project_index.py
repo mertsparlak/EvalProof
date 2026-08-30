@@ -409,7 +409,7 @@ class ProjectIndex:
             self._index_toml(art, text)
 
     def _index_jsonl(self, art: Artifact, text: str):
-        lines = text.splitlines()
+        lines = text.replace("\r\n", "\n").replace("\r", "\n").split("\n")
         valid_rows: List[RowRecord] = []
         normalized_row_json_strings: List[str] = []
         limit_reached = False

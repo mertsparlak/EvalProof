@@ -66,7 +66,7 @@ class UntrustedContextInterpolationRule(Rule):
 
         for art in prompt_arts:
             text = art.read_text()
-            lines = text.splitlines()
+            lines = text.replace("\r\n", "\n").replace("\r", "\n").split("\n")
 
             for line_idx, line in enumerate(lines, start=1):
                 matches = pattern.finditer(line)

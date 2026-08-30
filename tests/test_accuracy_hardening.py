@@ -117,3 +117,18 @@ def test_eval_near_duplicate_remains_when_explicit_context_and_target_match(tmp_
         for finding in findings
         if finding.rule_id == "contamination.duplicate_eval_near_duplicate"
     ]
+
+def test_jsonl_unicode_line_separator_inside_string_is_not_a_parse_error(tmp_path):
+    (tmp_path / "eval.jsonl").write_text(
+        '{"prompt":"first\\u2028second"}\n{"prompt":"ordinary row"}\n',
+        encoding="utf-8",
+    )
+    config = Config(
+        artifacts=[ArtifactOverride(path="eval.jsonl", roles=["evaluation_dataset"])]
+    )
+    artifact = create_artifact_from_file(tmp_path, "eval.jsonl", config)
+    index = ProjectIndex(config)
+    index.build([artifact])
+
+    assert len(index.rows_by_artifact["eval.jsonl"]) == 2
+    assert not [diagnostic for diagnostic in index.diagnostics if diagnostic.code == "artifact.row_parse_failed"]
