@@ -44,6 +44,7 @@ The following dataset rules were promoted in v1.10 or later and are now part of 
 
 The following RAG rules were promoted in v1.11 or later and are now part of the active contract:
 
+- `rag.duplicate_chunk_in_corpus` (promoted in v1.15)
 - `rag.empty_or_corrupted_document` (promoted in v1.15)
 - `rag.empty_referenced_document`
 
@@ -304,7 +305,9 @@ Relationship to diagnostics: parse failures remain diagnostics; the implemented 
 
 ### `rag.duplicate_chunk_in_corpus`
 
-Status: `promote`
+Status: `implemented`
+
+The exact-match slice is implemented. Near-duplicate RAG matching remains deferred because it requires stronger chunk-boundary and false-positive controls.
 
 Problem: identical or near-identical chunks are indexed multiple times across RAG corpus documents, which can overweight retrieval evidence and distort RAG evaluation.
 

@@ -7,6 +7,8 @@ cases:
     path: ../trust_chain_project
   identity_rag:
     path: identity_rag_project
+  rag_duplicate:
+    path: rag_duplicate_project
   partial_id:
     path: partial_id_project
   heuristic:
@@ -107,6 +109,10 @@ rules:
     positive: partial_id
     negative: clean
     abstention: clean
+  rag.duplicate_chunk_in_corpus:
+    confidence: confirmed
+    positive: rag_duplicate
+    negative: clean
   rag.empty_or_corrupted_document:
     confidence: confirmed
     positive: identity_rag

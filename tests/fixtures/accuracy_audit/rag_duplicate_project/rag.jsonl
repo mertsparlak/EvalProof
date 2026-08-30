@@ -1,0 +1,3 @@
+{"id":"doc-a","chunk":"Same chunk text."}
+{"id":"doc-b","chunk":" Same   chunk text. "}
+{"id":"doc-c","chunk":"Different chunk."}
