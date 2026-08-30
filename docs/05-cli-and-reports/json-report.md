@@ -77,6 +77,8 @@ Coverage values are defined by [Project Index](../02-architecture/project-index.
 
 Each finding object must match [Finding Model And Schema](../01-concepts/finding-model-and-schema.md).
 
+Rule-specific evidence may aggregate many underlying matches to keep reports usable. Such evidence must preserve complete match counts, use deterministic bounded samples, and set `evidence_truncated: true` when related evidence is omitted. This is an additive rule-evidence convention and does not change the top-level JSON schema or finding object shape.
+
 Minimum JSON shape:
 
 ```json
@@ -179,6 +181,7 @@ Absolute paths must not appear in findings, diagnostics, or fingerprints.
 
 - JSON is the required MVP machine-readable report format.
 - Findings use the same schema across reports.
+- High-volume rule evidence is aggregated and bounded without hiding complete match counts.
 - Diagnostics are separate from findings.
 - Timestamps are allowed only as report metadata.
 - Relative paths are required.
