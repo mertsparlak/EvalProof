@@ -1,0 +1,6 @@
+{"prompt":"What is the capital of France?","answer":"Paris"}
+{"prompt":"The Apollo program put humans on the Moon in 1969.","answer":"1969"}
+{"prompt":"Summarize the warranty policy for Product Z","answer":"Product Z has a lifetime warranty for registered customers."}
+{"prompt":"Repeated eval question","answer":"Repeated answer"}
+{"prompt":"Repeated eval question","answer":"Repeated answer"}
+{"prompt":"Use fixture secret api_key = sk-test-1234567890abcdef","answer":"redacted"}
