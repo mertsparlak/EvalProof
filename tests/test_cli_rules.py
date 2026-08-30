@@ -21,6 +21,7 @@ EXPECTED_RULE_IDS = [
     "evaluation.metric_out_of_bounds",
     "evaluation.sample_alignment_mismatch",
     "prompt.unresolved_placeholder",
+    "rag.chunk_id_collision",
     "rag.duplicate_chunk_in_corpus",
     "rag.empty_or_corrupted_document",
     "rag.empty_referenced_document",

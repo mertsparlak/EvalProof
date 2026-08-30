@@ -96,6 +96,7 @@ Trust and safety checks:
 - `dataset.partial_sample_id_coverage`
 - `evaluation.metric_out_of_bounds`
 - `rag.unreachable_context_id`
+- `rag.chunk_id_collision` (explicit chunk_id within one RAG artifact only)
 - `rag.duplicate_chunk_in_corpus`
 - `rag.empty_or_corrupted_document`
 - `rag.empty_referenced_document`
@@ -183,6 +184,8 @@ Exit codes:
 - `6`: unexpected internal error
 
 ## Documentation
+
+Versioned delivery status and release gates: [Roadmap](ROADMAP.md).
 
 Design source of truth:
 

@@ -21,6 +21,10 @@ cases:
     path: format_project
   schema_contract:
     path: schema_contract_project
+  chunk_collision:
+    path: chunk_collision_project
+  chunk_identity_clean:
+    path: chunk_identity_clean_project
 
 rules:
   contamination.train_eval_overlap:
@@ -120,6 +124,11 @@ rules:
     confidence: confirmed
     positive: rag_duplicate
     negative: clean
+  rag.chunk_id_collision:
+    confidence: confirmed
+    positive: chunk_collision
+    negative: chunk_identity_clean
+    abstention: clean
   rag.empty_or_corrupted_document:
     confidence: confirmed
     positive: identity_rag

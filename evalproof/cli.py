@@ -48,6 +48,7 @@ RULE_CONFIDENCE = {
     "dataset.empty_evaluation_input": "confirmed",
     "dataset.partial_sample_id_coverage": "confirmed",
     "dataset.schema_contract_violation": "confirmed",
+    "rag.chunk_id_collision": "confirmed",
     "rag.empty_or_corrupted_document": "confirmed",
     "rag.duplicate_chunk_in_corpus": "confirmed",
     "rag.empty_referenced_document": "confirmed",
@@ -249,8 +250,8 @@ def main(sys_args: Optional[List[str]] = None) -> int:
 
     try:
         parsed_args = parser.parse_args(sys_args)
-    except SystemExit:
-        return 2
+    except SystemExit as error:
+        return 0 if error.code == 0 else 2
 
     if parsed_args.command == "rules":
         print(render_rules_listing())

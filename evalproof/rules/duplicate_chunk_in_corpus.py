@@ -5,7 +5,7 @@ import hashlib
 from typing import Dict, List, Tuple
 
 from evalproof.finding import Confidence, DiagnosticCode, Finding, Location, Severity
-from evalproof.project_index import normalize_plain_text
+from evalproof.project_index import extract_rag_content
 from evalproof.rule_engine import Rule, ScanContext
 from evalproof.rules._evidence import MAX_RELATED_EVIDENCE, cap_evidence_items
 
@@ -13,7 +13,6 @@ from evalproof.rules._evidence import MAX_RELATED_EVIDENCE, cap_evidence_items
 RULE_ID = "rag.duplicate_chunk_in_corpus"
 EVALUATION_ROLES = {"evaluation_dataset", "benchmark_dataset"}
 RAG_ROLES = {"rag_document"}
-CONTENT_FIELD_ALIASES = ["text", "content", "document", "body", "chunk", "page_content"]
 INCOMPLETE_INDEX_CODES = {
     DiagnosticCode.ARTIFACT_PARSE_FAILED.value,
     DiagnosticCode.ARTIFACT_ROW_PARSE_FAILED.value,
@@ -141,11 +140,4 @@ class DuplicateChunkInCorpusRule(Rule):
 
     @staticmethod
     def _extract_content(row_data):
-        if not isinstance(row_data, dict):
-            return None
-        for field_name in CONTENT_FIELD_ALIASES:
-            value = row_data.get(field_name)
-            if not isinstance(value, str) or not value.strip():
-                continue
-            return field_name, normalize_plain_text(value)
-        return None
+        return extract_rag_content(row_data)

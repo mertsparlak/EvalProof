@@ -52,6 +52,7 @@ REQUIRED_EVIDENCE_KEYS = {
     "dataset.schema_contract_violation": {"artifact_path", "contract_fingerprint", "total_violation_count", "affected_row_count", "violation_counts", "sample_violations", "evidence_truncated"},
     "rag.empty_or_corrupted_document": {"artifact_path", "state", "empty_record_count", "row_count", "observed_text_length", "content_fields", "row_locations", "row_hashes", "diagnostic_codes", "evidence_truncated"},
     "rag.duplicate_chunk_in_corpus": {"artifact_paths", "content_fields", "normalized_chunk_hash", "duplicate_count", "duplicate_artifact_count", "row_locations", "row_hashes", "evidence_truncated"},
+    "rag.chunk_id_collision": {"artifact_path", "chunk_id_field", "chunk_id_hash", "record_count", "distinct_content_count", "sample_records", "evidence_truncated"},
     "rag.empty_referenced_document": {"evaluation_artifact", "evaluation_row", "reference_fields", "empty_reference_count", "empty_reference_hashes", "rag_artifact_paths", "content_fields"},
 }
 def load_manifest() -> dict:
@@ -91,7 +92,7 @@ def test_accuracy_manifest_covers_every_registered_rule():
     manifest_ids = set(manifest["rules"])
 
     assert manifest_ids == registered_ids
-    assert len(manifest_ids) == 23
+    assert len(manifest_ids) == 24
 
 
 def test_registered_rules_have_positive_and_negative_cases(tmp_path):

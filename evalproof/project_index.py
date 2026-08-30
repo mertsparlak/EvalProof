@@ -37,6 +37,7 @@ ANSWER_FIELD_ALIASES: List[str] = [
 ]
 
 INPUT_FIELD_ALIASES: List[str] = ["prompt", "question", "input"]
+RAG_CONTENT_FIELD_ALIASES: List[str] = ["text", "content", "document", "body", "chunk", "page_content"]
 
 SAMPLE_ID_FIELD_ALIASES: List[str] = ["id", "sample_id", "example_id", "record_id", "case_id"]
 CONTEXT_ID_SCALAR_FIELD_ALIASES: List[str] = ["doc_id", "document_id", "context_id", "source_id", "chunk_id"]
@@ -163,6 +164,16 @@ class AnswerRecord:
 
 
 @dataclass(frozen=True)
+class RagChunkRecord:
+    artifact_path: str
+    row_num: int
+    row_hash: str
+    chunk_id_hash: str
+    content_field: str
+    content_hash: str
+
+
+@dataclass(frozen=True)
 class ContextReference:
     field_name: str
     value: str
@@ -224,6 +235,17 @@ def normalize_fingerprint(value: Any) -> str:
     if normalized.startswith("sha256:"):
         return normalized[7:]
     return normalized
+
+
+def extract_rag_content(row_data: Any) -> Optional[Tuple[str, str]]:
+    """Return the first supported non-empty top-level RAG content value."""
+    if not isinstance(row_data, dict):
+        return None
+    for field_name in RAG_CONTENT_FIELD_ALIASES:
+        value = row_data.get(field_name)
+        if isinstance(value, str) and value.strip():
+            return field_name, normalize_plain_text(value)
+    return None
 
 
 def extract_scalar_field(row_data: Any, aliases: List[str]) -> Optional[Tuple[str, str]]:
@@ -760,6 +782,44 @@ class ProjectIndex:
                 for reference in extract_context_references(row.row_data, include_lists=include_lists, include_generic_id=include_generic_id):
                     references.append((row, reference))
         return references
+
+    def get_rag_chunk_records(self) -> List[RagChunkRecord]:
+        """Extract redacted, artifact-scoped explicit chunk identities."""
+        incomplete_codes = {
+            DiagnosticCode.ARTIFACT_PARSE_FAILED.value,
+            DiagnosticCode.ARTIFACT_ROW_PARSE_FAILED.value,
+            DiagnosticCode.ARTIFACT_ROW_LIMIT_REACHED.value,
+            DiagnosticCode.ARTIFACT_FILE_SIZE_LIMIT_EXCEEDED.value,
+        }
+        incomplete_paths = {
+            diagnostic.path for diagnostic in self.diagnostics
+            if diagnostic.code in incomplete_codes
+        }
+        records = []
+        for path, artifact in sorted(self.artifacts_by_path.items()):
+            if "rag_document" not in artifact.roles or "configuration" in artifact.roles:
+                continue
+            if path in incomplete_paths or any(
+                diagnostic.code in incomplete_codes for diagnostic in artifact.diagnostics
+            ):
+                continue
+            for row in sorted(self.rows_by_artifact.get(path, []), key=lambda item: item.row_num):
+                if not isinstance(row.row_data, dict):
+                    continue
+                chunk_id = normalize_context_identifier(row.row_data.get("chunk_id"))
+                content = extract_rag_content(row.row_data)
+                if chunk_id is None or content is None:
+                    continue
+                content_field, normalized_content = content
+                records.append(RagChunkRecord(
+                    artifact_path=path,
+                    row_num=row.row_num,
+                    row_hash=row.row_hash,
+                    chunk_id_hash="sha256:" + hashlib.sha256(chunk_id.encode("utf-8")).hexdigest(),
+                    content_field=content_field,
+                    content_hash="sha256:" + hashlib.sha256(normalized_content.encode("utf-8")).hexdigest(),
+                ))
+        return records
 
     def matching_artifacts_for_fingerprint(self, reference: Any, roles: Set[str]) -> List[Artifact]:
         normalized_reference = normalize_fingerprint(reference)

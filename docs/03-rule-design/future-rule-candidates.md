@@ -288,6 +288,17 @@ Promotion requirement: define a narrow detector that avoids judging prompt style
 
 ## RAG Integrity Candidates
 
+### `rag.chunk_id_collision`
+
+Status: `implemented` in v1.20.
+
+The approved slice checks explicit chunk_id only within one artifact. Parent
+document aliases and cross-file comparisons are excluded to avoid conflating
+independent namespaces. The extraction contract belongs to
+[Project Index](../02-architecture/project-index.md#rag-chunk-identity-records);
+the finding contract belongs to [Contamination Rules](contamination-rules.md#ragchunk_id_collision).
+Cross-file collisions remain deferred pending an explicit corpus namespace contract.
+
 ### `rag.empty_or_corrupted_document`
 
 Status: `implemented`

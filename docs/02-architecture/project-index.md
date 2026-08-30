@@ -144,6 +144,38 @@ Context identifiers are trimmed, remain case-sensitive, and accept only non-empt
 
 Each extracted reference also has a stable SHA-256 hash for evidence that must not expose the raw identifier.
 
+## RAG Chunk Identity Records
+
+`get_rag_chunk_records()` exposes redacted identity/content records from indexed
+`rag_document` artifacts. It excludes configuration artifacts and artifacts with
+parse, row-parse, row-limit or file-size diagnostics. No evaluation artifact is
+required; a RAG artifact can be checked independently.
+
+Only an explicit top-level `chunk_id` is a chunk identity. General `id`,
+`doc_id`, `document_id`, `context_id` and `source_id` fields are not substitutes:
+they may identify a parent document shared by multiple chunks.
+
+Chunk IDs use the context identifier normalization above: trim strings, preserve
+case, accept finite numeric scalars through their deterministic string form, and
+reject booleans, empty values, objects and arrays. Integer 7 and string "7" are
+equivalent; float 7.0 and string "7.0" are equivalent but distinct from "7".
+
+Content extraction is shared with exact RAG duplicate detection through
+`extract_rag_content()`. In order, inspect `text`, `content`, `document`,
+`body`, `chunk`, `page_content`; choose the first non-empty string. Normalize
+line endings and whitespace using `normalize_plain_text`, preserving case.
+Unsupported/nested content is ignored, not inferred.
+
+Each record contains `artifact_path`, `row_num`, `row_hash`,
+`chunk_id_hash`, `content_field`, `content_hash`. Chunk ID and content hashes are
+SHA-256 of normalized UTF-8 values; `row_hash` is the existing indexed row hash.
+Raw IDs and content are not carried by this interface.
+Records are ordered by artifact path and row. Querying does not mutate the index.
+
+The artifact path is part of the identity namespace; no shared corpus namespace
+is inferred. Finding grouping and evidence limits belong to
+[`rag.chunk_id_collision`](../03-rule-design/contamination-rules.md#ragchunk_id_collision).
+
 ## Normalization
 
 Normalization must be deterministic and conservative.

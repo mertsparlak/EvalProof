@@ -724,6 +724,44 @@ Impact: an explicitly referenced RAG document contributes no usable context, mak
 
 Recommendation: populate the referenced RAG record or regenerate the evaluation artifact with a valid context reference.
 
+### `rag.chunk_id_collision`
+
+Detects one explicit chunk identity mapped to different observed contents within
+the same RAG artifact.
+
+Default severity: `high`. Default confidence: `confirmed`.
+Default CI behavior: can fail under `fail_on: high`.
+
+Applicability and normalization are owned by
+[RAG Chunk Identity Records](../02-architecture/project-index.md#rag-chunk-identity-records).
+Only `chunk_id` is compared; document/source IDs and cross-file identity
+comparisons are intentionally excluded. A RAG-only scan is sufficient.
+
+Emit one finding per `(artifact_path, chunk_id_hash)` with at least two distinct
+non-empty content hashes. Same-ID/same-content repetition is not a collision.
+Partial artifacts are excluded; this rule makes no claim about unread records.
+
+Required evidence:
+
+- `artifact_path` and `chunk_id_field` (always `chunk_id`)
+- `chunk_id_hash`
+- `record_count`: all usable indexed records in this artifact/ID group
+- `distinct_content_count`: all distinct normalized contents in that group
+- `sample_records`: row, content field, row hash and content hash
+- `evidence_truncated`
+
+Evidence and locations are limited to 20 records. Select the first record for
+each distinct content hash in row order, up to 20; fill remaining slots with the
+earliest remaining records, then sort the selection by row and content field.
+This ensures even a conflict after a long run of identical records remains
+demonstrable in bounded evidence. Counts are never truncated.
+
+Raw chunk IDs and content must not appear in messages, evidence or recommendations.
+Impact: content lookup by the explicit chunk ID is ambiguous within this artifact.
+Recommendation: assign distinct IDs to different contents or remove outdated
+records and regenerate dependent references. This rule does not determine which
+content is correct or claim malicious intent.
+
 ## Design Decisions
 
 - The rule set is intentionally focused on evaluation trust.

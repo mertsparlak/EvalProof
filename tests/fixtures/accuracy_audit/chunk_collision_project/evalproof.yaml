@@ -1,0 +1,5 @@
+artifacts:
+  - path: rag.jsonl
+    roles: [rag_document]
+similarity:
+  enabled: false

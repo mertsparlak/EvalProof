@@ -15,7 +15,7 @@ A planned version is not an implemented or published release.
 | Milestone | Target package | Status | Deliverable |
 | --- | --- | --- | --- |
 | v1.19 | 0.1.0 | Completed | Explicit dataset schema validation |
-| v1.20 | 0.2.0 | Contract review blocked | RAG chunk identity |
+| v1.20 | 0.2.0 | Completed | Artifact-local explicit RAG chunk identity |
 | v1.21 | 0.2.1 | Planned | Generation reproducibility |
 | v1.22 | 0.2.2 | Planned | Dataset encoding integrity |
 | v1.23 | 0.3.0 | Planned | Dataset provenance contracts |
@@ -27,26 +27,30 @@ A planned version is not an implemented or published release.
 
 ## v1.20: RAG Chunk Identity
 
-Implementation review found an unresolved identity assumption on 2026-08-31:
-doc_id/source_id may identify a parent document shared by multiple valid chunks.
-The current index also does not declare whether two RAG artifacts share an ID
-namespace. Treating every alias as a globally unique chunk ID would create
-confirmed false positives. No rule implementation or package bump is approved
-until this boundary is resolved. Proposed conservative correction: validate
-explicit chunk_id uniqueness within each artifact; defer cross-file collisions
-until a shared corpus namespace is explicitly declared. This correction requires
-user approval and does not silently replace the originally approved scope below.
+The user approved the conservative identity correction on 2026-08-31.
+Parent document IDs are not chunk identities. Cross-file collision detection is
+deferred until an explicit shared corpus namespace contract is approved.
 
 - Add `rag.chunk_id_collision`, high/confirmed, default CI failing.
-- Use existing explicit scalar RAG IDs and existing top-level RAG content aliases.
-- Compare normalized IDs with non-empty normalized content hashes.
-- Emit one finding per ID linked to multiple distinct content hashes.
-- Same-ID/same-content duplicates, missing IDs, nested IDs and empty-only content
-  are not collisions.
+- Use only explicit top-level chunk_id and existing top-level RAG content aliases.
+- Compare within each artifact, never across files or via id/doc_id/source_id aliases.
+- Emit one finding per artifact/ID linked to multiple distinct non-empty content hashes.
+- Same-ID/same-content duplicates, missing/nested IDs, empty-only content and
+  incomplete artifacts are not collisions under this conservative slice.
 - Project Index owns extraction; rules do not read files.
 - Evidence contains only hashes, bounded row/field locations, counts and truncation.
-- Gate: positive, negative, empty-content, cross-file, determinism and redaction tests.
+- Gate: positive, negative, empty-content, cross-file abstention, determinism and redaction tests.
 - Commit: `feat(v1.20): detect RAG chunk identity collisions`.
+
+Verified on 2026-08-31: 202 tests passed on local Python 3.14, including the
+24-rule accuracy matrix, collision abstention/redaction and traversal determinism.
+A clean-source wheel installed outside the repository passed help, rule listing,
+clean/contaminated scans and invalid-usage exit checks. Runtime, distribution and
+scan report versions agree on 0.2.0; scan schema remains 1.0.
+The smoke audit also corrected successful help returning exit 2 and restricted
+package discovery to product modules so tests/build directories are not shipped.
+The existing local pytest cache warning remains non-blocking. No remote CI run
+or publication is claimed; v1.21 onward remains planned or gated.
 
 ## v1.21: Generation Reproducibility
 

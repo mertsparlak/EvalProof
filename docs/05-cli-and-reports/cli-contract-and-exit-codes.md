@@ -61,7 +61,7 @@ With `--json`, the CLI prints the JSON report defined in [JSON Report](json-repo
 
 Exit codes:
 
-- `0`: scan completed and no finding met or exceeded the failing severity.
+- `0`: scan completed and no finding met or exceeded the failing severity, or rule listing/help completed successfully.
 - `1`: scan completed and at least one finding met or exceeded the failing severity.
 - `2`: invalid CLI usage.
 - `3`: invalid configuration.
@@ -72,6 +72,9 @@ Exit codes:
 The default failing severity value is defined in [Configuration And Schema](../02-architecture/configuration-and-schema.md). This document defines how the CLI applies that value to process exit behavior.
 
 Invalid `--fail-on` values are invalid CLI usage and must return exit code `2`.
+
+`evalproof --help`, `evalproof scan --help`, and `evalproof rules --help` print help
+without scanning or writing reports. Missing commands remain invalid usage (`2`).
 
 ## Terminal Summary
 
@@ -115,4 +118,3 @@ None.
 ## Future Considerations
 
 Future commands may add config initialization, SARIF output, baselines, or suppressions after the MVP is stable.
-

@@ -1,0 +1,7 @@
+artifacts:
+  - path: first.jsonl
+    roles: [rag_document]
+  - path: second.jsonl
+    roles: [rag_document]
+similarity:
+  enabled: false
