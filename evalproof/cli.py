@@ -8,7 +8,13 @@ import sys
 from typing import List, Optional
 
 from evalproof.artifact import create_artifact_from_file
-from evalproof.config import ALLOWED_SEVERITIES, DEFAULT_FAIL_ON, ConfigError, load_config
+from evalproof.config import (
+    ALLOWED_SEVERITIES,
+    DEFAULT_FAIL_ON,
+    ConfigError,
+    load_config,
+    validate_schema_artifact_paths,
+)
 from evalproof.discovery import discover_files
 from evalproof.finding import Diagnostic, SEVERITY_RANK
 from evalproof.project_index import ProjectIndex
@@ -41,6 +47,7 @@ RULE_CONFIDENCE = {
     "dataset.sample_id_collision": "confirmed",
     "dataset.empty_evaluation_input": "confirmed",
     "dataset.partial_sample_id_coverage": "confirmed",
+    "dataset.schema_contract_violation": "confirmed",
     "rag.empty_or_corrupted_document": "confirmed",
     "rag.duplicate_chunk_in_corpus": "confirmed",
     "rag.empty_referenced_document": "confirmed",
@@ -99,6 +106,7 @@ def run_scan(args: argparse.Namespace) -> int:
 
     try:
         cfg = load_config(scan_root, explicit_config_path=args.config)
+        validate_schema_artifact_paths(scan_root, cfg)
     except ConfigError as err:
         print(f"Configuration error: {err}", file=sys.stderr)
         return 3

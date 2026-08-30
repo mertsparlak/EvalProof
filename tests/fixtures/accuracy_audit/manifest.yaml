@@ -19,6 +19,8 @@ cases:
     path: clean_project
   formats:
     path: format_project
+  schema_contract:
+    path: schema_contract_project
 
 rules:
   contamination.train_eval_overlap:
@@ -107,6 +109,11 @@ rules:
   dataset.partial_sample_id_coverage:
     confidence: confirmed
     positive: partial_id
+    negative: clean
+    abstention: clean
+  dataset.schema_contract_violation:
+    confidence: confirmed
+    positive: schema_contract
     negative: clean
     abstention: clean
   rag.duplicate_chunk_in_corpus:

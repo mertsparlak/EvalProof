@@ -49,6 +49,7 @@ REQUIRED_EVIDENCE_KEYS = {
     "dataset.sample_id_collision": {"artifact_path", "sample_id_fields", "sample_id_hash", "row_locations"},
     "dataset.empty_evaluation_input": {"artifact_path", "affected_count", "input_fields", "row_locations", "row_hashes"},
     "dataset.partial_sample_id_coverage": {"artifact_path", "row_count", "identified_count", "missing_id_count", "coverage_ratio", "sample_id_fields", "missing_row_locations", "missing_row_hashes", "evidence_truncated"},
+    "dataset.schema_contract_violation": {"artifact_path", "contract_fingerprint", "total_violation_count", "affected_row_count", "violation_counts", "sample_violations", "evidence_truncated"},
     "rag.empty_or_corrupted_document": {"artifact_path", "state", "empty_record_count", "row_count", "observed_text_length", "content_fields", "row_locations", "row_hashes", "diagnostic_codes", "evidence_truncated"},
     "rag.duplicate_chunk_in_corpus": {"artifact_paths", "content_fields", "normalized_chunk_hash", "duplicate_count", "duplicate_artifact_count", "row_locations", "row_hashes", "evidence_truncated"},
     "rag.empty_referenced_document": {"evaluation_artifact", "evaluation_row", "reference_fields", "empty_reference_count", "empty_reference_hashes", "rag_artifact_paths", "content_fields"},
@@ -90,7 +91,7 @@ def test_accuracy_manifest_covers_every_registered_rule():
     manifest_ids = set(manifest["rules"])
 
     assert manifest_ids == registered_ids
-    assert len(manifest_ids) == 22
+    assert len(manifest_ids) == 23
 
 
 def test_registered_rules_have_positive_and_negative_cases(tmp_path):

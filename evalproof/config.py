@@ -58,6 +58,31 @@ DEFAULT_FAIL_ON: str = Severity.HIGH.value
 DEFAULT_MAX_FILE_MB: int = 100
 DEFAULT_MAX_ROWS_PER_ARTIFACT: int = 250000
 
+DATASET_SCHEMA_ROLES: Set[str] = {
+    "training_dataset",
+    "evaluation_dataset",
+    "benchmark_dataset",
+}
+
+SCHEMA_FORMAT_EXTENSIONS: Set[str] = {
+    ".json",
+    ".jsonl",
+    ".ndjson",
+    ".csv",
+    ".yaml",
+    ".yml",
+    ".toml",
+}
+
+ALLOWED_SCHEMA_TYPES: Set[str] = {
+    "string",
+    "integer",
+    "number",
+    "boolean",
+    "object",
+    "array",
+}
+
 
 class ConfigError(Exception):
     """Raised when configuration is invalid."""
@@ -66,9 +91,22 @@ class ConfigError(Exception):
 
 
 @dataclass
+class FieldContract:
+    type: str
+    nullable: bool = False
+
+
+@dataclass
+class ArtifactSchemaContract:
+    required: List[str]
+    fields: Dict[str, FieldContract]
+
+
+@dataclass
 class ArtifactOverride:
     path: str
     roles: List[str]
+    schema: Optional[ArtifactSchemaContract] = None
 
 
 @dataclass
@@ -99,6 +137,63 @@ class Config:
     limits: LimitsConfig = field(default_factory=LimitsConfig)
     similarity: SimilarityConfig = field(default_factory=SimilarityConfig)
     config_path: Optional[str] = None
+
+
+def _parse_artifact_schema(
+    schema_data: Any,
+    artifact_path: str,
+    roles: List[str],
+    artifact_index: int,
+) -> ArtifactSchemaContract:
+    if not isinstance(schema_data, dict):
+        raise ConfigError(f"Artifact schema at index {artifact_index} must be an object.")
+    for key in schema_data:
+        if key not in {"required", "fields"}:
+            raise ConfigError(f"Invalid key under artifact schema at index {artifact_index}: '{key}'.")
+
+    if not roles or not set(roles).issubset(DATASET_SCHEMA_ROLES):
+        raise ConfigError("Artifact schemas may only be assigned to dataset artifact roles.")
+
+    extension = Path(artifact_path).suffix.lower()
+    if extension not in SCHEMA_FORMAT_EXTENSIONS:
+        raise ConfigError("Artifact schemas require a structured dataset format.")
+
+    fields_data = schema_data.get("fields")
+    if not isinstance(fields_data, dict) or not fields_data:
+        raise ConfigError("Artifact schema 'fields' must be a non-empty object.")
+
+    fields: Dict[str, FieldContract] = {}
+    for field_name, field_data in fields_data.items():
+        if not isinstance(field_name, str) or not field_name or any(char in field_name for char in ".[]"):
+            raise ConfigError("Artifact schema fields must use a non-empty top-level field name.")
+        if not isinstance(field_data, dict):
+            raise ConfigError(f"Schema field '{field_name}' must be an object.")
+        for key in field_data:
+            if key not in {"type", "nullable"}:
+                raise ConfigError(f"Invalid key for schema field '{field_name}': '{key}'.")
+
+        field_type = field_data.get("type")
+        if not isinstance(field_type, str) or field_type not in ALLOWED_SCHEMA_TYPES:
+            raise ConfigError(f"Invalid schema field type for '{field_name}': '{field_type}'.")
+        nullable = field_data.get("nullable", False)
+        if not isinstance(nullable, bool):
+            raise ConfigError(f"Schema field '{field_name}' nullable must be a boolean.")
+        if extension == ".csv" and field_type != "string":
+            raise ConfigError("CSV schema fields must use type 'string'.")
+        fields[field_name] = FieldContract(type=field_type, nullable=nullable)
+
+    required_data = schema_data.get("required", [])
+    if not isinstance(required_data, list) or not all(isinstance(item, str) for item in required_data):
+        raise ConfigError("Artifact schema 'required' must be a list of strings.")
+    if len(required_data) != len(set(required_data)):
+        raise ConfigError("Artifact schema 'required' must not contain duplicate field names.")
+    for field_name in required_data:
+        if field_name not in fields:
+            raise ConfigError(
+                f"Required schema field '{field_name}' must also be declared under 'fields'."
+            )
+
+    return ArtifactSchemaContract(required=list(required_data), fields=fields)
 
 
 def parse_and_validate_config_dict(data: Any, config_path: Optional[str] = None) -> Config:
@@ -135,9 +230,13 @@ def parse_and_validate_config_dict(data: Any, config_path: Optional[str] = None)
         if not isinstance(arts, list):
             raise ConfigError("'artifacts' must be a list of objects.")
         cfg.artifacts = []
+        seen_artifact_paths: Set[str] = set()
         for idx, item in enumerate(arts):
             if not isinstance(item, dict) or "path" not in item or "roles" not in item:
                 raise ConfigError(f"Artifact entry at index {idx} must be an object with 'path' and 'roles'.")
+            for key in item:
+                if key not in {"path", "roles", "schema"}:
+                    raise ConfigError(f"Invalid key in artifact entry at index {idx}: '{key}'.")
             path_val = item["path"]
             roles_val = item["roles"]
             if not isinstance(path_val, str):
@@ -151,7 +250,14 @@ def parse_and_validate_config_dict(data: Any, config_path: Optional[str] = None)
             posix_path = path_val.replace("\\", "/")
             if posix_path.startswith("./"):
                 posix_path = posix_path[2:]
-            cfg.artifacts.append(ArtifactOverride(path=posix_path, roles=roles_val))
+            if posix_path in seen_artifact_paths:
+                raise ConfigError(f"Duplicate artifact path in configuration: '{posix_path}'.")
+            seen_artifact_paths.add(posix_path)
+
+            schema = None
+            if "schema" in item:
+                schema = _parse_artifact_schema(item["schema"], posix_path, roles_val, idx)
+            cfg.artifacts.append(ArtifactOverride(path=posix_path, roles=roles_val, schema=schema))
 
     # 4. rules
     if "rules" in data:
@@ -299,3 +405,28 @@ def load_config(scan_root: str, explicit_config_path: Optional[str] = None) -> C
 
     # No config file found; return default config
     return Config(config_path=None)
+
+
+def validate_schema_artifact_paths(scan_root: str, config: Config) -> None:
+    """Ensure explicit schema contracts cannot be silently skipped by discovery."""
+    from evalproof.discovery import is_pattern_matched
+
+    root = Path(scan_root).resolve()
+    for override in config.artifacts:
+        if override.schema is None:
+            continue
+        target = (root / override.path).resolve()
+        if not target.is_relative_to(root):
+            raise ConfigError(
+                f"Schema artifact path must stay inside the scan root: '{override.path}'."
+            )
+        if not target.exists() or not target.is_file():
+            raise ConfigError(f"Schema artifact path does not exist: '{override.path}'.")
+        if is_pattern_matched(override.path, config.exclude):
+            raise ConfigError(
+                f"Schema artifact path is excluded from discovery: '{override.path}'."
+            )
+        if not is_pattern_matched(override.path, config.include):
+            raise ConfigError(
+                f"Schema artifact path is not included in discovery: '{override.path}'."
+            )

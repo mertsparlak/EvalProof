@@ -1,0 +1,10 @@
+artifacts:
+  - path: train.jsonl
+    roles: [training_dataset]
+    schema:
+      required:
+        - messages
+      fields:
+        messages:
+          type: array
+          nullable: false

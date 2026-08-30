@@ -17,6 +17,7 @@ EXPECTED_RULE_IDS = [
     "dataset.label_inconsistency",
     "dataset.partial_sample_id_coverage",
     "dataset.sample_id_collision",
+    "dataset.schema_contract_violation",
     "evaluation.metric_out_of_bounds",
     "evaluation.sample_alignment_mismatch",
     "prompt.unresolved_placeholder",
