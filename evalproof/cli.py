@@ -36,6 +36,7 @@ RULE_CONFIDENCE = {
     "evaluation.sample_alignment_mismatch": "confirmed",
     "dataset.label_inconsistency": "confirmed",
     "evaluation.metric_out_of_bounds": "confirmed",
+    "rag.unreachable_context_id": "confirmed",
 }
 
 

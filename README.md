@@ -61,6 +61,7 @@ Trust and safety checks:
 - `evaluation.sample_alignment_mismatch`
 - `dataset.label_inconsistency`
 - `evaluation.metric_out_of_bounds`
+- `rag.unreachable_context_id`
 
 ## Configuration
 

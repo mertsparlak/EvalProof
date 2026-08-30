@@ -37,6 +37,9 @@ ANSWER_FIELD_ALIASES: List[str] = [
 ]
 
 SAMPLE_ID_FIELD_ALIASES: List[str] = ["id", "sample_id", "example_id", "record_id", "case_id"]
+CONTEXT_ID_SCALAR_FIELD_ALIASES: List[str] = ["doc_id", "document_id", "context_id", "source_id", "chunk_id"]
+RAG_ID_SCALAR_FIELD_ALIASES: List[str] = ["id", "doc_id", "document_id", "context_id", "source_id", "chunk_id"]
+CONTEXT_ID_LIST_FIELD_ALIASES: List[str] = ["doc_ids", "document_ids", "context_ids", "source_ids", "chunk_ids", "retrieved_context_ids"]
 CONTEXT_FIELD_ALIASES: List[str] = [
     "context",
     "contexts",
@@ -135,6 +138,13 @@ class AnswerRecord:
     normalized_answer: str
 
 
+@dataclass(frozen=True)
+class ContextReference:
+    field_name: str
+    value: str
+    value_hash: str
+
+
 @dataclass
 class MetricRecord:
     artifact_path: str
@@ -144,6 +154,46 @@ class MetricRecord:
     bounds: List[float]
     field_path: str
 
+
+
+def normalize_context_identifier(value: Any) -> Optional[str]:
+    if value is None or isinstance(value, bool):
+        return None
+    if isinstance(value, float) and not math.isfinite(value):
+        return None
+    if not isinstance(value, (str, int, float)):
+        return None
+    normalized = str(value).strip()
+    return normalized or None
+
+
+def extract_context_references(row_data: Any, include_lists: bool = True, include_generic_id: bool = False) -> List[ContextReference]:
+    if not isinstance(row_data, dict):
+        return []
+
+    references: List[ContextReference] = []
+
+    def append_reference(field_name: str, value: Any) -> None:
+        normalized = normalize_context_identifier(value)
+        if normalized is None:
+            return
+        digest = hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+        references.append(ContextReference(field_name=field_name, value=normalized, value_hash=f"sha256:{digest}"))
+
+    scalar_aliases = RAG_ID_SCALAR_FIELD_ALIASES if include_generic_id else CONTEXT_ID_SCALAR_FIELD_ALIASES
+    for field_name in scalar_aliases:
+        if field_name in row_data:
+            append_reference(field_name, row_data[field_name])
+
+    if include_lists:
+        for field_name in CONTEXT_ID_LIST_FIELD_ALIASES:
+            values = row_data.get(field_name)
+            if not isinstance(values, list):
+                continue
+            for value in values:
+                append_reference(field_name, value)
+
+    return references
 
 def normalize_fingerprint(value: Any) -> str:
     normalized = str(value).strip().lower()
@@ -570,6 +620,19 @@ class ProjectIndex:
                 result_meta[canonical_name] = found_val
 
         return result_meta
+
+    def get_context_references(self, roles: Set[str], include_lists: bool = True, include_generic_id: bool = False) -> List[Tuple[RowRecord, ContextReference]]:
+        """Return explicit context ID references from rows with selected artifact roles."""
+        references: List[Tuple[RowRecord, ContextReference]] = []
+        for artifact_path in sorted(self.rows_by_artifact):
+            artifact = self.artifacts_by_path.get(artifact_path)
+            if artifact is None or not roles.intersection(artifact.roles):
+                continue
+            for row in self.rows_by_artifact[artifact_path]:
+                for reference in extract_context_references(row.row_data, include_lists=include_lists, include_generic_id=include_generic_id):
+                    references.append((row, reference))
+        return references
+
     def matching_artifacts_for_fingerprint(self, reference: Any, roles: Set[str]) -> List[Artifact]:
         normalized_reference = normalize_fingerprint(reference)
         matches = []
