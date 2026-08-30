@@ -17,7 +17,7 @@ from evalproof.reporting import (
     render_terminal_summary,
     sort_findings_deterministically,
 )
-from evalproof.rule_engine import ScanContext, default_registry, execute_rules
+from evalproof.rule_engine import RuleSelectionError, ScanContext, default_registry, execute_rules
 import evalproof.rules  # Ensures built-in MVP rules are registered
 
 
@@ -37,6 +37,7 @@ RULE_CONFIDENCE = {
     "dataset.label_inconsistency": "confirmed",
     "evaluation.metric_out_of_bounds": "confirmed",
     "rag.unreachable_context_id": "confirmed",
+    "prompt.unresolved_placeholder": "heuristic",
 }
 
 
@@ -54,9 +55,19 @@ def render_rules_listing() -> str:
         ci_behavior = "fails default CI" if rule_fails_default_ci(rule.id, rule.default_severity) else "does not fail default CI"
         tags = ",".join(rule.tags)
         lines.append(
-            f"- {rule.id} | severity={rule.default_severity} | confidence={confidence} | {ci_behavior} | tags={tags} | {rule.title}"
+            f"- {rule.id} | severity={rule.default_severity} | confidence={confidence} | {ci_behavior} | tags={tags} | {rule.title} | {rule.description}"
         )
     return "\n".join(lines)
+
+
+def parse_rule_selection(raw: Optional[str]) -> Optional[List[str]]:
+    if raw is None:
+        return None
+
+    parts = [part.strip() for part in raw.split(",")]
+    if not parts or any(not part for part in parts):
+        raise RuleSelectionError("Rule selection must contain non-empty rule ids separated by commas.")
+    return sorted(set(parts))
 
 
 def has_failing_finding(findings, fail_on: str) -> bool:
@@ -95,6 +106,15 @@ def run_scan(args: argparse.Namespace) -> int:
         return 2
 
     try:
+        selected_rule_ids = parse_rule_selection(getattr(args, "rules", None))
+        active_rules = default_registry.get_enabled_rules(cfg, selected_rule_ids=selected_rule_ids)
+    except RuleSelectionError as err:
+        print(f"Invalid CLI usage: {err}", file=sys.stderr)
+        return 2
+    active_rule_ids = [rule.id for rule in active_rules]
+    rule_mode = "selected" if selected_rule_ids is not None else "all"
+
+    try:
         candidate_paths = discover_files(scan_root, cfg)
     except FileNotFoundError as err:
         print(f"Error: {err}", file=sys.stderr)
@@ -128,7 +148,7 @@ def run_scan(args: argparse.Namespace) -> int:
             project_index=project_idx,
             diagnostics=collected_diagnostics,
         )
-        findings, diagnostics = execute_rules(ctx)
+        findings, diagnostics = execute_rules(ctx, selected_rule_ids=selected_rule_ids)
     except Exception as err:
         print(f"Unexpected internal error executing rules: {err}", file=sys.stderr)
         return 6
@@ -145,6 +165,8 @@ def run_scan(args: argparse.Namespace) -> int:
         diagnostics=diagnostics,
         started_at=started_at,
         completed_at=completed_at,
+        rule_mode=rule_mode,
+        active_rule_ids=active_rule_ids,
     )
 
     output_path = args.output
@@ -177,6 +199,8 @@ def run_scan(args: argparse.Namespace) -> int:
             fail_on=fail_on,
             ci_failed=ci_failed,
             no_color=args.no_color,
+            rule_mode=rule_mode,
+            active_rule_ids=active_rule_ids,
         )
         print(summary_text)
 
@@ -203,6 +227,7 @@ def main(sys_args: Optional[List[str]] = None) -> int:
     scan_parser.add_argument("--output", type=str, help="Write JSON report to a file. Requires --json.")
     scan_parser.add_argument("--fail-on", type=str, help="Override configured failing severity.")
     scan_parser.add_argument("--no-color", action="store_true", help="Disable terminal colors.")
+    scan_parser.add_argument("--rules", type=str, help="Run only the selected comma-separated rule ids.")
 
     try:
         parsed_args = parser.parse_args(sys_args)

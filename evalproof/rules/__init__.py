@@ -16,6 +16,7 @@ from evalproof.rules.sample_alignment_mismatch import SampleAlignmentMismatchRul
 from evalproof.rules.label_inconsistency import LabelInconsistencyRule
 from evalproof.rules.metric_out_of_bounds import MetricOutOfBoundsRule
 from evalproof.rules.unreachable_context_id import UnreachableContextIdRule
+from evalproof.rules.unresolved_placeholder import UnresolvedPlaceholderRule
 
 
 def register_mvp_rules():
@@ -34,6 +35,7 @@ def register_mvp_rules():
     default_registry.register(LabelInconsistencyRule())
     default_registry.register(MetricOutOfBoundsRule())
     default_registry.register(UnreachableContextIdRule())
+    default_registry.register(UnresolvedPlaceholderRule())
 
 
 register_mvp_rules()

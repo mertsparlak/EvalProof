@@ -23,7 +23,11 @@ Terminal output is for humans. JSON output is for tools.
     "root": ".",
     "started_at": "2026-01-01T00:00:00Z",
     "completed_at": "2026-01-01T00:00:01Z",
-    "config_path": "evalproof.yaml"
+    "config_path": "evalproof.yaml",
+    "rules": {
+      "mode": "selected",
+      "ids": ["contamination.train_eval_overlap"]
+    }
   },
   "summary": {
     "artifacts_scanned": 0,
@@ -41,6 +45,13 @@ Terminal output is for humans. JSON output is for tools.
 ```
 
 Timestamps are optional report metadata. They may differ between runs and must not be used in finding fingerprints.
+
+The `scan.rules` metadata records the actual rule scope of the scan:
+
+- `mode` is `all` when no CLI allowlist was provided, or `selected` when `--rules` was used.
+- `ids` is the deterministic, sorted list of rules that actually executed after configuration-disabled rules were removed.
+
+The rule scope is additive report metadata. Existing top-level fields, finding objects, diagnostics, exit codes, and `schema_version` remain unchanged.
 
 ## Finding Objects
 
@@ -133,6 +144,7 @@ For unchanged inputs and configuration:
 - finding fingerprints must be stable
 - summary counts must be stable
 - diagnostic ordering must be stable when diagnostics are based on scanned files
+- active rule mode and active rule IDs must be stable
 
 Report metadata timestamps may differ between runs. The deterministic JSON contract applies to findings, diagnostics, summary counts, ordering, and schema shape, excluding optional scan timing metadata.
 
@@ -150,6 +162,7 @@ Absolute paths must not appear in findings, diagnostics, or fingerprints.
 - Timestamps are allowed only as report metadata.
 - Relative paths are required.
 - Deterministic JSON excludes optional scan timing metadata.
+- Active rule scope is recorded so an empty selected scan cannot be mistaken for a full clean scan.
 
 ## Open Questions
 

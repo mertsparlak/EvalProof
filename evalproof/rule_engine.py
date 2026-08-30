@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Set, Tuple, Any
+from typing import Dict, Iterable, List, Optional, Set, Tuple, Any
 
 from evalproof.artifact import Artifact
 from evalproof.config import Config
@@ -62,6 +62,12 @@ class Rule(ABC):
         pass
 
 
+class RuleSelectionError(ValueError):
+    """Raised when a requested rule selection cannot be resolved."""
+
+    pass
+
+
 class RuleRegistry:
     def __init__(self):
         self._rules: Dict[str, Rule] = {}
@@ -73,22 +79,42 @@ class RuleRegistry:
         return self._rules.get(rule_id)
 
     def get_all_rules(self) -> List[Rule]:
-        return list(self._rules.values())
+        return sorted(self._rules.values(), key=lambda rule: rule.id)
 
-    def get_enabled_rules(self, config: Config) -> List[Rule]:
+    def get_enabled_rules(self, config: Config, selected_rule_ids: Optional[Iterable[str]] = None) -> List[Rule]:
         disabled_set = set(config.disabled_rules)
-        return [r for r in self.get_all_rules() if r.id not in disabled_set]
+        all_rules = self.get_all_rules()
+
+        if selected_rule_ids is None:
+            candidates = all_rules
+        else:
+            selected_ids = list(selected_rule_ids)
+            known_ids = {rule.id for rule in all_rules}
+            unknown_ids = sorted(set(selected_ids) - known_ids)
+            if unknown_ids:
+                raise RuleSelectionError("Unknown rule id(s): " + ", ".join(unknown_ids))
+            selected_set = set(selected_ids)
+            candidates = [rule for rule in all_rules if rule.id in selected_set]
+
+        enabled_rules = [rule for rule in candidates if rule.id not in disabled_set]
+        if selected_rule_ids is not None and not enabled_rules:
+            raise RuleSelectionError("Rule selection resolved to no enabled rules.")
+        return enabled_rules
 
 
 default_registry = RuleRegistry()
 
 
-def execute_rules(ctx: ScanContext, registry: Optional[RuleRegistry] = None) -> Tuple[List[Finding], List[Diagnostic]]:
+def execute_rules(
+    ctx: ScanContext,
+    registry: Optional[RuleRegistry] = None,
+    selected_rule_ids: Optional[Iterable[str]] = None,
+) -> Tuple[List[Finding], List[Diagnostic]]:
     """Execute all enabled rules, apply severity overrides, and collect findings & diagnostics."""
     if registry is None:
         registry = default_registry
 
-    enabled_rules = registry.get_enabled_rules(ctx.config)
+    enabled_rules = registry.get_enabled_rules(ctx.config, selected_rule_ids=selected_rule_ids)
     findings: List[Finding] = []
     diagnostics: List[Diagnostic] = list(ctx.diagnostics)
 

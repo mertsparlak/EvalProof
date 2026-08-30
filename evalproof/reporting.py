@@ -46,6 +46,8 @@ def generate_json_report(
     diagnostics: List[Diagnostic],
     started_at: str,
     completed_at: str,
+    rule_mode: str = "all",
+    active_rule_ids: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
     """Generate machine-readable JSON report structure matching json-report.md v1.0."""
     sorted_findings = sort_findings_deterministically(findings)
@@ -72,6 +74,10 @@ def generate_json_report(
             "started_at": started_at,
             "completed_at": completed_at,
             "config_path": config_path,
+            "rules": {
+                "mode": rule_mode,
+                "ids": sorted(active_rule_ids or []),
+            },
         },
         "summary": {
             "artifacts_scanned": artifacts_scanned,
@@ -99,6 +105,8 @@ def render_terminal_summary(
     fail_on: str = Severity.HIGH.value,
     ci_failed: bool = False,
     no_color: bool = False,
+    rule_mode: str = "all",
+    active_rule_ids: Optional[List[str]] = None,
 ) -> str:
     """Render human-readable terminal summary for local and CI usage."""
     sorted_findings = sort_findings_deterministically(findings)
@@ -117,6 +125,7 @@ def render_terminal_summary(
         "=== EvalProof Trust Preflight ===",
         f"Scan root: {scan_root}",
         f"Artifacts scanned: {artifacts_scanned}",
+        f"Rules: {rule_mode} ({len(active_rule_ids or [])} active)",
         f"Findings: {len(sorted_findings)} total | critical={counts['critical']} high={counts['high']} medium={counts['medium']} low={counts['low']}",
         f"Diagnostics: {len(sorted_diagnostics)}",
     ]

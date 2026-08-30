@@ -37,6 +37,20 @@ Custom report path:
 evalproof scan . --json --output reports/evalproof_report.json
 ```
 
+See the built-in rules and their short explanations before scanning:
+
+```powershell
+evalproof rules
+```
+
+Run only selected rules when a focused preflight is needed:
+
+```powershell
+evalproof scan . --rules contamination.train_eval_overlap,prompt.unresolved_placeholder
+```
+
+Without `--rules`, all registered rules run except rules disabled in `evalproof.yaml`. Rule selection is recorded in the JSON report.
+
 ## What It Detects
 
 Exact contamination:
@@ -62,6 +76,7 @@ Trust and safety checks:
 - `dataset.label_inconsistency`
 - `evaluation.metric_out_of_bounds`
 - `rag.unreachable_context_id`
+- `prompt.unresolved_placeholder` (heuristic; does not fail default CI)
 
 ## Configuration
 
