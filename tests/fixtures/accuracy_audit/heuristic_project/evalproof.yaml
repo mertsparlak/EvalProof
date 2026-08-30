@@ -1,0 +1,5 @@
+artifacts:
+  - path: eval.jsonl
+    roles: [evaluation_dataset]
+  - path: prompts/template.md
+    roles: [prompt_template]

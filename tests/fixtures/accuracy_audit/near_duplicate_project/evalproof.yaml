@@ -1,0 +1,8 @@
+similarity:
+  threshold: 0.7
+  focus_fields: [prompt, question, input]
+artifacts:
+  - path: train.jsonl
+    roles: [training_dataset]
+  - path: eval.jsonl
+    roles: [evaluation_dataset]
