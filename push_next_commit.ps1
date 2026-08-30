@@ -96,9 +96,9 @@ function Get-TargetCompleted {
 }
 
 Push-Location $Repository
+$temporaryRepository = $null
 $temporaryWorktree = $null
 try {
-    Invoke-Git $Repository @("fetch", $Remote, $RemoteBranch) | Out-Null
 
     $sourceBranch = Get-TrimmedLines (Invoke-Git $Repository @("branch", "--show-current")) | Select-Object -First 1
     if ([string]::IsNullOrWhiteSpace($sourceBranch)) {
@@ -177,8 +177,14 @@ try {
         exit 0
     }
 
+    $temporaryRepository = Join-Path ([IO.Path]::GetTempPath()) ("evalproof-source-" + [Guid]::NewGuid().ToString("N"))
     $temporaryWorktree = Join-Path ([IO.Path]::GetTempPath()) ("evalproof-push-" + [Guid]::NewGuid().ToString("N"))
-    Invoke-Git $Repository @("worktree", "add", "--detach", $temporaryWorktree, "$Remote/$RemoteBranch") | Out-Null
+    $sourceHead = Get-TrimmedLines (Invoke-Git $Repository @("rev-parse", $sourceBranch)) | Select-Object -First 1    $remoteUrl = Get-TrimmedLines (Invoke-Git $Repository @("remote", "get-url", $Remote)) | Select-Object -First 1
+    Invoke-Git $Repository @("clone", "--no-local", $Repository, $temporaryRepository) | Out-Null
+    Invoke-Git $temporaryRepository @("remote", "set-url", $Remote, $remoteUrl) | Out-Null
+    Invoke-Git $temporaryRepository @("branch", "--force", $sourceBranch, $sourceHead) | Out-Null
+    Invoke-Git $temporaryRepository @("fetch", $Remote, $RemoteBranch) | Out-Null
+    Invoke-Git $temporaryRepository @("worktree", "add", "--detach", $temporaryWorktree, "$Remote/$RemoteBranch") | Out-Null
 
     try {
         foreach ($commit in $batch) {
@@ -198,8 +204,10 @@ try {
         & git -C $temporaryWorktree cherry-pick --abort 2>$null | Out-Null
         throw
     } finally {
-        Invoke-Git $Repository @("worktree", "remove", "--force", $temporaryWorktree) | Out-Null
+        Invoke-Git $temporaryRepository @("worktree", "remove", "--force", $temporaryWorktree) | Out-Null
+        Remove-Item -LiteralPath $temporaryRepository -Recurse -Force
         $temporaryWorktree = $null
+        $temporaryRepository = $null
     }
 
     $updatedCompleted = @($completedHistory + $batch | Select-Object -Unique)
@@ -208,8 +216,15 @@ try {
     $remainingAfter = $cycleCommits.Count - $batch.Count - $completedInCycle.Count
     Write-Host "SUCCESS: published $($batch.Count) commit(s). Remaining in this five-day cycle: $remainingAfter." -ForegroundColor Green
 } finally {
-    if ($null -ne $temporaryWorktree -and (Test-Path -LiteralPath $temporaryWorktree)) {
-        & git -C $Repository worktree remove --force $temporaryWorktree 2>$null | Out-Null
+    if ($null -ne $temporaryWorktree -and $null -ne $temporaryRepository -and (Test-Path -LiteralPath $temporaryWorktree)) {
+        & git -C $temporaryRepository worktree remove --force $temporaryWorktree 2>$null | Out-Null
+    }
+    if ($null -ne $temporaryRepository -and (Test-Path -LiteralPath $temporaryRepository)) {
+        $tempRoot = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
+        $resolvedTemporaryRepository = (Resolve-Path -LiteralPath $temporaryRepository).Path
+        if ($resolvedTemporaryRepository.StartsWith($tempRoot, [StringComparison]::OrdinalIgnoreCase)) {
+            Remove-Item -LiteralPath $resolvedTemporaryRepository -Recurse -Force
+        }
     }
     Pop-Location
 }
