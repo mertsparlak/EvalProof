@@ -80,6 +80,7 @@ Trust and safety checks:
 - `dataset.empty_evaluation_input`
 - `evaluation.metric_out_of_bounds`
 - `rag.unreachable_context_id`
+- `rag.empty_referenced_document`
 - `prompt.unresolved_placeholder` (heuristic; does not fail default CI)
 
 ## Configuration

@@ -40,6 +40,10 @@ The following dataset rules were promoted in v1.10 and are now part of the activ
 
 - `dataset.sample_id_collision`
 - `dataset.empty_evaluation_input`
+
+The following RAG rule was promoted in v1.11 and is now part of the active contract:
+
+- `rag.empty_referenced_document`
 ## Dataset Integrity Candidates
 
 ### `dataset.empty_or_malformed_record`

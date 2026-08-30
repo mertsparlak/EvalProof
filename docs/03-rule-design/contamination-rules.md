@@ -498,6 +498,42 @@ Impact: empty evaluation inputs do not exercise the intended model behavior and 
 
 Recommendation: populate each evaluation row with a non-empty canonical input or use an explicitly supported message-based schema.
 
+### `rag.empty_referenced_document`
+
+Detects evaluation context references that resolve only to empty RAG records.
+
+Default severity: `high`
+
+Default confidence: `confirmed`
+
+Default CI behavior: this rule can fail CI under the default `fail_on: high`.
+
+Applicability:
+
+- evaluation roles are `evaluation_dataset` and `benchmark_dataset`
+- RAG artifacts must have the `rag_document` role
+- evaluation references use the explicit context fields defined in [Project Index](../02-architecture/project-index.md)
+- RAG identifiers use only explicit scalar ID fields
+- supported RAG content fields are `text`, `content`, `document`, `body`, `chunk`, and `page_content`
+- if a matching ID has at least one non-empty supported content value, it is treated as reachable and non-empty
+- missing IDs remain owned by `rag.unreachable_context_id`
+- plain text RAG files without explicit row IDs are not evaluated by this rule
+
+Required evidence:
+
+- evaluation artifact path and row
+- reference field names
+- empty reference count
+- stable hashes of empty references
+- related RAG artifact paths and row locations
+- observed content field names
+
+Raw context IDs and document content must not be written to evidence, messages, or recommendations.
+
+Impact: an explicitly referenced RAG document contributes no usable context, making the evaluation context incomplete or unverifiable.
+
+Recommendation: populate the referenced RAG record or regenerate the evaluation artifact with a valid context reference.
+
 ## Design Decisions
 
 - The rule set is intentionally focused on evaluation trust.
