@@ -48,6 +48,7 @@ REQUIRED_EVIDENCE_KEYS = {
     "prompt.unresolved_placeholder": {"artifact_path", "row", "field", "input_hash", "syntax_classes", "detected_count"},
     "dataset.sample_id_collision": {"artifact_path", "sample_id_fields", "sample_id_hash", "row_locations"},
     "dataset.empty_evaluation_input": {"artifact_path", "affected_count", "input_fields", "row_locations", "row_hashes"},
+    "dataset.partial_sample_id_coverage": {"artifact_path", "row_count", "identified_count", "missing_id_count", "coverage_ratio", "sample_id_fields", "missing_row_locations", "missing_row_hashes", "evidence_truncated"},
     "rag.empty_referenced_document": {"evaluation_artifact", "evaluation_row", "reference_fields", "empty_reference_count", "empty_reference_hashes", "rag_artifact_paths", "content_fields"},
 }
 def load_manifest() -> dict:
@@ -87,7 +88,7 @@ def test_accuracy_manifest_covers_every_registered_rule():
     manifest_ids = set(manifest["rules"])
 
     assert manifest_ids == registered_ids
-    assert len(manifest_ids) == 19
+    assert len(manifest_ids) == 20
 
 
 def test_registered_rules_have_positive_and_negative_cases(tmp_path):

@@ -15,6 +15,7 @@ EXPECTED_RULE_IDS = [
     "contamination.untrusted_context_interpolation",
     "dataset.empty_evaluation_input",
     "dataset.label_inconsistency",
+    "dataset.partial_sample_id_coverage",
     "dataset.sample_id_collision",
     "evaluation.metric_out_of_bounds",
     "evaluation.sample_alignment_mismatch",
