@@ -38,6 +38,8 @@ RULE_CONFIDENCE = {
     "evaluation.metric_out_of_bounds": "confirmed",
     "rag.unreachable_context_id": "confirmed",
     "prompt.unresolved_placeholder": "heuristic",
+    "dataset.sample_id_collision": "confirmed",
+    "dataset.empty_evaluation_input": "confirmed",
 }
 
 

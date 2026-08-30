@@ -227,6 +227,10 @@ The index must store hashes of normalized content rather than relying on raw con
 
 Hashes must be deterministic and stable across machines.
 
+## Canonical Evaluation Input Fields
+
+The canonical scalar input aliases are `prompt`, `question`, and `input`. Rules that inspect evaluation inputs must use this shared alias set. A missing canonical field is not itself a finding; rules must not infer an input from unsupported message-list or nested schemas.
+
 ## Similarity Index
 
 Near-duplicate rules use a deterministic MinHash + LSH similarity index.

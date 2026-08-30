@@ -35,6 +35,11 @@ A candidate may be promoted only when all of these are true:
 ## Recommended Next Rule Batch
 
 The evaluation trust-chain slice and `rag.unreachable_context_id` are implemented. Current rule status is maintained below as historical backlog information; the active contract remains [Contamination Rules](contamination-rules.md). Future promotion must continue to satisfy the objective-evidence and false-positive criteria in this document.
+
+The following dataset rules were promoted in v1.10 and are now part of the active contract:
+
+- `dataset.sample_id_collision`
+- `dataset.empty_evaluation_input`
 ## Dataset Integrity Candidates
 
 ### `dataset.empty_or_malformed_record`

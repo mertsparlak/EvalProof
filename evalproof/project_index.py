@@ -36,6 +36,8 @@ ANSWER_FIELD_ALIASES: List[str] = [
     "reference_answer",
 ]
 
+INPUT_FIELD_ALIASES: List[str] = ["prompt", "question", "input"]
+
 SAMPLE_ID_FIELD_ALIASES: List[str] = ["id", "sample_id", "example_id", "record_id", "case_id"]
 CONTEXT_ID_SCALAR_FIELD_ALIASES: List[str] = ["doc_id", "document_id", "context_id", "source_id", "chunk_id"]
 RAG_ID_SCALAR_FIELD_ALIASES: List[str] = ["id", "doc_id", "document_id", "context_id", "source_id", "chunk_id"]

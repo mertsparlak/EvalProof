@@ -76,6 +76,8 @@ Trust and safety checks:
 - `contamination.untrusted_context_interpolation`
 - `evaluation.sample_alignment_mismatch`
 - `dataset.label_inconsistency`
+- `dataset.sample_id_collision`
+- `dataset.empty_evaluation_input`
 - `evaluation.metric_out_of_bounds`
 - `rag.unreachable_context_id`
 - `prompt.unresolved_placeholder` (heuristic; does not fail default CI)
