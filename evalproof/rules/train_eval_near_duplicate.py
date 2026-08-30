@@ -37,7 +37,7 @@ class TrainEvalNearDuplicateRule(Rule):
             return []
 
         threshold = ctx.config.similarity.threshold
-        candidates = ctx.project_index.similarity_index.find_all_pairs(threshold=threshold)
+        candidates = ctx.project_index.get_similarity_candidates(threshold=threshold)
 
         train_roles = {"training_dataset"}
         eval_roles = {"evaluation_dataset", "benchmark_dataset"}

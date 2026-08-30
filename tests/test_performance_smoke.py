@@ -5,6 +5,8 @@ import time
 from pathlib import Path
 
 from evalproof.cli import main
+from evalproof.config import Config
+from evalproof.project_index import ProjectIndex
 
 
 def run_scan(root: Path, output_name: str) -> tuple[int, dict, float]:
@@ -25,6 +27,31 @@ def normalize_report(report: dict) -> dict:
 
 def write_jsonl(path: Path, rows: list[str]) -> None:
     path.write_text("\n".join(rows) + "\n", encoding="utf-8")
+
+
+def test_similarity_candidates_are_cached_until_index_rebuild(monkeypatch):
+    index = ProjectIndex(Config())
+    calls = 0
+    original = index.similarity_index.find_all_pairs
+
+    def counting_find_all_pairs(threshold=None):
+        nonlocal calls
+        calls += 1
+        return original(threshold=threshold)
+
+    monkeypatch.setattr(index.similarity_index, "find_all_pairs", counting_find_all_pairs)
+
+    first = index.get_similarity_candidates(0.85)
+    second = index.get_similarity_candidates(0.85)
+
+    assert first is second
+    assert calls == 1
+
+    index.build([])
+    third = index.get_similarity_candidates(0.85)
+
+    assert third is not first
+    assert calls == 2
 
 
 def test_exact_overlap_smoke_handles_thousands_of_rows(tmp_path):
