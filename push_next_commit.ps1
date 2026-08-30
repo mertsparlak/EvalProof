@@ -179,10 +179,9 @@ try {
 
     $temporaryRepository = Join-Path ([IO.Path]::GetTempPath()) ("evalproof-source-" + [Guid]::NewGuid().ToString("N"))
     $temporaryWorktree = Join-Path ([IO.Path]::GetTempPath()) ("evalproof-push-" + [Guid]::NewGuid().ToString("N"))
-    $sourceHead = Get-TrimmedLines (Invoke-Git $Repository @("rev-parse", $sourceBranch)) | Select-Object -First 1    $remoteUrl = Get-TrimmedLines (Invoke-Git $Repository @("remote", "get-url", $Remote)) | Select-Object -First 1
+    $remoteUrl = Get-TrimmedLines (Invoke-Git $Repository @("remote", "get-url", $Remote)) | Select-Object -First 1
     Invoke-Git $Repository @("clone", "--no-local", $Repository, $temporaryRepository) | Out-Null
     Invoke-Git $temporaryRepository @("remote", "set-url", $Remote, $remoteUrl) | Out-Null
-    Invoke-Git $temporaryRepository @("branch", "--force", $sourceBranch, $sourceHead) | Out-Null
     Invoke-Git $temporaryRepository @("fetch", $Remote, $RemoteBranch) | Out-Null
     Invoke-Git $temporaryRepository @("worktree", "add", "--detach", $temporaryWorktree, "$Remote/$RemoteBranch") | Out-Null
 
