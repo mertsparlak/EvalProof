@@ -96,6 +96,7 @@ class DuplicateTrainNearDuplicateRule(Rule):
                     "path": path_a,
                     "row": row_a,
                     "similarity_score": sim_score,
+                    "configured_threshold": threshold,
                     "snippet": cand.source_text[:200],
                 })
                 if sim_score > group["max_similarity_score"]:
@@ -132,6 +133,7 @@ class DuplicateTrainNearDuplicateRule(Rule):
                     "training_row": row_b,
                     "duplicate_row": row_a,
                     "similarity_score": sim_score,
+                    "configured_threshold": threshold,
                     "overlap_count": match_count,
                     "training_snippet": group["text"][:200],
                     "duplicate_snippet": first_match["snippet"],

@@ -1,6 +1,6 @@
 """Rule: contamination.fingerprint_mismatch"""
 
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from llm_doctor.finding import Finding, Location, Severity, Confidence
 from llm_doctor.rule_engine import Rule, ScanContext
@@ -42,9 +42,10 @@ class FingerprintMismatchRule(Rule):
         findings: List[Finding] = []
         result_arts = ctx.project_index.artifacts_by_role.get("evaluation_result", [])
         prompt_arts = ctx.project_index.artifacts_by_role.get("prompt_template", [])
-        dataset_arts = ctx.project_index.artifacts_by_role.get("evaluation_dataset", []) + \
+        candidate_dataset_arts = ctx.project_index.artifacts_by_role.get("evaluation_dataset", []) + \
                        ctx.project_index.artifacts_by_role.get("benchmark_dataset", []) + \
                        ctx.project_index.artifacts_by_role.get("training_dataset", [])
+        dataset_arts = [art for art in candidate_dataset_arts if "configuration" not in art.roles]
 
         if not result_arts:
             return findings

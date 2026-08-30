@@ -104,6 +104,7 @@ class TrainEvalNearDuplicateRule(Rule):
                     "path": train_path,
                     "row": train_row,
                     "similarity_score": sim_score,
+                    "configured_threshold": threshold,
                     "snippet": train_text[:200],
                 })
                 if sim_score > group["max_similarity_score"]:
@@ -147,6 +148,7 @@ class TrainEvalNearDuplicateRule(Rule):
                     "training_artifact": train_path,
                     "training_row": train_row,
                     "similarity_score": sim_score,
+                    "configured_threshold": threshold,
                     "overlap_count": match_count,
                     "evaluation_snippet": group["eval_text"][:200],
                     "training_snippet": first_train["snippet"],
