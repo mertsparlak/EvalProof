@@ -9,7 +9,12 @@ from evalproof.rule_engine import Rule, ScanContext
 from evalproof.rules._evidence import cap_evidence_items
 
 EMAIL_REGEX = re.compile(r"\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}\b")
-PHONE_REGEX = re.compile(r"\b(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b")
+# Require separators between the three phone groups.  The previous optional
+# country-prefix form could consume the first digits of arithmetic values such
+# as ``60000-5000`` and classify them as phone numbers.
+PHONE_REGEX = re.compile(
+    r"\b(?:\+\d{1,3}[-.\s])?\(?\d{3}\)?[-.\s]\d{3}[-.\s]\d{4}\b"
+)
 API_KEY_REGEX = re.compile(r"\b(?:api_key|apikey|secret|token|password)\s*[:=]\s*([^\s]{12,})", re.IGNORECASE)
 PRIVATE_KEY_MARKER = "BEGIN PRIVATE KEY"
 

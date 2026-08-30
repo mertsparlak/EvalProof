@@ -53,6 +53,8 @@ This rule emits one finding per affected evaluation row. It retains the total ma
 
 Applicability: this rule uses `similarity.focus_roles` and `similarity.focus_fields` to avoid comparing static system instructions when structured chat-like rows are present.
 
+For evaluation or benchmark comparisons, when either row exposes an explicit context or target field, the project index computes a redacted discriminator hash from those fields. A similarity candidate is excluded when the discriminator hashes differ. This prevents similar questions with different contexts or targets from being treated as duplicate evaluation records. Train/eval near-duplicate detection remains input-focused and does not apply this same-artifact discriminator filter.
+
 Impact: evaluation results may be inflated because near-duplicate evaluation samples may have appeared in training data.
 
 Recommendation: remove or rewrite near-duplicate records, then rerun the scan.

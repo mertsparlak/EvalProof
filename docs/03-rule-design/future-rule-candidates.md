@@ -473,6 +473,14 @@ The following themes should not become rules without a new design review:
 
 These are constrained by [Design Principles](../00-product/design-principles.md) and [Non-Goals](../00-product/non-goals.md).
 
+## Calibration Record
+
+A local calibration run on public datasets used up to 1,000 rows per artifact. This record contains no raw dataset values and does not expand the active rule contract.
+
+- The phone detector produced a confirmed false positive on an arithmetic-shaped `######-####` value. The detector boundary was tightened to require formatted phone groups; the behavior is covered by regression tests.
+- Same-artifact near-duplicate candidates in SQuAD-like and TruthfulQA-like shapes were caused by different explicit contexts or targets. The project index now carries only a redacted discriminator hash, and the evaluation near-duplicate rule abstains when those hashes differ.
+- Exact duplicate content, duplicate sample identities, empty evaluation inputs, conflicting labels, empty RAG documents, and exact duplicate RAG records remained independently verifiable in the calibration sample.
+- Near-duplicate findings without explicit context or target fields remain advisory `likely` findings. Static similarity still cannot infer whether a contrast pair was intentionally authored.
 ## Design Decisions
 
 - New rules must be promoted deliberately; this document does not expand scanner scope by itself.

@@ -9,6 +9,15 @@ from evalproof.rules._evidence import cap_evidence_items
 RULE_ID = "contamination.duplicate_eval_near_duplicate"
 
 
+def _has_distinguishing_mismatch(source_meta: Dict[str, Any], target_meta: Dict[str, Any]) -> bool:
+    """Exclude similar rows with explicitly different context or targets."""
+    source_discriminator = source_meta.get("similarity_discriminator")
+    target_discriminator = target_meta.get("similarity_discriminator")
+    if source_discriminator is None and target_discriminator is None:
+        return False
+    return source_discriminator != target_discriminator
+
+
 def _sample_sort_key(sample: Dict[str, Any]) -> tuple:
     return (
         sample["source_path"],
@@ -67,6 +76,8 @@ class DuplicateEvalNearDuplicateRule(Rule):
             if exact_hash_src and exact_hash_tgt and exact_hash_src == exact_hash_tgt:
                 continue
             if cand.jaccard_similarity >= 1.0:
+                continue
+            if _has_distinguishing_mismatch(src_meta, tgt_meta):
                 continue
 
             sim_score = round(cand.jaccard_similarity, 4)
