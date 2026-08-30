@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: Tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install project and test dependencies
+        run: python -m pip install --upgrade pip pytest .
+
+      - name: Run test suite
+        run: python -m pytest -q
+
+  package-smoke:
+    name: Package smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install wheel builder
+        run: python -m pip install --upgrade pip wheel
+
+      - name: Build wheel
+        run: python -m pip wheel --no-deps --wheel-dir "$RUNNER_TEMP/evalproof-wheel" .
+
+      - name: Install wheel into clean environment
+        run: |
+          python -m venv "$RUNNER_TEMP/evalproof-venv"
+          "$RUNNER_TEMP/evalproof-venv/bin/python" -m pip install "$RUNNER_TEMP"/evalproof-wheel/*.whl
+
+      - name: Verify installed package and CLI
+        run: |
+          cd "$RUNNER_TEMP"
+          "$RUNNER_TEMP/evalproof-venv/bin/python" -c "import importlib.metadata, evalproof; assert evalproof.__version__ == '0.1.0'; assert importlib.metadata.version('evalproof') == '0.1.0'"
+          "$RUNNER_TEMP/evalproof-venv/bin/evalproof" --help
+          "$RUNNER_TEMP/evalproof-venv/bin/evalproof" rules
+
+      - name: Verify clean and failing scans
+        run: |
+          set -e
+          "$RUNNER_TEMP/evalproof-venv/bin/evalproof" scan "$GITHUB_WORKSPACE/tests/fixtures/accuracy_audit/clean_project" --json --output "$RUNNER_TEMP/clean-report.json"
+          set +e
+          "$RUNNER_TEMP/evalproof-venv/bin/evalproof" scan "$GITHUB_WORKSPACE/tests/fixtures/contaminated_project" --json --output "$RUNNER_TEMP/contaminated-report.json"
+          status=$?
+          set -e
+          test "$status" -eq 1
+
+      - name: Verify invalid CLI exit code
+        run: |
+          set +e
+          "$RUNNER_TEMP/evalproof-venv/bin/evalproof" rules --unknown
+          status=$?
+          set -e
+          test "$status" -eq 2
