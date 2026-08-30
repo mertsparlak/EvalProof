@@ -13,6 +13,9 @@ EXPECTED_RULE_IDS = [
     "contamination.train_eval_near_duplicate",
     "contamination.train_eval_overlap",
     "contamination.untrusted_context_interpolation",
+    "dataset.label_inconsistency",
+    "evaluation.metric_out_of_bounds",
+    "evaluation.sample_alignment_mismatch",
 ]
 
 

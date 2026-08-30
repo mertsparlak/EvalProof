@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 import hashlib
 import io
 import json
+import math
 import os
 from pathlib import Path
 import re
@@ -34,6 +35,34 @@ ANSWER_FIELD_ALIASES: List[str] = [
     "reference",
     "reference_answer",
 ]
+
+SAMPLE_ID_FIELD_ALIASES: List[str] = ["id", "sample_id", "example_id", "record_id", "case_id"]
+CONTEXT_FIELD_ALIASES: List[str] = [
+    "context",
+    "contexts",
+    "documents",
+    "docs",
+    "retrieved_context",
+    "retrieval_context",
+    "sources",
+    "chunks",
+]
+ROW_COLLECTION_KEYS: List[str] = ["examples", "samples", "records", "rows", "data", "items"]
+KNOWN_METRIC_NAMES: Set[str] = {
+    "accuracy",
+    "accuracy_percent",
+    "exact_match",
+    "f1",
+    "precision",
+    "recall",
+    "bleu",
+    "rouge",
+    "loss",
+    "perplexity",
+    "pass_rate",
+    "success_rate",
+    "win_rate",
+}
 
 CANONICAL_METADATA_ALIASES: Dict[str, List[str]] = {
     "model_id": ["model", "model_id", "model_name"],
@@ -106,6 +135,38 @@ class AnswerRecord:
     normalized_answer: str
 
 
+@dataclass
+class MetricRecord:
+    artifact_path: str
+    metric_name: str
+    value: float
+    unit: Optional[str]
+    bounds: List[float]
+    field_path: str
+
+
+def normalize_fingerprint(value: Any) -> str:
+    normalized = str(value).strip().lower()
+    if normalized.startswith("sha256:"):
+        return normalized[7:]
+    return normalized
+
+
+def extract_scalar_field(row_data: Any, aliases: List[str]) -> Optional[Tuple[str, str]]:
+    if not isinstance(row_data, dict):
+        return None
+    for alias in aliases:
+        if alias not in row_data:
+            continue
+        value = row_data[alias]
+        if value is None or isinstance(value, bool) or not isinstance(value, (str, int, float)):
+            continue
+        normalized = str(value).strip()
+        if normalized:
+            return alias, normalized
+    return None
+
+
 class ProjectIndex:
     def __init__(self, config: Config):
         self.config = config
@@ -116,6 +177,7 @@ class ProjectIndex:
         self.answer_records: List[AnswerRecord] = []
         self.artifact_fingerprints: Dict[str, str] = {}
         self.eval_metadata: Dict[str, Dict[str, Any]] = {}
+        self.metric_records: List[MetricRecord] = []
         self.diagnostics: List[Diagnostic] = []
 
         # Similarity Index for Near-Duplicate Detection
@@ -234,6 +296,7 @@ class ProjectIndex:
 
             # Check answer extraction
             self._check_answer_extraction(art, idx, parsed)
+            self._extract_metric_records_from_source(art, parsed, f"rows[{idx}]")
 
         self.rows_by_artifact[art.path] = valid_rows
         # Fingerprint is normalized rows joined by newline
@@ -309,6 +372,7 @@ class ProjectIndex:
 
             # Check answer extraction
             self._check_answer_extraction(art, row_idx, parsed_obj)
+            self._extract_metric_records_from_source(art, parsed_obj, f"rows[{row_idx}]")
 
         self.rows_by_artifact[art.path] = valid_rows
         joined = "\n".join(normalized_row_json_strings)
@@ -381,15 +445,18 @@ class ProjectIndex:
             meta = self.extract_result_metadata(data)
             if meta:
                 self.eval_metadata[art.path] = meta
+            self._extract_metric_records_from_source(art, data, "")
 
         # Row extraction
         rows_list: Optional[List[Any]] = None
+        rows_field_key = "root"
         if isinstance(data, list):
             rows_list = data
         elif isinstance(data, dict):
-            for field_key in ["examples", "samples", "records", "rows", "data", "items"]:
+            for field_key in ROW_COLLECTION_KEYS:
                 if field_key in data and isinstance(data[field_key], list):
                     rows_list = data[field_key]
+                    rows_field_key = field_key
                     break
 
         if rows_list is not None:
@@ -416,6 +483,7 @@ class ProjectIndex:
                 self.record_hashes.setdefault(r_hash, []).append((art.path, idx))
                 self._index_row_for_similarity(art, idx, item, r_hash)
                 self._check_answer_extraction(art, idx, item)
+                self._extract_metric_records_from_source(art, item, f"{rows_field_key}[{idx}]")
 
             self.rows_by_artifact[art.path] = valid_rows
 
@@ -491,3 +559,87 @@ class ProjectIndex:
                 result_meta[canonical_name] = found_val
 
         return result_meta
+    def matching_artifacts_for_fingerprint(self, reference: Any, roles: Set[str]) -> List[Artifact]:
+        normalized_reference = normalize_fingerprint(reference)
+        matches = []
+        for artifact in self.artifacts_by_path.values():
+            if not roles.intersection(artifact.roles) or "configuration" in artifact.roles:
+                continue
+            computed = self.artifact_fingerprints.get(artifact.path)
+            if computed and normalize_fingerprint(computed) == normalized_reference:
+                matches.append(artifact)
+        return sorted(matches, key=lambda artifact: artifact.path)
+
+    def _extract_metric_records_from_source(self, art: Artifact, source: Any, prefix: str) -> None:
+        if "evaluation_result" not in art.roles or not isinstance(source, dict):
+            return
+
+        metrics = source.get("metrics")
+        if isinstance(metrics, dict):
+            for metric_name in sorted(metrics):
+                self._append_metric_record(
+                    art,
+                    metric_name,
+                    metrics[metric_name],
+                    f"{prefix}.metrics.{metric_name}".lstrip("."),
+                )
+        elif isinstance(metrics, list):
+            for index, metric in enumerate(metrics):
+                if isinstance(metric, dict):
+                    metric_name = metric.get("metric_name", metric.get("metric", metric.get("name")))
+                    self._append_metric_record(art, metric_name, metric, f"{prefix}.metrics[{index}]".lstrip("."))
+
+        metric_name = source.get("metric_name", source.get("metric"))
+        if metric_name is not None:
+            self._append_metric_record(art, metric_name, source, prefix or "root")
+
+    def _append_metric_record(self, art: Artifact, metric_name: Any, metric_spec: Any, field_path: str) -> None:
+        if not isinstance(metric_name, str):
+            return
+        normalized_name = metric_name.strip().lower()
+        if normalized_name not in KNOWN_METRIC_NAMES:
+            return
+
+        if isinstance(metric_spec, dict):
+            value = metric_spec.get("value", metric_spec.get("metric_value"))
+            unit = metric_spec.get("unit", metric_spec.get("metric_unit"))
+            raw_bounds = metric_spec.get("bounds", metric_spec.get("metric_bounds"))
+        else:
+            value = metric_spec
+            unit = None
+            raw_bounds = None
+
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(float(value)):
+            return
+
+        bounds: Optional[List[float]] = None
+        if isinstance(raw_bounds, (list, tuple)) and len(raw_bounds) == 2:
+            if all(
+                isinstance(item, (int, float)) and not isinstance(item, bool) and math.isfinite(float(item))
+                for item in raw_bounds
+            ):
+                lower, upper = float(raw_bounds[0]), float(raw_bounds[1])
+                if lower <= upper:
+                    bounds = [lower, upper]
+
+        normalized_unit = str(unit).strip().lower() if isinstance(unit, str) else None
+        if bounds is None and normalized_unit in {"fraction", "percent", "nonnegative"}:
+            bounds = {
+                "fraction": [0.0, 1.0],
+                "percent": [0.0, 100.0],
+                "nonnegative": [0.0, math.inf],
+            }[normalized_unit]
+
+        if bounds is None:
+            return
+
+        self.metric_records.append(
+            MetricRecord(
+                artifact_path=art.path,
+                metric_name=normalized_name,
+                value=float(value),
+                unit=normalized_unit,
+                bounds=bounds,
+                field_path=field_path,
+            )
+        )

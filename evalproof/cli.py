@@ -33,6 +33,9 @@ RULE_CONFIDENCE = {
     "contamination.fingerprint_mismatch": "confirmed",
     "contamination.untrusted_context_interpolation": "heuristic",
     "contamination.sensitive_value_exposure": "heuristic",
+    "evaluation.sample_alignment_mismatch": "confirmed",
+    "dataset.label_inconsistency": "confirmed",
+    "evaluation.metric_out_of_bounds": "confirmed",
 }
 
 
