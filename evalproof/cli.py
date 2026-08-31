@@ -1,6 +1,7 @@
 """CLI entry point and command handler for evalproof."""
 
 import argparse
+from copy import deepcopy
 from datetime import datetime, timezone
 import json
 from pathlib import Path
@@ -18,8 +19,11 @@ from evalproof.config import (
 from evalproof.discovery import discover_files
 from evalproof.finding import Diagnostic, SEVERITY_RANK
 from evalproof.project_index import ProjectIndex
+from evalproof.profiling import collect_measurements
 from evalproof.reporting import (
     generate_json_report,
+    generate_profile_report,
+    render_profile_summary,
     render_terminal_summary,
     sort_findings_deterministically,
 )
@@ -231,6 +235,64 @@ def run_scan(args: argparse.Namespace) -> int:
     return 1 if ci_failed else 0
 
 
+def run_profile(args: argparse.Namespace) -> int:
+    started_at = datetime.now(timezone.utc).isoformat()
+    root = Path(args.path).resolve()
+    if not root.is_dir():
+        print("Error: Profile root directory not found or unreadable.", file=sys.stderr)
+        return 4
+    try:
+        cfg = load_config(str(root), explicit_config_path=args.config)
+        validate_schema_artifact_paths(str(root), cfg)
+    except Exception as error:
+        print(f"Configuration error: {error}", file=sys.stderr)
+        return 3
+    cfg = deepcopy(cfg)
+    cfg.similarity.enabled = False
+    output = Path(args.output) if args.output else root / "evalproof_profile.json"
+    output = output.resolve()
+    try:
+        candidates = discover_files(str(root), cfg)
+    except Exception:
+        print("Error: Could not discover profile artifacts.", file=sys.stderr)
+        return 4
+    artifacts = []
+    diagnostics = []
+    for path in candidates:
+        if (root / path).resolve() == output:
+            continue
+        artifact = create_artifact_from_file(str(root), path, cfg)
+        if artifact and "configuration" not in artifact.roles and artifact.roles.intersection(
+            {"training_dataset", "evaluation_dataset", "benchmark_dataset"}
+        ):
+            artifacts.append(artifact)
+            diagnostics.extend(artifact.diagnostics)
+    try:
+        index = ProjectIndex(cfg, scan_root=str(root))
+        index.build(artifacts)
+        diagnostics.extend(index.diagnostics)
+        measurements = collect_measurements(index)
+        report = generate_profile_report(
+            cfg.config_path, index.get_artifact_coverage([]), measurements, diagnostics,
+            started_at, datetime.now(timezone.utc).isoformat(),
+        )
+        encoded = json.dumps(report, indent=2, ensure_ascii=False, allow_nan=False)
+    except Exception:
+        print("Unexpected internal error producing dataset profile.", file=sys.stderr)
+        return 6
+    try:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(encoded, encoding="utf-8")
+    except OSError:
+        print(f"Error writing profile output to '{output}'.", file=sys.stderr)
+        return 5
+    if args.json:
+        print(f"Profile complete. JSON report written to {args.output}" if args.output else encoded)
+    else:
+        print(render_profile_summary(str(root), report, str(output)))
+    return 0
+
+
 def main(sys_args: Optional[List[str]] = None) -> int:
     if sys_args is None:
         sys_args = sys.argv[1:]
@@ -244,6 +306,12 @@ def main(sys_args: Optional[List[str]] = None) -> int:
     subparsers = parser.add_subparsers(dest="command", help="Available subcommands")
     scan_parser = subparsers.add_parser("scan", help="Scan repository for contamination and trust issues")
     subparsers.add_parser("rules", help="List built-in EvalProof rules")
+    profile_parser = subparsers.add_parser("profile", help="Profile dataset artifacts without executing trust rules")
+    profile_parser.add_argument("path", nargs="?", default=".", help="Dataset root directory (default: current working directory)")
+    profile_parser.add_argument("--config", type=str, help="Use an explicit configuration file.")
+    profile_parser.add_argument("--json", action="store_true", help="Write JSON profile to stdout.")
+    profile_parser.add_argument("--output", type=str, help="Write JSON profile to a file. Requires --json.")
+    profile_parser.add_argument("--no-color", action="store_true", help="Disable terminal colors.")
 
     scan_parser.add_argument("path", nargs="?", default=".", help="Scan root directory (default: current working directory)")
     scan_parser.add_argument("--config", type=str, help="Use an explicit configuration file.")
@@ -262,20 +330,20 @@ def main(sys_args: Optional[List[str]] = None) -> int:
         print(render_rules_listing())
         return 0
 
-    if parsed_args.command != "scan":
-        print("Invalid command. Available commands: scan, rules", file=sys.stderr)
+    if parsed_args.command not in {"scan", "profile"}:
+        print("Invalid command. Available commands: scan, rules, profile", file=sys.stderr)
         return 2
 
     if parsed_args.output and not parsed_args.json:
         print("Invalid CLI usage: --output requires --json.", file=sys.stderr)
         return 2
 
-    if parsed_args.fail_on and parsed_args.fail_on.lower() not in ALLOWED_SEVERITIES:
+    if parsed_args.command == "scan" and parsed_args.fail_on and parsed_args.fail_on.lower() not in ALLOWED_SEVERITIES:
         print(f"Invalid CLI usage: invalid --fail-on value '{parsed_args.fail_on}'.", file=sys.stderr)
         return 2
 
     try:
-        return run_scan(parsed_args)
+        return run_profile(parsed_args) if parsed_args.command == "profile" else run_scan(parsed_args)
     except FileNotFoundError as err:
         print(f"File not found: {err}", file=sys.stderr)
         return 4

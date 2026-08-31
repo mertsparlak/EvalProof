@@ -57,6 +57,34 @@ With `--json`, the CLI prints the JSON report defined in [JSON Report](json-repo
 
 `--output` is valid only with `--json`. When `--output` is used with `--json`, JSON is written to the output path and terminal output remains concise. Using `--output` without `--json` is invalid CLI usage.
 
+## Profile Command
+
+`evalproof profile [path]` is a separate post-MVP command. Path defaults to the
+working directory. Accepted options are --config, --json, --output and --no-color,
+with the same path/output semantics as scan. --rules, --fail-on and unknown
+options are invalid usage (2), before root/config/discovery access. --output
+without --json is also invalid usage. Help returns 0 without reading files.
+
+Profiling writes `evalproof_profile.json` under its root by default. With --json
+and no --output it also prints JSON to stdout; with both it prints only a short
+completion line. A relative --output resolves against the working directory.
+Exclude that resolved output from profile indexing even if config overrides
+default exclusion patterns. No source artifacts are modified by calculation.
+
+Root/discovery failures return 4; config validation failures return 3; index,
+measurement or serialization internal errors return 6; file writing failures
+return 5. CLI usage validation precedes root access, root validation precedes
+config validation, then discovery/indexing/measurement/reporting follow. Unreadable
+individual artifacts produce their existing diagnostics and do not crash profiling.
+
+A completed profile returns 0, including empty or partial profiles with warnings.
+This means processing completed, not that the dataset is trustworthy or good.
+It never returns 1 or applies rules.disabled, rules.severity or ci.fail_on.
+The terminal summary shows root, dataset artifact count, measurement count,
+complete/partial/skipped coverage counts, diagnostic count and report path.
+It has no CI pass/fail verdict or quality score. --no-color remains a no-op for
+the uncolored renderer. [JSON Report](json-report.md#profile-report) owns JSON.
+
 ## Exit Codes
 
 Exit codes:

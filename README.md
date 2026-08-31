@@ -37,6 +37,20 @@ python -m pip install -e .
 
 ## First Scan
 
+### Dataset Profile Contract
+
+```powershell
+evalproof profile . --json --output evalproof_profile.json
+```
+
+The profile command has a separate report contract and never executes trust rules
+or applies CI severity thresholds. In the v1.25 contract milestone it records
+dataset coverage and diagnostics with an empty measurements list. The v1.26
+milestone adds the measurement calculations. An exit code of 0 means processing
+completed, not that dataset quality has passed a check.
+
+### Trust Scan
+
 ```powershell
 evalproof scan .
 ```

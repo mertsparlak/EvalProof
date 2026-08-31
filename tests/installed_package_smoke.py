@@ -29,6 +29,7 @@ def main():
         assert result.returncode == status, result.stderr + result.stdout
         return result.stdout
     run(["--help"], 0)
+    run(["profile", "--help"], 0)
     listing = run(["rules"], 0)
     ids = [line.split(" | ")[0][2:] for line in listing.splitlines() if line.startswith("- ")]
     assert len(ids) == 29 and ids == sorted(set(ids))
@@ -43,6 +44,11 @@ def main():
             assert report["schema_version"] == "1.0"
         project = root / "dataset"
         project.mkdir()
+        profile_output = root / "profile.json"
+        run(["profile", project, "--json", "--output", profile_output], 0)
+        profile = json.loads(profile_output.read_text(encoding="utf-8"))
+        assert profile["report_type"] == "profile" and "findings" not in profile
+        assert profile["tool"]["version"] == expected
         output = root / "parquet-report.json"
         if args.parquet:
             import pyarrow as pa
@@ -55,6 +61,10 @@ def main():
             assert len(report["findings"]) == 1
             assert report["diagnostics"] == []
             assert "private" not in json.dumps(report)
+            run(["profile", project, "--json", "--output", profile_output], 0)
+            profile = json.loads(profile_output.read_text(encoding="utf-8"))
+            assert profile["summary"]["artifacts_profiled"] == 2
+            assert all(a["index_status"] == "indexed" for a in profile["profile"]["artifacts"])
         else:
             assert importlib.util.find_spec("pyarrow") is None
             (project / "eval.parquet").write_bytes(b"reader intentionally unavailable")

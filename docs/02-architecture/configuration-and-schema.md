@@ -234,6 +234,16 @@ Artifact paths are normalized to repository-relative POSIX form by replacing `\`
 
 Invalid configuration is a fatal scan error and must produce a nonzero exit code as defined in [CLI Contract And Exit Codes](../05-cli-and-reports/cli-contract-and-exit-codes.md).
 
+## Profile Configuration Use
+
+The post-MVP profile command uses the existing config structure and path checks;
+it adds no configuration key in v1.25. Similarity and rule/CI settings do not
+affect calculation execution, but their types remain validated. Dataset selection
+uses the existing artifact roles. The default excludes include both
+evalproof_report.json and evalproof_profile.json. The profile command additionally
+excludes its resolved output path regardless of user exclude overrides, as
+specified in [CLI Contract](../05-cli-and-reports/cli-contract-and-exit-codes.md#profile-command).
+
 ## Design Decisions
 
 - Configuration is optional to preserve zero-setup scanning.

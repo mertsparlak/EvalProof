@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional
 
 from evalproof import __version__
 from evalproof.finding import Diagnostic, Finding, SEVERITY_RANK, Severity
+from evalproof.measurement import Measurement
 
 
 def sort_findings_deterministically(findings: List[Finding]) -> List[Finding]:
@@ -90,6 +91,41 @@ def generate_json_report(
         "findings": [f.to_dict() for f in sorted_findings],
         "diagnostics": [d.to_dict() for d in sorted_diagnostics],
     }
+
+
+def generate_profile_report(config_path, artifact_coverage, measurements: List[Measurement], diagnostics, started_at, completed_at):
+    coverage = [
+        {key: value for key, value in item.items() if key != "role_matched_rule_ids"}
+        for item in sorted(artifact_coverage, key=lambda item: item["path"])
+    ]
+    ordered = sorted(measurements, key=lambda item: (
+        item.artifact_path, item.measurement_id,
+        json.dumps(item.scope, sort_keys=True, separators=(",", ":"), ensure_ascii=False), item.fingerprint,
+    ))
+    return {
+        "schema_version": "1.0", "report_type": "profile",
+        "tool": {"name": "evalproof", "version": __version__},
+        "profile": {"root": ".", "started_at": started_at, "completed_at": completed_at,
+                    "config_path": config_path, "artifacts": coverage},
+        "summary": {"artifacts_profiled": len(coverage), "measurements_total": len(ordered)},
+        "measurements": [item.to_dict() for item in ordered],
+        "diagnostics": [item.to_dict() for item in sort_diagnostics_deterministically(diagnostics)],
+    }
+
+
+def render_profile_summary(root, report, output_path):
+    coverage = report["profile"]["artifacts"]
+    counts = {status: sum(item["index_status"] == status for item in coverage)
+              for status in ("indexed", "partial", "skipped")}
+    return "\n".join([
+        "=== EvalProof Dataset Profile ===",
+        f"Profile root: {root}",
+        f"Dataset artifacts: {report['summary']['artifacts_profiled']}",
+        f"Measurements: {report['summary']['measurements_total']}",
+        f"Coverage: indexed={counts['indexed']} partial={counts['partial']} skipped={counts['skipped']}",
+        f"Diagnostics: {len(report['diagnostics'])}",
+        f"JSON report: {output_path}",
+    ])
 
 
 def _finding_primary_path(finding: Finding) -> str:

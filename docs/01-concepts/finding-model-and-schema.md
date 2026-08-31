@@ -98,6 +98,48 @@ The canonical finding fingerprint payload is a JSON object serialized with deter
 
 It must not include timestamps, traversal order, absolute machine-specific paths, random IDs, or report formatting.
 
+## Measurement Contract
+
+The post-MVP Measurement contract below is independent of Finding. A measurement
+does not participate in severity, confidence, recommendations or scan exit policy.
+
+### Fields
+
+An internal Measurement serializes exactly these fields:
+
+- `measurement_id`: stable dotted lowercase identifier, not a rule ID.
+- `artifact_id`: existing path-based Artifact ID.
+- `artifact_path`: scan-root-relative POSIX artifact path.
+- `scope`: `{"type":"artifact"}` or `{"type":"field","field":"<top-level field>"}`.
+- `value`: finite JSON value, object, array, string, boolean or null. No NaN,
+  infinity or arbitrary Python objects. Null means unavailable/undefined, not zero.
+- `unit`: measurement-defined unit string.
+- `population_count`: nonnegative integer count of observed records contributing
+  to this measurement's population; never an inferred full-file count.
+- `coverage`: object with `status` and sorted unique `reasons`. Status is
+  `complete`, `partial` or `unavailable`. Artifact `indexed` maps to complete,
+  `partial` maps to partial and `skipped` maps to unavailable. A measure requiring
+  rows uses unavailable/`no_row_collection` when no row collection exists, even
+  if the artifact has a structured or text fingerprint. An empty row collection
+  is complete with population zero. Measurement-specific exclusions must be
+  counted in evidence rather than hidden from the denominator.
+- `parameters`: finite JSON object describing the effective calculation settings.
+- `method`: stable versioned method string matching `[a-z][a-z0-9_]*/v[1-9][0-9]*`,
+  e.g. `indexed_rows/v1`; changing
+  calculation semantics requires changing this string.
+- `evidence`: bounded structured facts, hashes, counts and relative locations.
+  Raw dataset values are forbidden except the explicit categorical opt-in defined
+  in [Configuration](../02-architecture/configuration-and-schema.md).
+- `fingerprint`: `sha256:<hex>` of UTF-8 canonical JSON of every field above except
+  fingerprint itself, with sorted object keys, compact separators and no ASCII
+  escaping. Arrays retain their documented semantic order. Nonfinite values fail
+  internal construction rather than creating nonstandard JSON output.
+
+The producer, not the renderer, owns population, method, parameters and coverage.
+Timestamps, absolute paths and display strings are not Measurement fields. Models
+are internal Python dataclasses, not a new public SDK. The report envelope and
+ordering belong to [JSON Report](../05-cli-and-reports/json-report.md#profile-report).
+
 ## Design Decisions
 
 - Findings are the central output contract.

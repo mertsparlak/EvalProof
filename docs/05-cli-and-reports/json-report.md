@@ -17,7 +17,7 @@ Terminal output is for humans. JSON output is for tools.
   "schema_version": "1.0",
   "tool": {
     "name": "evalproof",
-    "version": "0.4.0"
+    "version": "0.5.0"
   },
   "scan": {
     "root": ".",
@@ -187,6 +187,34 @@ Report metadata timestamps may differ between runs. The deterministic JSON contr
 Paths in JSON reports must be relative to the scan root.
 
 Absolute paths must not appear in findings, diagnostics, or fingerprints.
+
+## Profile Report
+
+The separate profile envelope has exactly these top-level fields:
+
+- `schema_version`: "1.0", independently versioned from scan.
+- `report_type`: "profile", required to distinguish this report family.
+- `tool`: name "evalproof" and runtime package version.
+- `profile`: object with root ".", started_at, completed_at (UTC ISO-8601),
+  config_path (relative or null), and artifacts (dataset-only index coverage).
+- `summary`: artifacts_profiled and measurements_total, both nonnegative integers.
+- `measurements`: Measurement objects defined in
+  [Measurement Contract](../01-concepts/finding-model-and-schema.md#measurement-contract).
+- `diagnostics`: existing Diagnostic objects, never findings or measurements.
+
+The `profile.artifacts` entries use the scan coverage shape except that
+`role_matched_rule_ids` is omitted because rules do not run. Order is path ascending.
+Measurements sort by artifact_path, measurement_id, canonical scope JSON and
+fingerprint. Diagnostics use the existing deterministic diagnostic ordering.
+No severity summary, findings array, rule scope or CI status appears in profile.
+Root-relative paths and evidence privacy requirements apply equally to profiles.
+
+v1.25 has no calculators: measurements is [] and measurements_total is 0 even
+when datasets are indexed. v1.26 adds measurements to this same envelope. This
+empty-list contract must never be described as a dataset passing quality checks.
+Excluding profile started_at/completed_at, identical inputs/configuration and
+calculation methods must produce identical reports. The scan envelope remains
+unchanged, without report_type or measurements additions.
 
 ## Design Decisions
 

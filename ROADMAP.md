@@ -20,7 +20,7 @@ A planned version is not an implemented or published release.
 | v1.22 | 0.2.2 | Completed | Dataset encoding integrity |
 | v1.23 | 0.3.0 | Completed | Dataset provenance contracts |
 | v1.24 | 0.4.0 | Completed | Optional Parquet support |
-| v1.25 | 0.5.0 | Planned | Measurement and profile contract |
+| v1.25 | 0.5.0 | Completed | Measurement and profile contract |
 | v1.26 | 0.6.0 | Planned | Dataset profiling measurements |
 | v1.27 | 1.0.0 | Gated | Public release qualification |
 | v1.28+ | 1.x | Gated | Integrations and conditional adapters |
@@ -259,6 +259,40 @@ dataset calibration, push or publication is claimed by this milestone.
   unit, population_count, coverage, parameters, method, evidence, fingerprint.
 - No measurement severity, confidence, impact or recommendation.
 - Commit: `feat(v1.25): add deterministic dataset profiling contract`.
+
+### Implementation Plan And Strategy Review
+
+1. Freeze Measurement as an internal typed record separate from Finding. Define
+   stable identity, scope, coverage, finite JSON values and deterministic hashing
+   in the existing model document, without an external plugin or SDK API.
+2. Add profile command/options and a separate report envelope. Reuse config,
+   discovery and Project Index; select dataset roles only and disable similarity
+   computation in an internal config copy. Never execute rules or severity policy.
+3. Preserve CLI error categories and offline behavior. Successfully profiling
+   partial/unavailable data returns 0 with explicit coverage diagnostics, not a
+   clean-dataset verdict. Ignore rule/CI settings after structural config validation.
+4. Exclude the generated profile report by default. In profile, always exclude
+   its resolved output path before discovery is indexed, so repeated invocations
+   cannot measure their own output even with custom include/exclude patterns.
+5. Test CLI invalid options/error precedence, empty and malformed inputs, no rule/
+   similarity execution, finite values, stable fingerprints, timestamp-only report
+   differences, traversal order and source immutability. Keep scan schema unchanged.
+6. Align package to 0.5.0, extend installed-wheel smoke, verify full base/extra
+   suites and commit locally. v1.25 produces an empty measurements list; v1.26
+   supplies the calculators without changing this envelope.
+
+Review outcome: profiling must not become a second rule engine or silently run
+near-duplicate computation. Dataset roles are selected explicitly/heuristically by
+the existing artifact policy; no role inference from content is added. Profile
+schema 1.0 has its own namespace identified by report_type, not a change to scan
+schema 1.0. Empty measurements in this contract milestone are not quality evidence.
+
+Verification on 2026-08-31: 400 tests passed with the optional reader; 369 passed
+and the optional-format module was skipped in the base environment. The 27 new
+profile tests cover command isolation, error categories, finite measurement
+construction, path safety, ordering, output self-exclusion and process determinism.
+Non-editable base/extra 0.5.0 wheels passed scan and profile smoke outside the
+checkout. No new rule or measurement calculator is claimed by this milestone.
 
 ## v1.26: Dataset Measurements
 
