@@ -132,7 +132,13 @@ Heuristic detection uses lowercase repository-relative POSIX paths.
 - filename is `evalproof.yaml`, `evalproof.yml`, `config.yaml`, `config.yml`, `config.json`, `settings.yaml`, `settings.yml`, or `settings.json`
 - supported format is JSON, YAML, or TOML
 
-An artifact may receive multiple heuristic roles if multiple rules match. For example, `eval/results/baseline.json` may be both `evaluation_dataset` and `evaluation_result`; rules decide applicability from artifact role and readable content.
+Known configuration filenames above receive only `configuration`: their exact
+filename match takes precedence over path fragments such as `eval`, `train`,
+or `results`. This prevents the scanner's own configuration from becoming a
+dataset or result artifact. Explicit artifact overrides still take precedence
+and may intentionally assign other roles to these filenames.
+
+Other artifacts may receive multiple heuristic roles if multiple rules match. For example, `eval/results/baseline.json` may be both `evaluation_dataset` and `evaluation_result`; rules decide applicability from artifact role and readable content.
 
 If heuristic detection assigns `training_dataset` together with `evaluation_dataset` or `benchmark_dataset`, core emits an `artifact.role_conflict` warning diagnostic. The artifact remains available to rules, but cross-split rules must never compare the same artifact path with itself. Explicit multi-role configuration is treated as intentional and does not emit this diagnostic.
 

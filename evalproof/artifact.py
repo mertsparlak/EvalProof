@@ -67,6 +67,13 @@ def detect_heuristic_roles(posix_path: str, fmt: str) -> Set[str]:
     filename = Path(p_lower).name
     roles: Set[str] = set()
 
+    # Exact configuration filenames take precedence over broad path fragments.
+    if fmt in {"json", "yaml", "toml"} and filename in {
+        "evalproof.yaml", "evalproof.yml", "config.yaml", "config.yml",
+        "config.json", "settings.yaml", "settings.yml", "settings.json",
+    }:
+        return {"configuration"}
+
     # training_dataset
     if fmt in {"json", "jsonl", "csv", "yaml", "toml", "parquet"}:
         if any(seg in p_check for seg in ["/train/", "/training/", "/finetune/"]) or \
@@ -102,11 +109,6 @@ def detect_heuristic_roles(posix_path: str, fmt: str) -> Set[str]:
         if any(seg in p_check for seg in ["/rag/", "/retrieval/", "/corpus/", "/knowledge/", "/kb/", "/docs/", "/documents/"]) or \
            any(kw in filename for kw in ["corpus", "knowledge", "retrieval", "context", "source"]):
             roles.add("rag_document")
-
-    # configuration
-    if fmt in {"json", "yaml", "toml"}:
-        if filename in {"evalproof.yaml", "evalproof.yml", "config.yaml", "config.yml", "config.json", "settings.yaml", "settings.yml", "settings.json"}:
-            roles.add("configuration")
 
     if not roles:
         roles.add("unknown")

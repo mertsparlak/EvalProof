@@ -41,6 +41,21 @@ def test_detect_heuristic_roles():
     assert "rag_document" in roles3
 
 
+@pytest.mark.parametrize("path", [
+    "evalproof.yaml", "evalproof.yml", "train/config.json",
+    "results/settings.yaml", "docs/settings.yml", "eval/config.yaml",
+])
+def test_known_config_filenames_do_not_inherit_data_roles(path):
+    assert detect_heuristic_roles(path, detect_file_format(path)) == {"configuration"}
+
+
+def test_explicit_override_can_repurpose_known_config_filename():
+    cfg = Config(artifacts=[ArtifactOverride(path="evalproof.yaml", roles=["evaluation_dataset"])])
+    artifact = create_artifact_from_file(".", "evalproof.yaml", cfg)
+    assert artifact.roles == {"evaluation_dataset"}
+    assert artifact.role_source == "config"
+
+
 def test_create_artifact_with_config_override():
     cfg = Config(
         artifacts=[ArtifactOverride(path="custom/data.bin", roles=["training_dataset"])]
