@@ -143,6 +143,16 @@ Rules need different content shapes. Core must expose content through simple acc
 
 Large artifacts must be readable without requiring every rule to load the whole file into memory.
 
+## Text Encoding Access
+
+The artifact byte accessor returns original file bytes. Text access accepts one
+leading UTF-8 BOM and normalizes line endings as before. Dataset byte validation
+occurs in Project Index before parsing; its evidence and skip behavior are owned
+by [Dataset Encoding Facts](../02-architecture/project-index.md#dataset-encoding-facts).
+Rules must not decode bytes independently. Non-dataset text access retains the
+existing replacement-decoding behavior; this milestone does not audit binary
+formats or infer a file's intended alternate encoding.
+
 ## Parse Failures
 
 Malformed supported files are still artifacts when their path and role are discoverable.

@@ -35,6 +35,7 @@ class DiagnosticSeverity(str, Enum):
 
 
 class DiagnosticCode(str, Enum):
+    ARTIFACT_INVALID_TEXT_ENCODING = "artifact.invalid_text_encoding"
     ARTIFACT_PARSE_FAILED = "artifact.parse_failed"
     ARTIFACT_ROW_PARSE_FAILED = "artifact.row_parse_failed"
     ARTIFACT_ROW_LIMIT_REACHED = "artifact.row_limit_reached"

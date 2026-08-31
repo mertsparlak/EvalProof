@@ -295,6 +295,7 @@ class ProjectIndex:
         self.artifact_fingerprints: Dict[str, str] = {}
         self.eval_metadata: Dict[str, Dict[str, Any]] = {}
         self.eval_metadata_locations: Dict[str, Dict[str, str]] = {}
+        self.encoding_issues: Dict[str, Dict[str, Any]] = {}
         self.metric_records: List[MetricRecord] = []
         self.diagnostics: List[Diagnostic] = []
         self._similarity_candidates_cache: Dict[float, List[SimilarityCandidate]] = {}
@@ -313,6 +314,7 @@ class ProjectIndex:
         self._similarity_candidates_cache.clear()
         self.eval_metadata.clear()
         self.eval_metadata_locations.clear()
+        self.encoding_issues.clear()
         for art in artifacts:
             self.artifacts_by_path[art.path] = art
             for r in art.roles:
@@ -396,6 +398,8 @@ class ProjectIndex:
                     reasons.append("file_size_limit")
                 if has_parse_failure:
                     reasons.append("parse_failed")
+                if DiagnosticCode.ARTIFACT_INVALID_TEXT_ENCODING.value in diagnostic_codes:
+                    reasons.append("invalid_text_encoding")
                 if not reasons:
                     reasons.append("no_indexable_content")
             elif has_row_partial:
@@ -433,7 +437,22 @@ class ProjectIndex:
         return coverage
 
     def _index_artifact_content(self, art: Artifact):
-        text = art.read_text()
+        dataset_roles = {"training_dataset", "evaluation_dataset", "benchmark_dataset"}
+        if art.roles.intersection(dataset_roles) and "configuration" not in art.roles:
+            text, issue = art.read_validated_dataset_text()
+            if issue is not None:
+                self.encoding_issues[art.path] = issue
+                diagnostic = Diagnostic(
+                    severity=DiagnosticSeverity.WARNING.value,
+                    code=DiagnosticCode.ARTIFACT_INVALID_TEXT_ENCODING.value,
+                    message="Dataset contains invalid UTF-8 or NUL bytes; text indexing skipped.",
+                    path=art.path, details=issue,
+                )
+                self.diagnostics.append(diagnostic)
+                art.diagnostics.append(diagnostic)
+                return
+        else:
+            text = art.read_text()
 
         # Markdown & Plain text
         if art.format in {"markdown", "plain_text"}:

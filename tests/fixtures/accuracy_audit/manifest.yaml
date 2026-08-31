@@ -1,6 +1,10 @@
 version: 1
 
 cases:
+  invalid_encoding:
+    path: invalid_encoding_project
+    byte_files:
+      train.jsonl: "ff"
   contaminated:
     path: ../contaminated_project
   trust_chain:
@@ -31,6 +35,11 @@ cases:
     path: generation_seeded_project
 
 rules:
+  dataset.invalid_text_encoding:
+    confidence: confirmed
+    positive: invalid_encoding
+    negative: clean
+    abstention: generation_seeded
   reproducibility.nondeterministic_generation_without_seed:
     confidence: likely
     positive: generation_unseeded

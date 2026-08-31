@@ -30,6 +30,7 @@ FINDING_KEYS = {
 
 
 REQUIRED_EVIDENCE_KEYS = {
+    "dataset.invalid_text_encoding": {"artifact_path", "byte_hash", "byte_count", "invalid_utf8_range", "nul_byte_count", "sample_nul_offsets", "nul_offsets_truncated"},
     "reproducibility.nondeterministic_generation_without_seed": {"result_artifact", "parameters_field", "temperature_field", "observed_temperature", "seed_field", "seed_state"},
     "contamination.train_eval_overlap": {"training_artifact", "evaluation_artifact", "normalized_record_hash"},
     "contamination.train_eval_near_duplicate": {"training_artifact", "evaluation_artifact", "similarity_score", "configured_threshold", "matched_training_records", "evidence_truncated"},
@@ -64,6 +65,8 @@ def copy_case(tmp_path: Path, manifest: dict, case_name: str) -> Path:
     source = (AUDIT_ROOT / manifest["cases"][case_name]["path"]).resolve()
     target = tmp_path / case_name
     shutil.copytree(source, target, dirs_exist_ok=True)
+    for path, hex_bytes in manifest["cases"][case_name].get("byte_files", {}).items():
+        (target / path).write_bytes(bytes.fromhex(hex_bytes))
     return target
 
 
@@ -93,7 +96,7 @@ def test_accuracy_manifest_covers_every_registered_rule():
     manifest_ids = set(manifest["rules"])
 
     assert manifest_ids == registered_ids
-    assert len(manifest_ids) == 25
+    assert len(manifest_ids) == 26
 
 
 def test_registered_rules_have_positive_and_negative_cases(tmp_path):

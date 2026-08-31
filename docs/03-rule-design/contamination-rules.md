@@ -786,6 +786,24 @@ Absence of a finding does not establish deterministic execution, including at
 temperature zero. Missing parameter objects remain the concern of the existing
 missing-repro-metadata rule, not a second finding from this rule.
 
+### `dataset.invalid_text_encoding`
+
+Detects observed byte-level text dataset defects. Severity `medium`, confidence
+`confirmed`; no default CI failure. Applicable roles and encoding semantics are
+owned by [Dataset Encoding Facts](../02-architecture/project-index.md#dataset-encoding-facts).
+
+Emit one finding per affected artifact from the corresponding index facts.
+Evidence is exactly that redacted fact object. Primary location is the artifact
+path; physical offsets remain in evidence, not fabricated row/character locations.
+No raw bytes, source excerpts or decoder exception text is emitted.
+The message distinguishes invalid UTF-8 from NUL bytes or their combination.
+Impact: reliable text parsing and record comparison are unavailable for this
+artifact. Recommend verifying the intended source encoding, exporting clean UTF-8
+without unexpected NUL bytes and rescanning; do not guess an automatic repair.
+This is not an encoding detector for arbitrary binary files or a malicious-content
+claim. The diagnostic represents skipped scanning; the finding represents the
+observed dataset defect and obeys ordinary rule selection and severity policy.
+
 ## Design Decisions
 
 - The rule set is intentionally focused on evaluation trust.

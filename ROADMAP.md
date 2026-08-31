@@ -17,7 +17,7 @@ A planned version is not an implemented or published release.
 | v1.19 | 0.1.0 | Completed | Explicit dataset schema validation |
 | v1.20 | 0.2.0 | Completed | Artifact-local explicit RAG chunk identity |
 | v1.21 | 0.2.1 | Completed | Generation reproducibility |
-| v1.22 | 0.2.2 | Planned | Dataset encoding integrity |
+| v1.22 | 0.2.2 | Completed | Dataset encoding integrity |
 | v1.23 | 0.3.0 | Planned | Dataset provenance contracts |
 | v1.24 | 0.4.0 | Planned | Optional Parquet support |
 | v1.25 | 0.5.0 | Planned | Measurement and profile contract |
@@ -94,13 +94,39 @@ runtime and report versions are 0.2.1. The local pytest cache warning remains.
 
 - Add `dataset.invalid_text_encoding` for training/evaluation/benchmark datasets.
 - Detect invalid UTF-8 and NUL bytes; accept and strip a UTF-8 BOM before parsing.
-- Core records deterministic diagnostics; replacement decoding can preserve tolerance.
+- Core records deterministic diagnostics; damaged dataset bytes are not indexed
+  through replacement decoding. The scan continues on other artifacts.
 - One medium/confirmed finding per affected artifact, bounded offsets/counts and
   artifact byte hash, no raw bytes.
 - Do not add broad suspicious-character or malicious-intent heuristics.
 - Malformed record rates remain measurements; parse diagnostics and explicit schema
   violations already own the underlying failures.
 - Commit: `feat(v1.22): detect invalid dataset encodings`.
+
+### Implementation Plan And Strategy Review
+
+1. Audit dataset bytes after the existing file-size gate, before parsing. Use
+   Python's strict UTF-8 decoder; record the first invalid range and bounded NUL
+   offsets without inventing a total invalid-sequence count.
+2. Expose redacted encoding facts in Project Index. Emit one encoding diagnostic
+   even with the rule disabled; distinguish a skipped artifact from a clean one.
+3. Add a medium/confirmed rule consuming only those facts, no file access or raw
+   bytes. Keep its physical-byte hash separate from semantic dataset fingerprints.
+4. Test malformed/truncated UTF-8, actual NUL, valid multilingual text, BOM across
+   formats, escaped NUL, limits, unrelated roles, evidence bounds and determinism.
+5. Add the accuracy case, listing, report documentation and 0.2.2 version updates;
+   run the full suite and commit locally.
+
+Review outcome: replacement decoding is unsafe for identity comparisons because
+distinct invalid bytes can collapse to the same character. Skip damaged dataset
+indexing rather than manufacture trustworthy row hashes. NUL is valid Unicode,
+so describe it as an unsupported text-dataset byte, not invalid UTF-8 or malicious
+content. No binary-encoding autodetection, automatic repair or source writes.
+
+Verification on 2026-08-31: 281 tests passed on Python 3.14, including 27 focused
+encoding tests and the 26-rule accuracy matrix. BOM equivalence, physical byte
+offsets, bounded evidence, skip coverage and rule-independent diagnostics passed.
+Package/runtime/report versions are 0.2.2; the known pytest cache warning remains.
 
 ## v1.23: Provenance Contracts
 

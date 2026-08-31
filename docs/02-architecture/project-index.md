@@ -144,6 +144,31 @@ Context identifiers are trimmed, remain case-sensitive, and accept only non-empt
 
 Each extracted reference also has a stable SHA-256 hash for evidence that must not expose the raw identifier.
 
+## Dataset Encoding Facts
+
+After the file-size gate, inspect original bytes of training/evaluation/benchmark
+artifacts (excluding configuration roles). File-size-skipped artifacts have no
+encoding facts. A row limit does not limit this byte audit: all accepted bytes
+are inspected. Supported text formats and explicitly configured plain text use
+the same audit. Binary formats are outside this contract.
+
+`encoding_issues[path]` exists only for invalid UTF-8 or actual NUL bytes and holds:
+`artifact_path`, `byte_hash` (SHA-256 of original bytes), `byte_count`,
+`invalid_utf8_range` (null or `{offset, length}` for the first strict decoder
+error), `nul_byte_count` (complete count), `sample_nul_offsets` (first 20), and
+`nul_offsets_truncated`. Offsets are zero-based physical byte positions including
+any BOM. The first error range is not a count of every invalid UTF-8 sequence.
+Literal U+FFFD and escaped JSON `\u0000` are not physical encoding defects.
+
+Core emits one warning diagnostic `artifact.invalid_text_encoding` per affected
+artifact with these redacted facts as details, regardless of rule selection.
+Do not parse or index that artifact, or assign it a semantic fingerprint.
+Coverage is `skipped` with reason `invalid_text_encoding`; no row count is claimed.
+The scan continues on the other artifacts. This avoids replacement characters
+creating false identities. A single leading UTF-8 BOM is accepted and stripped
+before parsing healthy text; semantic fingerprints otherwise follow existing
+normalization. The byte hash is not interchangeable with a dataset fingerprint.
+
 ## Generation Metadata Locations
 
 Result metadata selection checks the root object followed by `metadata`, `eval`,

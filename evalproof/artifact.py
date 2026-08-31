@@ -5,7 +5,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Any, Union
+from typing import Dict, List, Optional, Set, Any, Union, Tuple
 import yaml
 
 try:
@@ -128,8 +128,41 @@ class Artifact:
         """Read artifact full raw text."""
         if not self.full_disk_path or not os.path.exists(self.full_disk_path):
             return ""
-        with open(self.full_disk_path, "r", encoding="utf-8", errors="replace") as f:
+        with open(self.full_disk_path, "r", encoding="utf-8-sig", errors="replace") as f:
             return f.read()
+
+    def read_bytes(self) -> bytes:
+        if not self.full_disk_path or not os.path.exists(self.full_disk_path):
+            return b""
+        return Path(self.full_disk_path).read_bytes()
+
+    def read_validated_dataset_text(self) -> Tuple[str, Optional[Dict[str, Any]]]:
+        """Audit original bytes before deriving any dataset row identities."""
+        raw = self.read_bytes()
+        invalid_range = None
+        try:
+            text = raw.decode("utf-8")
+        except UnicodeDecodeError as error:
+            invalid_range = {"offset": error.start, "length": error.end - error.start}
+            text = ""
+        nul_count = raw.count(b"\x00")
+        if invalid_range is None and nul_count == 0:
+            return text.removeprefix("\ufeff").replace("\r\n", "\n").replace("\r", "\n"), None
+        offsets = []
+        start = 0
+        for _ in range(min(nul_count, 20)):
+            offset = raw.find(b"\x00", start)
+            offsets.append(offset)
+            start = offset + 1
+        return "", {
+            "artifact_path": self.path,
+            "byte_hash": "sha256:" + hashlib.sha256(raw).hexdigest(),
+            "byte_count": len(raw),
+            "invalid_utf8_range": invalid_range,
+            "nul_byte_count": nul_count,
+            "sample_nul_offsets": offsets,
+            "nul_offsets_truncated": nul_count > len(offsets),
+        }
 
 
 def create_artifact_from_file(

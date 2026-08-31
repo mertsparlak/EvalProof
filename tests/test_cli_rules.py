@@ -14,6 +14,7 @@ EXPECTED_RULE_IDS = [
     "contamination.train_eval_overlap",
     "contamination.untrusted_context_interpolation",
     "dataset.empty_evaluation_input",
+    "dataset.invalid_text_encoding",
     "dataset.label_inconsistency",
     "dataset.partial_sample_id_coverage",
     "dataset.sample_id_collision",

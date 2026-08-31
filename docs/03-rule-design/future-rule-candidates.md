@@ -403,6 +403,13 @@ Default CI behavior: must not fail default CI by default
 
 Note: country-specific identifiers such as TCKN should not be added until locale-specific validation and false-positive behavior are documented.
 
+## Dataset Encoding Integrity
+
+`dataset.invalid_text_encoding` is implemented in v1.22. Its bounded byte evidence
+and dataset-only applicability live in
+[Contamination Rules](contamination-rules.md#datasetinvalid_text_encoding).
+This is not a broad suspicious-character heuristic or an encoding repair tool.
+
 ## Reproducibility Candidates
 
 ### `reproducibility.non_deterministic_temperature_setting`

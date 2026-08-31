@@ -1,0 +1,5 @@
+artifacts:
+  - path: train.jsonl
+    roles: [training_dataset]
+similarity:
+  enabled: false
