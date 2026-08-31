@@ -23,7 +23,8 @@ A planned version is not an implemented or published release.
 | v1.25 | 0.5.0 | Completed | Measurement and profile contract |
 | v1.26 | 0.6.0 | Completed | Dataset profiling measurements |
 | v1.27 | 1.0.0 | Completed | Public release qualification (not published) |
-| v1.28+ | 1.x | Gated | Integrations and conditional adapters |
+| v1.28 | 1.1.0 | Completed | Explicit local dataset card provenance |
+| Post-v1.28 | Unscheduled | Conditional | Schema adapters and model-assisted research |
 
 ## v1.20: RAG Chunk Identity
 
@@ -413,11 +414,44 @@ and base/extra installed-wheel smoke outside the checkout. No detector, schema,
 rule default or public input shape changed. Publication and main merge remain
 separate actions.
 
-## Conditional Post-1.0 Work
+## v1.28: Local Dataset Cards
 
-v1.28: read explicitly linked local Hugging Face card YAML metadata without network
+Read explicitly linked local Hugging Face card YAML metadata without network
 access. Metadata can support provenance/profiling, not legal or quality verdicts.
-Its detailed integration contract must be reviewed before implementation.
+The reviewed integration below uses provenance only.
+
+### v1.28 Implementation Plan And Strategy Review
+
+1. Bind a local Markdown card through existing per-artifact provenance config.
+   Reuse root-containment validation; no implicit discovery, Hub client or network.
+2. Index bounded, redacted license-presence facts from YAML front matter. Cache
+   shared references per build; malformed/unreadable metadata is unobservable.
+3. Extend only the existing required-metadata rule's license source fallback.
+   Explicit config wins. Preserve existing finding identities when no card is set.
+4. Test missing/present/unsupported metadata, parser bounds, path escape, permission
+   errors, shared cache, body isolation, redaction, coverage and determinism.
+5. Run full base/Parquet suites and clean wheels; version the additive optional
+   integration as 1.1.0. Keep 29 rules and scan/profile schema 1.0 unchanged.
+
+Review outcome: metadata claims are not dataset measurements. Therefore this
+slice supports provenance only; no card-language distribution, legal verdict or
+new profile calculator. This is a narrow integration of an existing contract,
+not an adapter framework. The detailed contract is owned by existing configuration,
+index and rule documents. Implementation follows the user's instruction to finish
+the roadmap without additional approval pauses; publication remains separate.
+
+Verification on 2026-08-31: 44 card tests cover safe metadata observations, root
+escape rejection, bounded parsing, shared-reference cache refresh, deterministic
+evidence, profile isolation and unchanged pre-card contract fingerprints. The full
+optional-reader suite passed 499 tests with one explicit scale-job skip; the base
+suite passed 467 with the optional-format module and scale job skipped. Non-editable
+1.1.0 base/extra wheels passed installed card, scan and profile smoke outside the
+checkout. No new rules, public dataset copies, model calls or publication.
+
+The preceding 1.0.0 commit also passed its
+[seven-job CI run](https://github.com/mertsparlak/EvalProof/actions/runs/33407460359).
+
+## Conditional Post-v1.28 Work
 
 SchemaAdapter design opens only when two rules duplicate schema-family extraction,
 or at least 20 percent of calibration datasets cannot use core measurements because

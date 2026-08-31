@@ -17,7 +17,7 @@ Terminal output is for humans. JSON output is for tools.
   "schema_version": "1.0",
   "tool": {
     "name": "evalproof",
-    "version": "1.0.0"
+    "version": "1.1.0"
   },
   "scan": {
     "root": ".",
@@ -158,6 +158,9 @@ MVP diagnostic codes:
 - `artifact.parse_failed`
 - `artifact.invalid_text_encoding`
 - `artifact.provenance_source_unreadable`
+- `artifact.dataset_card_unavailable`: explicitly linked card cannot supply a
+  supported license observation; warning details follow
+  [Dataset Card Facts](../02-architecture/project-index.md#dataset-card-facts).
 - `artifact.optional_dependency_missing`
 - `artifact.unsupported_parquet_schema`
 

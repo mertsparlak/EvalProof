@@ -21,6 +21,7 @@ except ImportError:
 from evalproof.artifact import Artifact
 from evalproof.parquet import iter_parquet_rows, OptionalDependencyMissing, UnsupportedParquetSchema, ParquetReadError
 from evalproof.config import Config, ConfigError, resolve_provenance_source
+from evalproof.dataset_card import read_dataset_card
 from evalproof.finding import Diagnostic, DiagnosticSeverity, DiagnosticCode, canonical_json_dumps
 from evalproof.similarity import SimilarityCandidate, SimilarityIndex, extract_target_similarity_text
 
@@ -300,6 +301,7 @@ class ProjectIndex:
         self.eval_metadata_locations: Dict[str, Dict[str, str]] = {}
         self.encoding_issues: Dict[str, Dict[str, Any]] = {}
         self.provenance_sources: Dict[str, Dict[str, str]] = {}
+        self.dataset_cards: Dict[str, Dict[str, Any]] = {}
         self.metric_records: List[MetricRecord] = []
         self.diagnostics: List[Diagnostic] = []
         self._similarity_candidates_cache: Dict[float, List[SimilarityCandidate]] = {}
@@ -320,6 +322,7 @@ class ProjectIndex:
         self.eval_metadata_locations.clear()
         self.encoding_issues.clear()
         self.provenance_sources.clear()
+        self.dataset_cards.clear()
         for art in artifacts:
             self.artifacts_by_path[art.path] = art
             for r in art.roles:
@@ -349,6 +352,29 @@ class ProjectIndex:
             self._index_artifact_content(art)
 
         self._index_provenance_sources()
+        self._index_dataset_cards()
+
+    def _index_dataset_cards(self):
+        cache = {}
+        for override in sorted(self.config.artifacts, key=lambda item: item.path):
+            if override.path not in self.artifacts_by_path or override.provenance is None or override.provenance.card is None:
+                continue
+            if self.scan_root is None:
+                raise ValueError("An explicit scan root is required for local dataset cards.")
+            ref = override.provenance.card
+            if ref not in cache:
+                cache[ref] = read_dataset_card(self.scan_root, ref, self.config.limits.max_file_mb * 1024 * 1024)
+            facts = dict(cache[ref])
+            self.dataset_cards[override.path] = facts
+            if facts["license_status"] == "unavailable":
+                diagnostic = Diagnostic(
+                    severity=DiagnosticSeverity.WARNING.value,
+                    code=DiagnosticCode.ARTIFACT_DATASET_CARD_UNAVAILABLE.value,
+                    message="Linked dataset card could not supply a supported license metadata observation.",
+                    path=override.path, details=dict(facts),
+                )
+                self.diagnostics.append(diagnostic)
+                self.artifacts_by_path[override.path].diagnostics.append(diagnostic)
 
     def _index_provenance_sources(self):
         for override in sorted(self.config.artifacts, key=lambda item: item.path):

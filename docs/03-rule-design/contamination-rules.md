@@ -844,6 +844,7 @@ All three rules are opt-in through the validated per-artifact contract in
 No contract means no findings. Process discovered dataset artifacts in path order.
 Evidence always includes `artifact_path` and `contract_fingerprint`, a SHA-256
 of canonical JSON containing the normalized declaration with sorted required names.
+Omit an unset `card` from this hash to preserve pre-integration finding identities.
 No raw version, license, source or generator values appear in findings. Each rule
 emits at most one finding per declared artifact and uses its path as primary location.
 
@@ -851,6 +852,13 @@ emits at most one finding per declared artifact and uses its path as primary loc
 required leaf is absent. Evidence adds sorted `missing_fields` and `missing_count`.
 Impact is incomplete declared lineage; recommend recording those fields. Do not
 require metadata beyond the declaration or validate the truth of recorded values.
+For an explicitly bound card, use [Dataset Card Facts](../02-architecture/project-index.md#dataset-card-facts)
+only when the declaration's license is absent: present satisfies required license,
+missing proves absence, and unavailable abstains for license alone. Other required
+leaves are still checked. If missing license contributes to a finding, include
+the three redacted card fact fields in its evidence. A card that cannot be read
+does not prove that its license metadata is absent. Explicit license always wins;
+no comparison or inferred license conflict is performed.
 
 `provenance.manifest_fingerprint_mismatch`: high/confirmed. Compare a nonempty
 declared fingerprint only with the complete semantic artifact fingerprint.

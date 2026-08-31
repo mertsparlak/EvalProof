@@ -38,6 +38,7 @@ class DiagnosticCode(str, Enum):
     ARTIFACT_OPTIONAL_DEPENDENCY_MISSING = "artifact.optional_dependency_missing"
     ARTIFACT_UNSUPPORTED_PARQUET_SCHEMA = "artifact.unsupported_parquet_schema"
     ARTIFACT_PROVENANCE_SOURCE_UNREADABLE = "artifact.provenance_source_unreadable"
+    ARTIFACT_DATASET_CARD_UNAVAILABLE = "artifact.dataset_card_unavailable"
     ARTIFACT_INVALID_TEXT_ENCODING = "artifact.invalid_text_encoding"
     ARTIFACT_PARSE_FAILED = "artifact.parse_failed"
     ARTIFACT_ROW_PARSE_FAILED = "artifact.row_parse_failed"

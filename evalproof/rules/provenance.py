@@ -23,7 +23,10 @@ class _ProvenanceRule(Rule):
         return ["provenance", "dataset_integrity"]
 
     def _finding(self, path, contract, evidence, message, impact, recommendation):
-        contract_hash = hashlib.sha256(canonical_json_dumps(asdict(contract)).encode("utf-8")).hexdigest()
+        declaration = asdict(contract)
+        if declaration["card"] is None:
+            declaration.pop("card")
+        contract_hash = hashlib.sha256(canonical_json_dumps(declaration).encode("utf-8")).hexdigest()
         return Finding(
             rule_id=self.id, severity=self.default_severity, confidence="confirmed",
             title=self.title, message=message, impact=impact, recommendation=recommendation,
@@ -53,16 +56,22 @@ class RequiredProvenanceMetadataRule(_ProvenanceRule):
         findings = []
         for path, contract in _contracts(ctx):
             missing = []
+            card_evidence = {}
             for name in contract.required:
                 parent, separator, leaf = name.partition(".")
                 value = getattr(contract, parent)
                 if separator:
                     value = value.get(leaf)
                 if value is None:
+                    if name == "license" and contract.card is not None:
+                        facts = ctx.project_index.dataset_cards.get(path)
+                        if facts is None or facts["license_status"] != "missing":
+                            continue
+                        card_evidence = facts
                     missing.append(name)
             if missing:
                 findings.append(self._finding(
-                    path, contract, {"missing_fields": missing, "missing_count": len(missing)},
+                    path, contract, {"missing_fields": missing, "missing_count": len(missing), **card_evidence},
                     "Explicitly required provenance metadata is absent.",
                     "The dataset's declared lineage contract is incomplete.",
                     "Record the missing declared metadata fields; no additional provenance fields are inferred.",

@@ -144,7 +144,7 @@ included by discovery, using the same fail-fast policy as schema-bearing targets
 Empty provenance `{}` is valid and imposes no required metadata. Null provenance,
 unknown keys and wrong field types are config errors (`3`).
 
-Allowed keys are `required`, `version`, `fingerprint`, `source`, `generator`, `license`.
+Allowed keys are `required`, `version`, `fingerprint`, `source`, `generator`, `license`, `card`.
 `required` defaults to `[]` and is a unique list chosen from these leaf names:
 `version`, `fingerprint`, `source.type`, `source.ref`, `source.revision`,
 `generator.name`, `generator.version`, `license`. Parent names are not accepted.
@@ -171,6 +171,26 @@ an explicit `required: [source.ref]` declaration.
 
 The three finding contracts live in
 [Contamination Rules](../03-rule-design/contamination-rules.md#provenance-rules).
+
+### Explicit Local Dataset Card
+
+`card` is optional; when supplied it must be a nonblank string naming a local
+`.md` or `.markdown` file relative to scan root. Null, control characters, URLs,
+absolute paths and root escapes are config errors. Apply the local source path
+normalization and resolved containment policy above. A card may be excluded from
+discovery; it is read only through this explicit binding. Missing, non-file or
+unreadable cards are indexing diagnostics, not config errors or proven absence
+of license metadata. No implicit README search, Hub download or new dependency.
+
+The initial integration reads only the top-level `license` in card YAML front
+matter. Explicit nonblank `provenance.license` takes precedence; otherwise card
+facts can satisfy `required: [license]`. No other provenance field is inferred.
+Cards are inspected when linked even if license is not required, making an
+unreadable explicit dependency visible. Parsing and observation states belong to
+[Dataset Card Facts](project-index.md#dataset-card-facts); finding behavior belongs
+to the referenced rule contract. Profile gains no new measurement or raw metadata
+output. Language/task distributions are deferred because they are card claims,
+not measurements of observed dataset rows.
 
 ## Similarity Defaults
 

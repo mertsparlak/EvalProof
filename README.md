@@ -67,6 +67,26 @@ raw scalar categories in the report; this does not enable raw prompt or ID
 evidence elsewhere. See the [measurement definitions](docs/02-architecture/project-index.md#dataset-measurement-calculations)
 for denominators, unsupported shapes and empty values.
 
+### Local Dataset Card
+
+An explicitly linked local Hugging Face card can supply license-presence metadata
+to the existing provenance check, without network access:
+
+```yaml
+artifacts:
+  - path: train.jsonl
+    roles: [training_dataset]
+    provenance:
+      required: [license]
+      card: README.md
+```
+
+Only YAML front matter is inspected by the card reader. An explicit
+`provenance.license` wins over the card. Unreadable or unsupported cards produce a
+diagnostic rather than a missing-license assertion. This verifies recorded metadata,
+not license suitability or dataset quality. See the
+[card contract](docs/02-architecture/configuration-and-schema.md#explicit-local-dataset-card).
+
 ### Trust Scan
 
 ```powershell

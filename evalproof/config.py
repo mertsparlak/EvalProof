@@ -113,6 +113,7 @@ class ArtifactProvenanceContract:
     source: Dict[str, Optional[str]] = field(default_factory=dict)
     generator: Dict[str, Optional[str]] = field(default_factory=dict)
     license: Optional[str] = None
+    card: Optional[str] = None
 
 
 @dataclass
@@ -283,7 +284,7 @@ def resolve_provenance_source(scan_root: str, ref: str) -> Path:
 
 
 def _parse_artifact_provenance(data: Any, path: str, roles: List[str]) -> ArtifactProvenanceContract:
-    if not isinstance(data, dict) or set(data) - {"required", "version", "fingerprint", "source", "generator", "license"}:
+    if not isinstance(data, dict) or set(data) - {"required", "version", "fingerprint", "source", "generator", "license", "card"}:
         raise ConfigError("Invalid provenance object or unknown provenance key.")
     if not roles or not set(roles).issubset(DATASET_SCHEMA_ROLES):
         raise ConfigError("Provenance contracts require dataset roles only.")
@@ -315,10 +316,18 @@ def _parse_artifact_provenance(data: Any, path: str, roles: List[str]) -> Artifa
         if not re.fullmatch(r"(?:sha256:)?[0-9a-f]{64}", fingerprint, re.IGNORECASE):
             raise ConfigError("Provenance fingerprint must be a SHA-256 hex digest.")
         fingerprint = "sha256:" + fingerprint.lower().removeprefix("sha256:")
+    card = None
+    if "card" in data:
+        raw_card = data["card"]
+        if not isinstance(raw_card, str) or not raw_card.strip() or any(ord(c) < 32 or ord(c) == 127 for c in raw_card):
+            raise ConfigError("Provenance card must be a nonblank local Markdown path without controls.")
+        card = normalize_local_source_ref(raw_card.strip())
+        if Path(card).suffix.lower() not in {".md", ".markdown"}:
+            raise ConfigError("Provenance card must name a local Markdown file.")
     return ArtifactProvenanceContract(
         required=sorted(required), version=_provenance_string(data.get("version")),
         fingerprint=fingerprint, source=source, generator=groups["generator"],
-        license=_provenance_string(data.get("license")),
+        license=_provenance_string(data.get("license")), card=card,
     )
 
 
@@ -560,6 +569,11 @@ def validate_schema_artifact_paths(scan_root: str, config: Config) -> None:
                 f"{label} artifact path is not included in discovery: '{override.path}'."
             )
         if override.provenance is not None:
+            if override.provenance.card is not None:
+                try:
+                    resolve_provenance_source(scan_root, override.provenance.card)
+                except (OSError, RuntimeError):
+                    pass  # Index reports an unobservable card without claiming absence.
             source = override.provenance.source
             if source.get("type") == "local" and source.get("ref"):
                 try:

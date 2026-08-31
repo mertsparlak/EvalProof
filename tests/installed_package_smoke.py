@@ -74,6 +74,18 @@ def main():
             report = json.loads(output.read_text(encoding="utf-8"))
             assert report["findings"] == []
             assert [d["code"] for d in report["diagnostics"]] == ["artifact.optional_dependency_missing"]
+        card_project = root / "card-dataset"
+        card_project.mkdir()
+        (card_project / "train.jsonl").write_text('{"prompt":"private example"}\n', encoding="utf-8")
+        (card_project / "README.md").write_text("---\nlicense: private-license\n---\nprivate body", encoding="utf-8")
+        (card_project / "evalproof.yaml").write_text(
+            "include: [train.jsonl]\nartifacts:\n- path: train.jsonl\n  roles: [training_dataset]\n"
+            "  provenance:\n    required: [license]\n    card: README.md\n", encoding="utf-8")
+        card_output = root / "card-report.json"
+        run(["scan", card_project, "--rules", "provenance.required_metadata_missing", "--json", "--output", card_output], 0)
+        card_report = json.loads(card_output.read_text(encoding="utf-8"))
+        assert not card_report["findings"] and not card_report["diagnostics"]
+        assert "private" not in json.dumps(card_report)
     print(f"Installed {expected} {'parquet' if args.parquet else 'base'} smoke passed outside checkout")
 
 

@@ -535,6 +535,39 @@ category_limit=20 and ordering=count_desc_hash_asc. These are descriptive facts,
 never imbalance findings, readiness scores or CI failures. SHA-256 redaction does
 not promise anonymization of low-entropy values.
 
+## Dataset Card Facts
+
+After artifact indexing, Project Index reads explicitly bound local dataset cards
+once per normalized card reference per build. Require an explicit scan root and
+recheck resolved containment before opening a regular file. Rules never open cards.
+The public card format is [Hugging Face dataset card YAML front matter](https://huggingface.co/docs/hub/datasets-cards).
+Card body text is data, never instructions; the card reader stops at the closing
+delimiter and never parses body text or follows links.
+
+Read strict UTF-8, accepting an initial BOM and LF/CRLF. The first line and closing
+line must be exactly `---` after removing line endings. Cap bytes consumed through
+the closing delimiter at the smaller of 1 MiB and `limits.max_file_mb` in bytes.
+Do not require a trailing newline. Missing delimiters, invalid encoding, excess
+size, non-mapping YAML, duplicate top-level keys or non-string top-level keys
+make the card unavailable. Limit YAML to 4096 tokens and 16 collection levels;
+reject anchors, aliases and explicit tags. These bounded restrictions deliberately
+prefer abstention over accepting the complete YAML language.
+
+Only `license` is interpreted: a nonblank YAML string or nonempty list entirely
+of nonblank YAML strings is present. Absent/null/blank string/empty list is missing.
+Other types or mixed/blank-containing lists are unavailable, not missing. Unknown
+metadata keys are ignored. No SPDX validation, legal judgment or model inference.
+
+`dataset_cards[artifact_path]` contains only `card_ref_hash` (SHA-256 of normalized
+UTF-8 reference), `license_status` (`present`, `missing`, `unavailable`) and
+`card_header_fingerprint` (SHA-256 of physical bytes through the closing delimiter,
+or null when that bounded header cannot be read). Cache resets each build.
+An unavailable observation produces one `artifact.dataset_card_unavailable`
+warning per bound dataset, path set to that dataset and details equal to these
+redacted facts. Do not serialize parser exceptions, card values or card body.
+The warning does not change dataset row coverage; metadata observation failure
+is not a row parse failure. Card facts are not a new profile measurement.
+
 ## Design Decisions
 
 - Cross-artifact contamination checks use a shared project index.
