@@ -1,6 +1,10 @@
 version: 1
 
 cases:
+  qualified_clean:
+    path: qualified_clean_project
+  no_artifacts:
+    path: no_artifacts_project
   provenance_broken:
     path: provenance_broken_project
   provenance_valid:
@@ -42,137 +46,145 @@ rules:
   provenance.required_metadata_missing:
     confidence: confirmed
     positive: provenance_broken
-    negative: provenance_valid
-    abstention: clean
+    negative: qualified_clean
+    abstention: no_artifacts
   provenance.manifest_fingerprint_mismatch:
     confidence: confirmed
     positive: provenance_broken
-    negative: provenance_valid
-    abstention: clean
+    negative: qualified_clean
+    abstention: no_artifacts
   provenance.local_source_unresolved:
     confidence: confirmed
     positive: provenance_broken
-    negative: provenance_valid
-    abstention: clean
+    negative: qualified_clean
+    abstention: no_artifacts
   dataset.invalid_text_encoding:
     confidence: confirmed
     positive: invalid_encoding
-    negative: clean
-    abstention: generation_seeded
+    negative: qualified_clean
+    abstention: no_artifacts
   reproducibility.nondeterministic_generation_without_seed:
     confidence: likely
     positive: generation_unseeded
-    negative: generation_seeded
-    abstention: clean
+    negative: qualified_clean
+    abstention: no_artifacts
   contamination.train_eval_overlap:
     confidence: confirmed
     positive: contaminated
-    negative: clean
-    abstention: clean
+    negative: qualified_clean
+    abstention: no_artifacts
   contamination.train_eval_near_duplicate:
     confidence: likely
     positive: contaminated
-    negative: clean
+    negative: qualified_clean
+    abstention: no_artifacts
   contamination.duplicate_eval_sample:
     confidence: confirmed
     positive: contaminated
-    negative: clean
-    abstention: clean
+    negative: qualified_clean
+    abstention: no_artifacts
   contamination.duplicate_eval_near_duplicate:
     confidence: likely
     positive: near_duplicate
-    negative: clean
+    negative: qualified_clean
+    abstention: no_artifacts
   contamination.duplicate_train_sample:
     confidence: confirmed
     positive: contaminated
-    negative: clean
-    abstention: clean
+    negative: qualified_clean
+    abstention: no_artifacts
   contamination.duplicate_train_near_duplicate:
     confidence: likely
     positive: near_duplicate
-    negative: clean
+    negative: qualified_clean
+    abstention: no_artifacts
   contamination.rag_answer_leakage:
     confidence: likely
     positive: contaminated
-    negative: clean
+    negative: qualified_clean
+    abstention: no_artifacts
   contamination.missing_repro_metadata:
     confidence: confirmed
     positive: contaminated
-    negative: clean
-    abstention: clean
+    negative: qualified_clean
+    abstention: no_artifacts
   contamination.fingerprint_mismatch:
     confidence: confirmed
     positive: contaminated
-    negative: clean
-    abstention: clean
+    negative: qualified_clean
+    abstention: no_artifacts
   evaluation.sample_alignment_mismatch:
     confidence: confirmed
     positive: trust_chain
-    negative: clean
-    abstention: clean
+    negative: qualified_clean
+    abstention: no_artifacts
   dataset.label_inconsistency:
     confidence: confirmed
     positive: trust_chain
-    negative: clean
-    abstention: clean
+    negative: qualified_clean
+    abstention: no_artifacts
   evaluation.metric_out_of_bounds:
     confidence: confirmed
     positive: trust_chain
-    negative: clean
-    abstention: clean
+    negative: qualified_clean
+    abstention: no_artifacts
   rag.unreachable_context_id:
     confidence: confirmed
     positive: identity_rag
-    negative: clean
-    abstention: clean
+    negative: qualified_clean
+    abstention: no_artifacts
   contamination.untrusted_context_interpolation:
     confidence: heuristic
     positive: heuristic
-    negative: clean
+    negative: qualified_clean
+    abstention: no_artifacts
   contamination.sensitive_value_exposure:
     confidence: heuristic
     positive: contaminated
-    negative: clean
+    negative: qualified_clean
+    abstention: no_artifacts
   prompt.unresolved_placeholder:
     confidence: heuristic
     positive: heuristic
-    negative: clean
+    negative: qualified_clean
+    abstention: no_artifacts
   dataset.sample_id_collision:
     confidence: confirmed
     positive: identity_rag
-    negative: clean
-    abstention: clean
+    negative: qualified_clean
+    abstention: no_artifacts
   dataset.empty_evaluation_input:
     confidence: confirmed
     positive: identity_rag
-    negative: clean
-    abstention: clean
+    negative: qualified_clean
+    abstention: no_artifacts
   dataset.partial_sample_id_coverage:
     confidence: confirmed
     positive: partial_id
-    negative: clean
-    abstention: clean
+    negative: qualified_clean
+    abstention: no_artifacts
   dataset.schema_contract_violation:
     confidence: confirmed
     positive: schema_contract
-    negative: clean
-    abstention: clean
+    negative: qualified_clean
+    abstention: no_artifacts
   rag.duplicate_chunk_in_corpus:
     confidence: confirmed
     positive: rag_duplicate
-    negative: clean
+    negative: qualified_clean
+    abstention: no_artifacts
   rag.chunk_id_collision:
     confidence: confirmed
     positive: chunk_collision
-    negative: chunk_identity_clean
-    abstention: clean
+    negative: qualified_clean
+    abstention: no_artifacts
   rag.empty_or_corrupted_document:
     confidence: confirmed
     positive: identity_rag
-    negative: clean
-    abstention: clean
+    negative: qualified_clean
+    abstention: no_artifacts
   rag.empty_referenced_document:
     confidence: confirmed
     positive: identity_rag
-    negative: clean
-    abstention: clean
+    negative: qualified_clean
+    abstention: no_artifacts

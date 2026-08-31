@@ -1,0 +1,1649 @@
+{
+  "recorded_at": "2026-08-31",
+  "qualification": "pending_remote_ci",
+  "sampling": "Source-order prefixes, at most 1000 rows per dataset across declared partitions; not representative sampling.",
+  "snapshot_identity": "Hash-verified Dataset Viewer responses, not a claimed Hub commit snapshot. Exact replay requires retained local response cache.",
+  "privacy_check": "No complete source string value of length >=32 appears as a report string value. Focused synthetic regressions separately cover short IDs, secrets, prompt excerpts and parser errors.",
+  "independent_confirmed_review": [
+    {
+      "case": "case-03",
+      "rule_id": "contamination.train_eval_overlap",
+      "fingerprint": "sha256:e17b2a3fb5e29482e10b22294c7bd4837e3aa783f1debca74e57d89457d6342d",
+      "witness": "Parsed complete records are identical.",
+      "records": 2
+    },
+    {
+      "case": "case-03",
+      "rule_id": "contamination.duplicate_eval_sample",
+      "fingerprint": "sha256:87e637da450a6684210b00ec601fe13f977d8dee6a08b1c3956004266bb31b51",
+      "witness": "Parsed complete records are identical.",
+      "records": 2
+    },
+    {
+      "case": "case-03",
+      "rule_id": "contamination.duplicate_eval_sample",
+      "fingerprint": "sha256:8aa28508367850318884f41217febb2e6fcda920ec2f8c56b55800c2df8dd001",
+      "witness": "Parsed complete records are identical.",
+      "records": 2
+    },
+    {
+      "case": "case-03",
+      "rule_id": "contamination.duplicate_train_sample",
+      "fingerprint": "sha256:17714de54fafa6923c9d1c100bddd11c11d512f695c74a64c381f03921102495",
+      "witness": "Parsed complete records are identical.",
+      "records": 2
+    },
+    {
+      "case": "case-03",
+      "rule_id": "contamination.duplicate_train_sample",
+      "fingerprint": "sha256:2c42357cb5a04b0a84086c2c2892f055fb17f00a99321e35bd30f29528955147",
+      "witness": "Parsed complete records are identical.",
+      "records": 2
+    },
+    {
+      "case": "case-03",
+      "rule_id": "contamination.duplicate_train_sample",
+      "fingerprint": "sha256:69b46c87fd402279a6bd7ba518c9aa3b02bac98a1c8e9d8533cebe6716ef457e",
+      "witness": "Parsed complete records are identical.",
+      "records": 2
+    },
+    {
+      "case": "case-09",
+      "rule_id": "rag.duplicate_chunk_in_corpus",
+      "fingerprint": "sha256:c09edccf6e75961655f60a7eca01c5ce15c6ef55203b8fcc0810a0dc2444c670",
+      "witness": "Declared text fields are identical; document identity or other metadata need not be identical.",
+      "records": 2
+    }
+  ],
+  "datasets": [
+    {
+      "config_hash": "sha256:230f15556856a930324e95970468e57d2cdb384dd7fcdc78fe7d0c19f8adae82",
+      "dataset": "deepset/prompt-injections",
+      "harness_hash": "sha256:2dd522f76a204c5891db72ff4de0dbdd51a1ef1c0da67193a45b4a3c4317e442",
+      "reports": {
+        "profile": {
+          "diagnostics": [],
+          "exit_code": 0,
+          "normalized_report_hash": "sha256:f638558afc451cb7da714f6b1ced0eacf7b92c8500583b1d5a9dca5d221273fc",
+          "report_hash": "sha256:88fa5b5f1d6fd59d5b3b3eccc2a07f58d148ed026ffb5336876d300157c808ae",
+          "summary": {
+            "artifacts_profiled": 2,
+            "measurements_total": 14
+          }
+        },
+        "scan": {
+          "diagnostics": [],
+          "exit_code": 1,
+          "normalized_report_hash": "sha256:9388c94938dd201ec292ed35692bc57b052acbf51aa0ad1c9462fcd6bc91c06d",
+          "report_hash": "sha256:917377d8f2cafc8165fab4e2338b2119a8176687d39f328ba65b7b0b42da671a",
+          "summary": {
+            "artifacts_scanned": 2,
+            "findings_by_severity": {
+              "critical": 0,
+              "high": 1,
+              "low": 1,
+              "medium": 1
+            },
+            "findings_total": 3
+          }
+        }
+      },
+      "scanner_source_hash": "sha256:c8d216727613ff9e7bf1e95ff54d5aafcc05dd373085da11247a4f26063f6d83",
+      "seconds": 0.325,
+      "sources": [
+        {
+          "config": "default",
+          "mapping": {
+            "text": "prompt"
+          },
+          "materialized_file_hash": "sha256:3a4a59a2d332db55cd7f113e5516b6dbf294a529accdf105b34a9675c44bb4d8",
+          "path": "part-0.jsonl",
+          "responses": [
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 0,
+              "response_hash": "sha256:2c1fc9b234547a1c42c454d345f91c25a5bb87a6999269d8e8a4b6e885fb391d",
+              "retrieved_at": "2026-08-31T14:22:43.498200+00:00",
+              "total_rows": 546,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=deepset%2Fprompt-injections&config=default&split=train&offset=0&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 100,
+              "response_hash": "sha256:b4dbd48183186b68f5b33908084d5a02e0303019fac86c49984ca1cf3acab9af",
+              "retrieved_at": "2026-08-31T14:22:44.069639+00:00",
+              "total_rows": 546,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=deepset%2Fprompt-injections&config=default&split=train&offset=100&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 200,
+              "response_hash": "sha256:700ff8b60e9dcc6956a7e3c7525e9cd5ab79d68066109aaae462089506f4d229",
+              "retrieved_at": "2026-08-31T14:22:44.802867+00:00",
+              "total_rows": 546,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=deepset%2Fprompt-injections&config=default&split=train&offset=200&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 300,
+              "response_hash": "sha256:479a6dff2e4bf48999f9ef895cc867b7d710251d3731783ed655e3d3b7d29b4d",
+              "retrieved_at": "2026-08-31T14:22:45.460852+00:00",
+              "total_rows": 546,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=deepset%2Fprompt-injections&config=default&split=train&offset=300&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 400,
+              "response_hash": "sha256:9ac17e8f363890751ba3f120eb642f8169db84e393acac77776bf1456702d677",
+              "retrieved_at": "2026-08-31T14:22:46.058147+00:00",
+              "total_rows": 546,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=deepset%2Fprompt-injections&config=default&split=train&offset=400&length=100",
+              "viewer_partial": false
+            }
+          ],
+          "role": "training_dataset",
+          "rows": 500,
+          "split": "train",
+          "total_rows": 546
+        },
+        {
+          "config": "default",
+          "mapping": {
+            "text": "prompt"
+          },
+          "materialized_file_hash": "sha256:6dd7f84024c0954a9c9da06578c7b51c70f36666412168b1a47b069d1335a5ad",
+          "path": "part-1.jsonl",
+          "responses": [
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 0,
+              "response_hash": "sha256:4bccf0295aeb2bb762acb0e551e6b8770e46b59a79347a7152ebfc42e5c843fa",
+              "retrieved_at": "2026-08-31T14:22:46.687094+00:00",
+              "total_rows": 116,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=deepset%2Fprompt-injections&config=default&split=test&offset=0&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 16,
+              "offset": 100,
+              "response_hash": "sha256:ef5747b60c19390efcece1ff43a24211e6e438c995b01fe0b5f8a7a68c434531",
+              "retrieved_at": "2026-08-31T14:22:47.339725+00:00",
+              "total_rows": 116,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=deepset%2Fprompt-injections&config=default&split=test&offset=100&length=100",
+              "viewer_partial": false
+            }
+          ],
+          "role": "evaluation_dataset",
+          "rows": 116,
+          "split": "test",
+          "total_rows": 116
+        }
+      ]
+    },
+    {
+      "config_hash": "sha256:230f15556856a930324e95970468e57d2cdb384dd7fcdc78fe7d0c19f8adae82",
+      "dataset": "lmsys/toxic-chat",
+      "harness_hash": "sha256:2dd522f76a204c5891db72ff4de0dbdd51a1ef1c0da67193a45b4a3c4317e442",
+      "reports": {
+        "profile": {
+          "diagnostics": [],
+          "exit_code": 0,
+          "normalized_report_hash": "sha256:43003b3fa71907b99b0d279de25d721bf13dec3f3e8d82033b949ad815f75ecf",
+          "report_hash": "sha256:ed5f4778eb13f030b351021d28d7fefd1a0e42a4acfebb771cc247e35334f1a2",
+          "summary": {
+            "artifacts_profiled": 2,
+            "measurements_total": 14
+          }
+        },
+        "scan": {
+          "diagnostics": [],
+          "exit_code": 1,
+          "normalized_report_hash": "sha256:e6bde37900b4f66df6cfab94002ae6959e4cc97e10fb194334055becf4a38430",
+          "report_hash": "sha256:539ea02548851a5a3840882eac068c5981ec0847534d7a71858b1e44c289b15e",
+          "summary": {
+            "artifacts_scanned": 2,
+            "findings_by_severity": {
+              "critical": 0,
+              "high": 12,
+              "low": 1,
+              "medium": 7
+            },
+            "findings_total": 20
+          }
+        }
+      },
+      "scanner_source_hash": "sha256:c8d216727613ff9e7bf1e95ff54d5aafcc05dd373085da11247a4f26063f6d83",
+      "seconds": 0.754,
+      "sources": [
+        {
+          "config": "toxicchat0124",
+          "mapping": {
+            "conv_id": "id",
+            "user_input": "prompt"
+          },
+          "materialized_file_hash": "sha256:8603e695afcc9b26ad8ce6a20682eee95ed18f3a12fb31e6240215a417f47931",
+          "path": "part-0.jsonl",
+          "responses": [
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 0,
+              "response_hash": "sha256:297c9445212d3ae9106354fb6c04494262e7c618c02bb44408733fd57371d397",
+              "retrieved_at": "2026-08-31T14:22:50.083486+00:00",
+              "total_rows": 5082,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=lmsys%2Ftoxic-chat&config=toxicchat0124&split=train&offset=0&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 100,
+              "response_hash": "sha256:a3fc16a0cc9232edcfcdfa1144e13d1d650a86ad1c559c2f01df686e4d515134",
+              "retrieved_at": "2026-08-31T14:22:50.923332+00:00",
+              "total_rows": 5082,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=lmsys%2Ftoxic-chat&config=toxicchat0124&split=train&offset=100&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 200,
+              "response_hash": "sha256:b6645f52dfff4a962696283a04582129246a551b8735f4016997fc79e580f572",
+              "retrieved_at": "2026-08-31T14:22:51.808004+00:00",
+              "total_rows": 5082,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=lmsys%2Ftoxic-chat&config=toxicchat0124&split=train&offset=200&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 300,
+              "response_hash": "sha256:9bbfa6efe54ce9df0a5a6981f8d44223ba88de6cd742f53cdf1d573c3f78622b",
+              "retrieved_at": "2026-08-31T14:22:52.504736+00:00",
+              "total_rows": 5082,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=lmsys%2Ftoxic-chat&config=toxicchat0124&split=train&offset=300&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 400,
+              "response_hash": "sha256:8db8ac8d3cc69208dbbf9209e29a92b8694dacc6a3ea9c33a8846609b2ee81da",
+              "retrieved_at": "2026-08-31T14:22:53.321042+00:00",
+              "total_rows": 5082,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=lmsys%2Ftoxic-chat&config=toxicchat0124&split=train&offset=400&length=100",
+              "viewer_partial": false
+            }
+          ],
+          "role": "training_dataset",
+          "rows": 500,
+          "split": "train",
+          "total_rows": 5082
+        },
+        {
+          "config": "toxicchat0124",
+          "mapping": {
+            "conv_id": "id",
+            "user_input": "prompt"
+          },
+          "materialized_file_hash": "sha256:7167482819f875a72bf703b660f5c0f3356b50411954582f0e078b08370b5bb3",
+          "path": "part-1.jsonl",
+          "responses": [
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 0,
+              "response_hash": "sha256:e6933ed808fe3838a228951e62d0aa00e9d5c2e2f0b0942fd38a2a550ebca08a",
+              "retrieved_at": "2026-08-31T14:22:54.264542+00:00",
+              "total_rows": 5083,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=lmsys%2Ftoxic-chat&config=toxicchat0124&split=test&offset=0&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 100,
+              "response_hash": "sha256:2f5b088336e06849276b0236084737e5d433e8aa682818dd5153cfd491c07565",
+              "retrieved_at": "2026-08-31T14:22:55.353231+00:00",
+              "total_rows": 5083,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=lmsys%2Ftoxic-chat&config=toxicchat0124&split=test&offset=100&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 200,
+              "response_hash": "sha256:6e682d58458a616373f441d2331013814eab36ae87c68ee29aa7bdb73c535ced",
+              "retrieved_at": "2026-08-31T14:22:56.245579+00:00",
+              "total_rows": 5083,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=lmsys%2Ftoxic-chat&config=toxicchat0124&split=test&offset=200&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 300,
+              "response_hash": "sha256:75935f1f8d25533850d93f0f544e21507393fb74a7d96ec65a254dcc3b015a31",
+              "retrieved_at": "2026-08-31T14:22:57.051633+00:00",
+              "total_rows": 5083,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=lmsys%2Ftoxic-chat&config=toxicchat0124&split=test&offset=300&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 400,
+              "response_hash": "sha256:3d3c95cffea48bd675ebee8345187db84bcf598cd44ba40701d20f23c0c6a812",
+              "retrieved_at": "2026-08-31T14:22:57.879962+00:00",
+              "total_rows": 5083,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=lmsys%2Ftoxic-chat&config=toxicchat0124&split=test&offset=400&length=100",
+              "viewer_partial": false
+            }
+          ],
+          "role": "evaluation_dataset",
+          "rows": 500,
+          "split": "test",
+          "total_rows": 5083
+        }
+      ]
+    },
+    {
+      "config_hash": "sha256:230f15556856a930324e95970468e57d2cdb384dd7fcdc78fe7d0c19f8adae82",
+      "dataset": "xTRam1/safe-guard-prompt-injection",
+      "harness_hash": "sha256:2dd522f76a204c5891db72ff4de0dbdd51a1ef1c0da67193a45b4a3c4317e442",
+      "reports": {
+        "profile": {
+          "diagnostics": [],
+          "exit_code": 0,
+          "normalized_report_hash": "sha256:c1dde9ea5f895113e782a5ad1d73e8d1381ed6768187ebc0d39266cf250c0410",
+          "report_hash": "sha256:3455b1fa4d2c415e5f8c3a3b323c5a3160c46c5958cb61dd244e8c0c8d671aa8",
+          "summary": {
+            "artifacts_profiled": 2,
+            "measurements_total": 14
+          }
+        },
+        "scan": {
+          "diagnostics": [],
+          "exit_code": 1,
+          "normalized_report_hash": "sha256:a933a41f1130de286d07f1f6fc20969587da97b9e8c0cd8238772c75ced90014",
+          "report_hash": "sha256:db7ac7f6419c44a800d858128c9ac8a12beed72d6e90fd65627fbac972176820",
+          "summary": {
+            "artifacts_scanned": 2,
+            "findings_by_severity": {
+              "critical": 1,
+              "high": 3,
+              "low": 1,
+              "medium": 5
+            },
+            "findings_total": 10
+          }
+        }
+      },
+      "scanner_source_hash": "sha256:c8d216727613ff9e7bf1e95ff54d5aafcc05dd373085da11247a4f26063f6d83",
+      "seconds": 0.781,
+      "sources": [
+        {
+          "config": "default",
+          "mapping": {
+            "text": "prompt"
+          },
+          "materialized_file_hash": "sha256:e64b09122145d23b55d4ce8f97d512697688a3b3ddbb2036254d99e3193b5dc5",
+          "path": "part-0.jsonl",
+          "responses": [
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 0,
+              "response_hash": "sha256:e7f2d24ddbcc91e404e56252b789ec0260dc9ab47a65887812a91adb918bf6bd",
+              "retrieved_at": "2026-08-31T14:23:01.138859+00:00",
+              "total_rows": 8236,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=xTRam1%2Fsafe-guard-prompt-injection&config=default&split=train&offset=0&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 100,
+              "response_hash": "sha256:26dcfb82160e3bb623cdd99fa6c986f99b7555f9e2bf4745d6cd8f29e439454a",
+              "retrieved_at": "2026-08-31T14:23:01.793224+00:00",
+              "total_rows": 8236,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=xTRam1%2Fsafe-guard-prompt-injection&config=default&split=train&offset=100&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 200,
+              "response_hash": "sha256:28fcbc2d9ae08fce4ad4fb5ac5a3fa3a3e8c770ec179baef47718aef98d4fa28",
+              "retrieved_at": "2026-08-31T14:23:02.626994+00:00",
+              "total_rows": 8236,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=xTRam1%2Fsafe-guard-prompt-injection&config=default&split=train&offset=200&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 300,
+              "response_hash": "sha256:6fcd10560f60d996df5e388ec6906703d164337efa7a189c14eaa331bb243927",
+              "retrieved_at": "2026-08-31T14:23:03.268984+00:00",
+              "total_rows": 8236,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=xTRam1%2Fsafe-guard-prompt-injection&config=default&split=train&offset=300&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 400,
+              "response_hash": "sha256:ca78c8c1c7fce719c8f7d59a1b6ed57f68e36e903f4bb2af6c652866fd7125f2",
+              "retrieved_at": "2026-08-31T14:23:04.038198+00:00",
+              "total_rows": 8236,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=xTRam1%2Fsafe-guard-prompt-injection&config=default&split=train&offset=400&length=100",
+              "viewer_partial": false
+            }
+          ],
+          "role": "training_dataset",
+          "rows": 500,
+          "split": "train",
+          "total_rows": 8236
+        },
+        {
+          "config": "default",
+          "mapping": {
+            "text": "prompt"
+          },
+          "materialized_file_hash": "sha256:8335334b9b72cf8d1ef6bac8d20e660d9533ccedcc5a2cd7bdfdb26e39f0a138",
+          "path": "part-1.jsonl",
+          "responses": [
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 0,
+              "response_hash": "sha256:90bc618b9fcc1803b17f01c995ba791265914d2788f13d8625da80bfdd07f6b0",
+              "retrieved_at": "2026-08-31T14:23:04.730414+00:00",
+              "total_rows": 2060,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=xTRam1%2Fsafe-guard-prompt-injection&config=default&split=test&offset=0&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 100,
+              "response_hash": "sha256:b21c3aee87a4d070acc420f88d2f9571e9a86af218c4b6c5a0b4e71838933fc8",
+              "retrieved_at": "2026-08-31T14:23:05.423528+00:00",
+              "total_rows": 2060,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=xTRam1%2Fsafe-guard-prompt-injection&config=default&split=test&offset=100&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 200,
+              "response_hash": "sha256:f51ff8f3716f973eaa4ee961720dfe2d4d48767f43928cf0e672536ca3f61734",
+              "retrieved_at": "2026-08-31T14:23:06.068043+00:00",
+              "total_rows": 2060,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=xTRam1%2Fsafe-guard-prompt-injection&config=default&split=test&offset=200&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 300,
+              "response_hash": "sha256:2647bae096c45fb2d991ac71454cb6f0b4e3aa93c39d7cfaa75c8bbf9323812e",
+              "retrieved_at": "2026-08-31T14:23:06.653602+00:00",
+              "total_rows": 2060,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=xTRam1%2Fsafe-guard-prompt-injection&config=default&split=test&offset=300&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 400,
+              "response_hash": "sha256:065787ea098f735f8f1a5ff286ae5a917fda3136e7e8804d68577718ab6abe74",
+              "retrieved_at": "2026-08-31T14:23:07.461797+00:00",
+              "total_rows": 2060,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=xTRam1%2Fsafe-guard-prompt-injection&config=default&split=test&offset=400&length=100",
+              "viewer_partial": false
+            }
+          ],
+          "role": "evaluation_dataset",
+          "rows": 500,
+          "split": "test",
+          "total_rows": 2060
+        }
+      ]
+    },
+    {
+      "config_hash": "sha256:230f15556856a930324e95970468e57d2cdb384dd7fcdc78fe7d0c19f8adae82",
+      "dataset": "nvidia/Aegis-AI-Content-Safety-Dataset-2.0",
+      "harness_hash": "sha256:2dd522f76a204c5891db72ff4de0dbdd51a1ef1c0da67193a45b4a3c4317e442",
+      "reports": {
+        "profile": {
+          "diagnostics": [],
+          "exit_code": 0,
+          "normalized_report_hash": "sha256:56969a10dcb8ff640c007b2b22d9e5eb2c8d1e32ec6adc82fb1f38168ada4d5b",
+          "report_hash": "sha256:85423a8373f8d04d703f0cfd9dc8fc5cf9492279c186c6995504aab5cdcd6a84",
+          "summary": {
+            "artifacts_profiled": 2,
+            "measurements_total": 14
+          }
+        },
+        "scan": {
+          "diagnostics": [],
+          "exit_code": 0,
+          "normalized_report_hash": "sha256:3b32f80cb2d485dac685bc6c6a76fb9f52d73c70f0c533d7ee226019bcd34831",
+          "report_hash": "sha256:a8652124c17f4c37835bc5124de2d5697067b77321b78c2438cf474dcfba1c81",
+          "summary": {
+            "artifacts_scanned": 2,
+            "findings_by_severity": {
+              "critical": 0,
+              "high": 0,
+              "low": 0,
+              "medium": 2
+            },
+            "findings_total": 2
+          }
+        }
+      },
+      "scanner_source_hash": "sha256:c8d216727613ff9e7bf1e95ff54d5aafcc05dd373085da11247a4f26063f6d83",
+      "seconds": 0.596,
+      "sources": [
+        {
+          "config": "default",
+          "mapping": {},
+          "materialized_file_hash": "sha256:3b87bd8c5a5181eba2e48e46555e4281ba555f8c9ff9f8b0b1dbb695b41959fb",
+          "path": "part-0.jsonl",
+          "responses": [
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 0,
+              "response_hash": "sha256:26f481299bcda6e867e7929f359af8b74e67188589da0742885159d182f38d6e",
+              "retrieved_at": "2026-08-31T14:23:11.119963+00:00",
+              "total_rows": 30007,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=nvidia%2FAegis-AI-Content-Safety-Dataset-2.0&config=default&split=train&offset=0&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 100,
+              "response_hash": "sha256:f4a870441d9ed4a9e45a5b2c97a5d024a71d5fc3b77e2c9c209b6739064931ff",
+              "retrieved_at": "2026-08-31T14:23:12.021343+00:00",
+              "total_rows": 30007,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=nvidia%2FAegis-AI-Content-Safety-Dataset-2.0&config=default&split=train&offset=100&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 200,
+              "response_hash": "sha256:6cf055cb63e73fa4e5c12c18470e4a5e012e8dbd74b8fa4cf57eec46c06d221c",
+              "retrieved_at": "2026-08-31T14:23:12.917941+00:00",
+              "total_rows": 30007,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=nvidia%2FAegis-AI-Content-Safety-Dataset-2.0&config=default&split=train&offset=200&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 300,
+              "response_hash": "sha256:c4cf338320b1a88c92899123c4152ecac89e95233924f782bfb5f30c0922bcf2",
+              "retrieved_at": "2026-08-31T14:23:13.627713+00:00",
+              "total_rows": 30007,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=nvidia%2FAegis-AI-Content-Safety-Dataset-2.0&config=default&split=train&offset=300&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 400,
+              "response_hash": "sha256:38ae7861c9143bf0264ce5998a49579a74e0b67ec909b90f2888c8c70fdd3f09",
+              "retrieved_at": "2026-08-31T14:23:14.461054+00:00",
+              "total_rows": 30007,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=nvidia%2FAegis-AI-Content-Safety-Dataset-2.0&config=default&split=train&offset=400&length=100",
+              "viewer_partial": false
+            }
+          ],
+          "role": "training_dataset",
+          "rows": 500,
+          "split": "train",
+          "total_rows": 30007
+        },
+        {
+          "config": "default",
+          "mapping": {},
+          "materialized_file_hash": "sha256:a66894ea880d6ce2ade0d8243fb27925ba258108fadebd8447aa347b7891f63d",
+          "path": "part-1.jsonl",
+          "responses": [
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 0,
+              "response_hash": "sha256:c8a347bba3f2c52143ec48fcc2b23c7cecd1c2bac04d74c8d9339cd5f5f39789",
+              "retrieved_at": "2026-08-31T14:23:15.579866+00:00",
+              "total_rows": 1964,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=nvidia%2FAegis-AI-Content-Safety-Dataset-2.0&config=default&split=test&offset=0&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 100,
+              "response_hash": "sha256:dc6139a31d1bb29e8aa704bf1d9f99da8594d1900daa56a5bc08a7e969873a38",
+              "retrieved_at": "2026-08-31T14:23:16.371672+00:00",
+              "total_rows": 1964,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=nvidia%2FAegis-AI-Content-Safety-Dataset-2.0&config=default&split=test&offset=100&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 200,
+              "response_hash": "sha256:0da03ef1544f24388a0effd6ac5adaa68b9a8bd2a2746a2f7224e2fb6c59d5ae",
+              "retrieved_at": "2026-08-31T14:23:17.098801+00:00",
+              "total_rows": 1964,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=nvidia%2FAegis-AI-Content-Safety-Dataset-2.0&config=default&split=test&offset=200&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 300,
+              "response_hash": "sha256:efc186202c479fac1de528f4051a1910812565ac63151ce153a50f89d44cb776",
+              "retrieved_at": "2026-08-31T14:23:18.566073+00:00",
+              "total_rows": 1964,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=nvidia%2FAegis-AI-Content-Safety-Dataset-2.0&config=default&split=test&offset=300&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 400,
+              "response_hash": "sha256:02d2eee160a5ce759517b05626b32d3a9ff75e6259ab8dea402bff7370367fc2",
+              "retrieved_at": "2026-08-31T14:23:24.722742+00:00",
+              "total_rows": 1964,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=nvidia%2FAegis-AI-Content-Safety-Dataset-2.0&config=default&split=test&offset=400&length=100",
+              "viewer_partial": false
+            }
+          ],
+          "role": "evaluation_dataset",
+          "rows": 500,
+          "split": "test",
+          "total_rows": 1964
+        }
+      ]
+    },
+    {
+      "config_hash": "sha256:230f15556856a930324e95970468e57d2cdb384dd7fcdc78fe7d0c19f8adae82",
+      "dataset": "openai/gsm8k",
+      "harness_hash": "sha256:2dd522f76a204c5891db72ff4de0dbdd51a1ef1c0da67193a45b4a3c4317e442",
+      "reports": {
+        "profile": {
+          "diagnostics": [],
+          "exit_code": 0,
+          "normalized_report_hash": "sha256:93e158d0e6dac21b3ed0fd18b5ffaf468214dcc4209831b7a2fa9fd3327668ab",
+          "report_hash": "sha256:a2c0cfbafba61616081abe456d5bad014fb861bc22443443cabcd70ed3c1dfc6",
+          "summary": {
+            "artifacts_profiled": 2,
+            "measurements_total": 14
+          }
+        },
+        "scan": {
+          "diagnostics": [],
+          "exit_code": 0,
+          "normalized_report_hash": "sha256:977c18c7e20e69d813b992d801ece6edf85d4a013947306660892a1a79bc2c52",
+          "report_hash": "sha256:575d297093820c928d49b155aed5a7ad8818c5f156f5b82977c807e69faf0483",
+          "summary": {
+            "artifacts_scanned": 2,
+            "findings_by_severity": {
+              "critical": 0,
+              "high": 0,
+              "low": 0,
+              "medium": 1
+            },
+            "findings_total": 1
+          }
+        }
+      },
+      "scanner_source_hash": "sha256:c8d216727613ff9e7bf1e95ff54d5aafcc05dd373085da11247a4f26063f6d83",
+      "seconds": 3.033,
+      "sources": [
+        {
+          "config": "main",
+          "mapping": {},
+          "materialized_file_hash": "sha256:282bade3253ac53f110b486a848f77dc8aeff0c0f55ce235889427fee0dba2c3",
+          "path": "part-0.jsonl",
+          "responses": [
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 0,
+              "response_hash": "sha256:f35bfe8eb28c5faaf420d583939661932f87bf923580d6ac9f2b797e50dfe2b0",
+              "retrieved_at": "2026-08-31T14:27:32.420828+00:00",
+              "total_rows": 7473,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=openai%2Fgsm8k&config=main&split=train&offset=0&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 100,
+              "response_hash": "sha256:0b8ab725b3050179464f5e9e980e1b5d798c802ca6e9a94e2916427d54276284",
+              "retrieved_at": "2026-08-31T14:27:35.271325+00:00",
+              "total_rows": 7473,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=openai%2Fgsm8k&config=main&split=train&offset=100&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 200,
+              "response_hash": "sha256:72ca12c35e66af47dd75f77a6c0678bfff8eff1ea3db728d2abd2427501b22e1",
+              "retrieved_at": "2026-08-31T14:27:38.359894+00:00",
+              "total_rows": 7473,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=openai%2Fgsm8k&config=main&split=train&offset=200&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 300,
+              "response_hash": "sha256:05d70340f77bca3d04905c509fd74645d91fcf070454ef71e2cc1484cd926715",
+              "retrieved_at": "2026-08-31T14:27:41.946449+00:00",
+              "total_rows": 7473,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=openai%2Fgsm8k&config=main&split=train&offset=300&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 400,
+              "response_hash": "sha256:1b7ff4220cdb5066701fbe79a08fde5dc493ec62a7340ec5323e215f9bc0fbeb",
+              "retrieved_at": "2026-08-31T14:27:44.862961+00:00",
+              "total_rows": 7473,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=openai%2Fgsm8k&config=main&split=train&offset=400&length=100",
+              "viewer_partial": false
+            }
+          ],
+          "role": "training_dataset",
+          "rows": 500,
+          "split": "train",
+          "total_rows": 7473
+        },
+        {
+          "config": "main",
+          "mapping": {},
+          "materialized_file_hash": "sha256:260390de5bc672520edc9bba2b882e477800a38637956ea9d141f8c454bbdf10",
+          "path": "part-1.jsonl",
+          "responses": [
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 0,
+              "response_hash": "sha256:6e891355f9ac90a39415e24389aed9a54387ba1a6de229bb1cf7f9fffc9fea7a",
+              "retrieved_at": "2026-08-31T14:27:47.884061+00:00",
+              "total_rows": 1319,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=openai%2Fgsm8k&config=main&split=test&offset=0&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 100,
+              "response_hash": "sha256:fb334976e946b5eb9cf75261fc116cd4f990350633842b5d4016aba3a68a94e7",
+              "retrieved_at": "2026-08-31T14:27:50.822784+00:00",
+              "total_rows": 1319,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=openai%2Fgsm8k&config=main&split=test&offset=100&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 200,
+              "response_hash": "sha256:2c577488324fcb551c5e04becae9105738213105c0c87aa7538050a5ff9da10b",
+              "retrieved_at": "2026-08-31T14:27:54.744408+00:00",
+              "total_rows": 1319,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=openai%2Fgsm8k&config=main&split=test&offset=200&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 300,
+              "response_hash": "sha256:3e55a9f4864c61e8b2cae2f1de8e2148920c104a8d08b1060fb96ee5ee499ce5",
+              "retrieved_at": "2026-08-31T14:27:57.514457+00:00",
+              "total_rows": 1319,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=openai%2Fgsm8k&config=main&split=test&offset=300&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 400,
+              "response_hash": "sha256:8bfcca1237805a9db8836fe1a232a54dbbf30610df464b801d65b2ebf138318a",
+              "retrieved_at": "2026-08-31T14:28:00.486980+00:00",
+              "total_rows": 1319,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=openai%2Fgsm8k&config=main&split=test&offset=400&length=100",
+              "viewer_partial": false
+            }
+          ],
+          "role": "evaluation_dataset",
+          "rows": 500,
+          "split": "test",
+          "total_rows": 1319
+        }
+      ]
+    },
+    {
+      "config_hash": "sha256:230f15556856a930324e95970468e57d2cdb384dd7fcdc78fe7d0c19f8adae82",
+      "dataset": "rajpurkar/squad",
+      "harness_hash": "sha256:2dd522f76a204c5891db72ff4de0dbdd51a1ef1c0da67193a45b4a3c4317e442",
+      "reports": {
+        "profile": {
+          "diagnostics": [],
+          "exit_code": 0,
+          "normalized_report_hash": "sha256:3c9d9bd3da1ec64b9e8b9cd1b8c12b0a077af39c25225fc1a14f9376c8654f15",
+          "report_hash": "sha256:fac8c868c44c06725a37ae5f0243f2f66ff3809f407ac6525c1709ce10f59b6e",
+          "summary": {
+            "artifacts_profiled": 2,
+            "measurements_total": 14
+          }
+        },
+        "scan": {
+          "diagnostics": [],
+          "exit_code": 0,
+          "normalized_report_hash": "sha256:d4fe741828d972bb3122f978b723a2a49e313663032d1b8052bd69d92cd9f97f",
+          "report_hash": "sha256:d62efbd22e5201c9893dde645610b9d817c43696d9dac65e59954f6302234ee8",
+          "summary": {
+            "artifacts_scanned": 2,
+            "findings_by_severity": {
+              "critical": 0,
+              "high": 0,
+              "low": 1,
+              "medium": 1
+            },
+            "findings_total": 2
+          }
+        }
+      },
+      "scanner_source_hash": "sha256:c8d216727613ff9e7bf1e95ff54d5aafcc05dd373085da11247a4f26063f6d83",
+      "seconds": 5.162,
+      "sources": [
+        {
+          "config": "plain_text",
+          "mapping": {},
+          "materialized_file_hash": "sha256:a98f49ef04cd52cd01577a823943bdded327469f303be212186ccb6c5c59bcab",
+          "path": "part-0.jsonl",
+          "responses": [
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 0,
+              "response_hash": "sha256:c5ad3e6f4e4ab3fb83bd79999e8937c9bb3557e277e1e6aa41243ec96734424f",
+              "retrieved_at": "2026-08-31T14:28:06.874906+00:00",
+              "total_rows": 87599,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=rajpurkar%2Fsquad&config=plain_text&split=train&offset=0&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 100,
+              "response_hash": "sha256:1f4e8a2779de55ca7bc5fe1a985f20182a07385d892e985d3b1411644cf0683a",
+              "retrieved_at": "2026-08-31T14:28:09.844268+00:00",
+              "total_rows": 87599,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=rajpurkar%2Fsquad&config=plain_text&split=train&offset=100&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 200,
+              "response_hash": "sha256:f23e8331a1b8dfebe3a8cbe05edd53bae3478729cb7cbb87236cec09be93574e",
+              "retrieved_at": "2026-08-31T14:28:13.894175+00:00",
+              "total_rows": 87599,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=rajpurkar%2Fsquad&config=plain_text&split=train&offset=200&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 300,
+              "response_hash": "sha256:00757369e8c1cc2e32f9f2b036bd9bbd419ed5b3f84af6cacb31277f349cb9a7",
+              "retrieved_at": "2026-08-31T14:28:17.800198+00:00",
+              "total_rows": 87599,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=rajpurkar%2Fsquad&config=plain_text&split=train&offset=300&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 400,
+              "response_hash": "sha256:3c1dc515199525f6e395099f16f37ed04e8e1964ebdc7f88ca6b4dec1b1d50de",
+              "retrieved_at": "2026-08-31T14:28:21.779470+00:00",
+              "total_rows": 87599,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=rajpurkar%2Fsquad&config=plain_text&split=train&offset=400&length=100",
+              "viewer_partial": false
+            }
+          ],
+          "role": "training_dataset",
+          "rows": 500,
+          "split": "train",
+          "total_rows": 87599
+        },
+        {
+          "config": "plain_text",
+          "mapping": {},
+          "materialized_file_hash": "sha256:334079b0057ffd2da8f4e9d0aaf540b4e8b74e9bba12b9f09d1e8202489f3442",
+          "path": "part-1.jsonl",
+          "responses": [
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 0,
+              "response_hash": "sha256:b7ed5483be7438adc8d55cc2d8bc8c3c8d0c41473ecbdaaf9fe572c932db3cec",
+              "retrieved_at": "2026-08-31T14:28:25.054970+00:00",
+              "total_rows": 10570,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=rajpurkar%2Fsquad&config=plain_text&split=validation&offset=0&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 100,
+              "response_hash": "sha256:0005063092b5221c13d236bbb323dd28b9ec0a83a75941820717376c6e81a7ff",
+              "retrieved_at": "2026-08-31T14:28:27.800749+00:00",
+              "total_rows": 10570,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=rajpurkar%2Fsquad&config=plain_text&split=validation&offset=100&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 200,
+              "response_hash": "sha256:e05e3fd393f8acdfe2144f1cd778c5752fd1d00ccbf9798303261d3ad73d83ec",
+              "retrieved_at": "2026-08-31T14:28:32.167564+00:00",
+              "total_rows": 10570,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=rajpurkar%2Fsquad&config=plain_text&split=validation&offset=200&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 300,
+              "response_hash": "sha256:18bb17de0ec98f6c4df4fa592fa26df6e5ff55ba564332d8d0c50dbe7fdba941",
+              "retrieved_at": "2026-08-31T14:28:36.118216+00:00",
+              "total_rows": 10570,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=rajpurkar%2Fsquad&config=plain_text&split=validation&offset=300&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 400,
+              "response_hash": "sha256:047c98b6876d62a0b2f517141af9a5a0b7dd1d54daa433d0cc0f1df6e610a35b",
+              "retrieved_at": "2026-08-31T14:28:38.863754+00:00",
+              "total_rows": 10570,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=rajpurkar%2Fsquad&config=plain_text&split=validation&offset=400&length=100",
+              "viewer_partial": false
+            }
+          ],
+          "role": "evaluation_dataset",
+          "rows": 500,
+          "split": "validation",
+          "total_rows": 10570
+        }
+      ]
+    },
+    {
+      "config_hash": "sha256:29c2aa746e989dfed8f4caada0768de8e2ddd03e508011379365d48ccf91f059",
+      "dataset": "truthfulqa/truthful_qa",
+      "harness_hash": "sha256:2dd522f76a204c5891db72ff4de0dbdd51a1ef1c0da67193a45b4a3c4317e442",
+      "reports": {
+        "profile": {
+          "diagnostics": [],
+          "exit_code": 0,
+          "normalized_report_hash": "sha256:def8e6a5c0d7484cf30827aee854221d7fceac92c816b2bd94b6de002e489059",
+          "report_hash": "sha256:bc522a81865981fe0ec09eae85195cfa328ff8ad5fa8ef9bfa107fc44fa3bab6",
+          "summary": {
+            "artifacts_profiled": 1,
+            "measurements_total": 7
+          }
+        },
+        "scan": {
+          "diagnostics": [],
+          "exit_code": 0,
+          "normalized_report_hash": "sha256:d8c2783382f78d9e8ab733f2ba2590b4b9da796876dfcda7de14975e800c8490",
+          "report_hash": "sha256:9a00d75617a4e28cb44b93a957d39d96ec2cc4f8e5edd557444f2e787c4810ba",
+          "summary": {
+            "artifacts_scanned": 1,
+            "findings_by_severity": {
+              "critical": 0,
+              "high": 0,
+              "low": 0,
+              "medium": 1
+            },
+            "findings_total": 1
+          }
+        }
+      },
+      "scanner_source_hash": "sha256:c8d216727613ff9e7bf1e95ff54d5aafcc05dd373085da11247a4f26063f6d83",
+      "seconds": 3.856,
+      "sources": [
+        {
+          "config": "generation",
+          "mapping": {
+            "best_answer": "answer"
+          },
+          "materialized_file_hash": "sha256:c986881eb5278849290ce9fe5f850481e7e2720e9a45297fa5b7a0980fdfaa47",
+          "path": "part-0.jsonl",
+          "responses": [
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 0,
+              "response_hash": "sha256:8933d060a0140205f718a661c52ed8565ac6e869a75b6ad34b372cc73df498da",
+              "retrieved_at": "2026-08-31T14:28:48.510287+00:00",
+              "total_rows": 817,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=truthfulqa%2Ftruthful_qa&config=generation&split=validation&offset=0&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 100,
+              "response_hash": "sha256:3302b6d746b2e4698da8da46bbe058760cdf5adf02caa41cba484c76aa715559",
+              "retrieved_at": "2026-08-31T14:28:51.289798+00:00",
+              "total_rows": 817,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=truthfulqa%2Ftruthful_qa&config=generation&split=validation&offset=100&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 200,
+              "response_hash": "sha256:19c088be260e8ffd0125918b77ebb6da80cbd355df55f87142ed3d3d40e13990",
+              "retrieved_at": "2026-08-31T14:28:53.991920+00:00",
+              "total_rows": 817,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=truthfulqa%2Ftruthful_qa&config=generation&split=validation&offset=200&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 300,
+              "response_hash": "sha256:e692b6ccbf1a25dceb91d9fc63d1af5a32746a6faf406553a25496b76fcce4be",
+              "retrieved_at": "2026-08-31T14:28:56.841294+00:00",
+              "total_rows": 817,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=truthfulqa%2Ftruthful_qa&config=generation&split=validation&offset=300&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 400,
+              "response_hash": "sha256:11371cbf44fadd023bb95d743e8a621b34650ea8521d543eeb4ba0bb14d47e86",
+              "retrieved_at": "2026-08-31T14:29:00.387305+00:00",
+              "total_rows": 817,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=truthfulqa%2Ftruthful_qa&config=generation&split=validation&offset=400&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 500,
+              "response_hash": "sha256:4904fad6cee8ec70684a959d5f99273bb266ed96a5da635d51703dbf2eeb6ece",
+              "retrieved_at": "2026-08-31T14:29:03.353322+00:00",
+              "total_rows": 817,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=truthfulqa%2Ftruthful_qa&config=generation&split=validation&offset=500&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 600,
+              "response_hash": "sha256:2410cffdc1e0c1c6038a99ef829148a59b1d0e6457de1c95a8ce63e97c379e17",
+              "retrieved_at": "2026-08-31T14:29:06.178082+00:00",
+              "total_rows": 817,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=truthfulqa%2Ftruthful_qa&config=generation&split=validation&offset=600&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 700,
+              "response_hash": "sha256:fd7df913939cca278421a6b58152048ea9e4ca2ed5ffe85eb184bdc86a4ab047",
+              "retrieved_at": "2026-08-31T14:29:09.170661+00:00",
+              "total_rows": 817,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=truthfulqa%2Ftruthful_qa&config=generation&split=validation&offset=700&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 17,
+              "offset": 800,
+              "response_hash": "sha256:7d9080499cbdd78374c20a059226735aae79418e452374fb841b9e4e2d6d43db",
+              "retrieved_at": "2026-08-31T14:29:12.774502+00:00",
+              "total_rows": 817,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=truthfulqa%2Ftruthful_qa&config=generation&split=validation&offset=800&length=100",
+              "viewer_partial": false
+            }
+          ],
+          "role": "benchmark_dataset",
+          "rows": 817,
+          "split": "validation",
+          "total_rows": 817
+        }
+      ]
+    },
+    {
+      "config_hash": "sha256:696f21f645b32e8855ed8440b1831029e967cbbff316ae8c546b07966bc3d33b",
+      "dataset": "BeIR/fiqa",
+      "harness_hash": "sha256:2dd522f76a204c5891db72ff4de0dbdd51a1ef1c0da67193a45b4a3c4317e442",
+      "reports": {
+        "profile": {
+          "diagnostics": [],
+          "exit_code": 0,
+          "normalized_report_hash": "sha256:7e5eb8edf411fac260b0c57b7f350039c828ca6c1a2e54c7ba52e10c207a6b63",
+          "report_hash": "sha256:58709cf61dde4d965df8c414b27cd9dff7b66b7973f4a4ae6d966d3cbe90b4d8",
+          "summary": {
+            "artifacts_profiled": 1,
+            "measurements_total": 7
+          }
+        },
+        "scan": {
+          "diagnostics": [],
+          "exit_code": 0,
+          "normalized_report_hash": "sha256:18fcfd75f6cee203d7f573905c5b960845de1e2d299460705ec317bd4bca9125",
+          "report_hash": "sha256:2ac85ea5a43dda93bbfda14ae4dc37fd856b1280586ca1c05b04a7458bb71ce9",
+          "summary": {
+            "artifacts_scanned": 2,
+            "findings_by_severity": {
+              "critical": 0,
+              "high": 0,
+              "low": 0,
+              "medium": 2
+            },
+            "findings_total": 2
+          }
+        }
+      },
+      "scanner_source_hash": "sha256:c8d216727613ff9e7bf1e95ff54d5aafcc05dd373085da11247a4f26063f6d83",
+      "seconds": 2.856,
+      "sources": [
+        {
+          "config": "corpus",
+          "mapping": {
+            "_id": "doc_id"
+          },
+          "materialized_file_hash": "sha256:9b5c59f5d1c8fb7a61d3d8f0ed2cb80113b77bb881036a0799040886e3dfe374",
+          "path": "part-0.jsonl",
+          "responses": [
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 0,
+              "response_hash": "sha256:c27ad9b72a427c24f7cb61c3edafb53f6e80d4f1216047f2c7fdde42d01fb753",
+              "retrieved_at": "2026-08-31T14:29:20.652876+00:00",
+              "total_rows": 57638,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=BeIR%2Ffiqa&config=corpus&split=corpus&offset=0&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 100,
+              "response_hash": "sha256:f007b6c0ec55050224802861d21e3768c40c3d3ce833362403218d3c602b308f",
+              "retrieved_at": "2026-08-31T14:29:24.635494+00:00",
+              "total_rows": 57638,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=BeIR%2Ffiqa&config=corpus&split=corpus&offset=100&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 200,
+              "response_hash": "sha256:57b5434d144f25ab68bf5a63a1204c69f849f39183b196d026ba7b5173db8adf",
+              "retrieved_at": "2026-08-31T14:29:29.279252+00:00",
+              "total_rows": 57638,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=BeIR%2Ffiqa&config=corpus&split=corpus&offset=200&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 300,
+              "response_hash": "sha256:d2dc12a7a75805121f3b90f77a0425960d243ea49d7123b5b0dce05eceaa8046",
+              "retrieved_at": "2026-08-31T14:29:33.365859+00:00",
+              "total_rows": 57638,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=BeIR%2Ffiqa&config=corpus&split=corpus&offset=300&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 400,
+              "response_hash": "sha256:f4e914d0ab177716086f1d03972661b9334ff752ff2bd863d73212fdea7d1a74",
+              "retrieved_at": "2026-08-31T14:29:37.966083+00:00",
+              "total_rows": 57638,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=BeIR%2Ffiqa&config=corpus&split=corpus&offset=400&length=100",
+              "viewer_partial": false
+            }
+          ],
+          "role": "rag_document",
+          "rows": 500,
+          "split": "corpus",
+          "total_rows": 57638
+        },
+        {
+          "config": "queries",
+          "mapping": {
+            "_id": "id",
+            "text": "question"
+          },
+          "materialized_file_hash": "sha256:49af3098491967a87e336267db4e841e576ab796f9ab938c2abfb98b5b4853d8",
+          "path": "part-1.jsonl",
+          "responses": [
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 0,
+              "response_hash": "sha256:1611f0963a47ecfed0e66a454d5c351155a8efc2c117927d56933b35cd183882",
+              "retrieved_at": "2026-08-31T14:29:41.141360+00:00",
+              "total_rows": 6648,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=BeIR%2Ffiqa&config=queries&split=queries&offset=0&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 100,
+              "response_hash": "sha256:04542c2154dfe498ad59fe8141eb98d4b574aed2035e4d83ece400e90587ad44",
+              "retrieved_at": "2026-08-31T14:29:44.007746+00:00",
+              "total_rows": 6648,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=BeIR%2Ffiqa&config=queries&split=queries&offset=100&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 200,
+              "response_hash": "sha256:404fb503fbf939fae16b7dfd49ad0fbb38e303158a33f857a273b4ef95ef51a1",
+              "retrieved_at": "2026-08-31T14:29:47.198981+00:00",
+              "total_rows": 6648,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=BeIR%2Ffiqa&config=queries&split=queries&offset=200&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 300,
+              "response_hash": "sha256:8dcbbcffcd23e8655ab7395f6cd556593f182f41ea62549166864d0e94acbf1d",
+              "retrieved_at": "2026-08-31T14:29:49.898635+00:00",
+              "total_rows": 6648,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=BeIR%2Ffiqa&config=queries&split=queries&offset=300&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 400,
+              "response_hash": "sha256:c8363320cbec21f2abf15e1daaeb06fd512c45c9ae4cb068620e2d1e0070b258",
+              "retrieved_at": "2026-08-31T14:29:53.333723+00:00",
+              "total_rows": 6648,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=BeIR%2Ffiqa&config=queries&split=queries&offset=400&length=100",
+              "viewer_partial": false
+            }
+          ],
+          "role": "evaluation_dataset",
+          "rows": 500,
+          "split": "queries",
+          "total_rows": 6648
+        }
+      ]
+    },
+    {
+      "config_hash": "sha256:696f21f645b32e8855ed8440b1831029e967cbbff316ae8c546b07966bc3d33b",
+      "dataset": "BeIR/nfcorpus",
+      "harness_hash": "sha256:2dd522f76a204c5891db72ff4de0dbdd51a1ef1c0da67193a45b4a3c4317e442",
+      "reports": {
+        "profile": {
+          "diagnostics": [],
+          "exit_code": 0,
+          "normalized_report_hash": "sha256:a616ae0094d0fb851a49a36b24b423ca1c2a37ce77011721d69c1dccab88bb74",
+          "report_hash": "sha256:a33174f68ee052061e2048ff57bf8efd812c5f4b16752ceac7a4d7e33a469ff8",
+          "summary": {
+            "artifacts_profiled": 1,
+            "measurements_total": 7
+          }
+        },
+        "scan": {
+          "diagnostics": [],
+          "exit_code": 0,
+          "normalized_report_hash": "sha256:aacbe8c21a8d5583965b281f66668449f0b2ebbbbe61af0ae8d5394f77a4b2d1",
+          "report_hash": "sha256:2ca97cddfe6cf8c1c6924e320aff74180480e919bc7cfaf85e2506da57e41324",
+          "summary": {
+            "artifacts_scanned": 2,
+            "findings_by_severity": {
+              "critical": 0,
+              "high": 0,
+              "low": 0,
+              "medium": 1
+            },
+            "findings_total": 1
+          }
+        }
+      },
+      "scanner_source_hash": "sha256:c8d216727613ff9e7bf1e95ff54d5aafcc05dd373085da11247a4f26063f6d83",
+      "seconds": 5.142,
+      "sources": [
+        {
+          "config": "corpus",
+          "mapping": {
+            "_id": "doc_id"
+          },
+          "materialized_file_hash": "sha256:7110bd052daa5d05fa3b5a8efe1ddeac5a1008cdc940da6d9d8fa8abb026c9be",
+          "path": "part-0.jsonl",
+          "responses": [
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 0,
+              "response_hash": "sha256:94b7ce226065684aa283170f9b909f9db595afc329f7dd55bf111132d4474144",
+              "retrieved_at": "2026-08-31T14:30:00.596853+00:00",
+              "total_rows": 3633,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=BeIR%2Fnfcorpus&config=corpus&split=corpus&offset=0&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 100,
+              "response_hash": "sha256:ec3cb9429e991ea63b892b5b3c077726ffdc9be3459e2abdc8273be31f49d5d7",
+              "retrieved_at": "2026-08-31T14:30:03.641131+00:00",
+              "total_rows": 3633,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=BeIR%2Fnfcorpus&config=corpus&split=corpus&offset=100&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 200,
+              "response_hash": "sha256:5e60cbf516f46d12422b1436f3e890532f9c80fcf85fc445e86a3c40948c179f",
+              "retrieved_at": "2026-08-31T14:30:07.151372+00:00",
+              "total_rows": 3633,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=BeIR%2Fnfcorpus&config=corpus&split=corpus&offset=200&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 300,
+              "response_hash": "sha256:7e4ebf52da495e0faed1c4779d9982505a4d273cc59264b7a33e84b5429fd1d6",
+              "retrieved_at": "2026-08-31T14:30:10.210073+00:00",
+              "total_rows": 3633,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=BeIR%2Fnfcorpus&config=corpus&split=corpus&offset=300&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 400,
+              "response_hash": "sha256:86821ab130f4ee261984c226809d9d3d7d13315c85308b54ff3dc73b0394366e",
+              "retrieved_at": "2026-08-31T14:30:14.254799+00:00",
+              "total_rows": 3633,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=BeIR%2Fnfcorpus&config=corpus&split=corpus&offset=400&length=100",
+              "viewer_partial": false
+            }
+          ],
+          "role": "rag_document",
+          "rows": 500,
+          "split": "corpus",
+          "total_rows": 3633
+        },
+        {
+          "config": "queries",
+          "mapping": {
+            "_id": "id",
+            "text": "question"
+          },
+          "materialized_file_hash": "sha256:4a6813557acc7944e8024c2937fd12f8817ab8634e9e2d540f7d6e6c6f0431ea",
+          "path": "part-1.jsonl",
+          "responses": [
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 0,
+              "response_hash": "sha256:c67c4471a80524cca2dabafe3ed46acec541bc36e7110be7f3551411ada1f82c",
+              "retrieved_at": "2026-08-31T14:30:17.695123+00:00",
+              "total_rows": 3237,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=BeIR%2Fnfcorpus&config=queries&split=queries&offset=0&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 100,
+              "response_hash": "sha256:fe6d0441f0945951d0e8ff1cafe43ebe5626dbbf3d7f6701cabd6036aa193d1e",
+              "retrieved_at": "2026-08-31T14:30:20.346133+00:00",
+              "total_rows": 3237,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=BeIR%2Fnfcorpus&config=queries&split=queries&offset=100&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 200,
+              "response_hash": "sha256:b348b7ccacab138cd5215843b47bada87b6071ef89ce045ca60cc1e957b0f2d1",
+              "retrieved_at": "2026-08-31T14:30:23.635919+00:00",
+              "total_rows": 3237,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=BeIR%2Fnfcorpus&config=queries&split=queries&offset=200&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 300,
+              "response_hash": "sha256:8167d6abd0585604f1d5c2b54b80c6e881bfef6fb77a960f7479002619f4fa6d",
+              "retrieved_at": "2026-08-31T14:30:26.609018+00:00",
+              "total_rows": 3237,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=BeIR%2Fnfcorpus&config=queries&split=queries&offset=300&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 400,
+              "response_hash": "sha256:63ba0737f2bb441ae6e0acaef1d395fcf2ef92e66ff404e906ac490081152630",
+              "retrieved_at": "2026-08-31T14:30:30.086449+00:00",
+              "total_rows": 3237,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=BeIR%2Fnfcorpus&config=queries&split=queries&offset=400&length=100",
+              "viewer_partial": false
+            }
+          ],
+          "role": "evaluation_dataset",
+          "rows": 500,
+          "split": "queries",
+          "total_rows": 3237
+        }
+      ]
+    },
+    {
+      "config_hash": "sha256:696f21f645b32e8855ed8440b1831029e967cbbff316ae8c546b07966bc3d33b",
+      "dataset": "BeIR/scifact",
+      "harness_hash": "sha256:2dd522f76a204c5891db72ff4de0dbdd51a1ef1c0da67193a45b4a3c4317e442",
+      "reports": {
+        "profile": {
+          "diagnostics": [],
+          "exit_code": 0,
+          "normalized_report_hash": "sha256:759e0a0b33b2d247eaf6a93833aae70a5d379e9b6072f8d001cad158a008c46b",
+          "report_hash": "sha256:65102190cf7cd80738f7689aac0c798dc3f2d7e0941a253e495afec0bee0c55d",
+          "summary": {
+            "artifacts_profiled": 1,
+            "measurements_total": 7
+          }
+        },
+        "scan": {
+          "diagnostics": [],
+          "exit_code": 0,
+          "normalized_report_hash": "sha256:5afa982f95c1c5187130bbdb783de929ae96e8c67e5d381f69f8397d25840a5d",
+          "report_hash": "sha256:1804a6b63322a6eca3670f0e43f2cd664c8243d9eab7e19dd7ecd55e28cbc28c",
+          "summary": {
+            "artifacts_scanned": 2,
+            "findings_by_severity": {
+              "critical": 0,
+              "high": 0,
+              "low": 0,
+              "medium": 1
+            },
+            "findings_total": 1
+          }
+        }
+      },
+      "scanner_source_hash": "sha256:c8d216727613ff9e7bf1e95ff54d5aafcc05dd373085da11247a4f26063f6d83",
+      "seconds": 5.96,
+      "sources": [
+        {
+          "config": "corpus",
+          "mapping": {
+            "_id": "doc_id"
+          },
+          "materialized_file_hash": "sha256:a9dc4018ed84cda673e7ff5e2f77b0fc0872e6a65894fd469a1e2d0856609d5d",
+          "path": "part-0.jsonl",
+          "responses": [
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 0,
+              "response_hash": "sha256:6407e083243fdcef1752825e382996f5e5b02a1ce75265aab9b39ab814ed06c9",
+              "retrieved_at": "2026-08-31T14:30:40.699796+00:00",
+              "total_rows": 5183,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=BeIR%2Fscifact&config=corpus&split=corpus&offset=0&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 100,
+              "response_hash": "sha256:344a5fe566ecd42173ffe3d29d44d83655b115c4e9191bd426f1492daea6fc9e",
+              "retrieved_at": "2026-08-31T14:30:44.627615+00:00",
+              "total_rows": 5183,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=BeIR%2Fscifact&config=corpus&split=corpus&offset=100&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 200,
+              "response_hash": "sha256:4dee604324157fcb016bbb5d844a228a9a8ede354ede8cda2924c56090b406c9",
+              "retrieved_at": "2026-08-31T14:30:48.638547+00:00",
+              "total_rows": 5183,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=BeIR%2Fscifact&config=corpus&split=corpus&offset=200&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 300,
+              "response_hash": "sha256:d29c58f7285c7a604c45717c5efe55ade0e5435f265ccc8082f4ef05b776dcad",
+              "retrieved_at": "2026-08-31T14:30:52.307842+00:00",
+              "total_rows": 5183,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=BeIR%2Fscifact&config=corpus&split=corpus&offset=300&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 400,
+              "response_hash": "sha256:60f77b945e87db992e92b6a6e6a43259c878fcda734697653a34ce046c921247",
+              "retrieved_at": "2026-08-31T14:30:55.995149+00:00",
+              "total_rows": 5183,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=BeIR%2Fscifact&config=corpus&split=corpus&offset=400&length=100",
+              "viewer_partial": false
+            }
+          ],
+          "role": "rag_document",
+          "rows": 500,
+          "split": "corpus",
+          "total_rows": 5183
+        },
+        {
+          "config": "queries",
+          "mapping": {
+            "_id": "id",
+            "text": "question"
+          },
+          "materialized_file_hash": "sha256:4dabc363823bced19acc0c3954c256849ba0509043d8edb3d26d1ae4e86ba44c",
+          "path": "part-1.jsonl",
+          "responses": [
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 0,
+              "response_hash": "sha256:81179df1956dfe269a96fd1be688c590d2bb86874da5f900700e9f617b437ec2",
+              "retrieved_at": "2026-08-31T14:30:58.802478+00:00",
+              "total_rows": 1109,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=BeIR%2Fscifact&config=queries&split=queries&offset=0&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 100,
+              "response_hash": "sha256:e213ab9e1498acebddc9283557a8aa531fd0f922086ea1efccb9ed4b344d09b6",
+              "retrieved_at": "2026-08-31T14:31:02.138284+00:00",
+              "total_rows": 1109,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=BeIR%2Fscifact&config=queries&split=queries&offset=100&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 200,
+              "response_hash": "sha256:697572e29a59a689c3da9c309e76aef4d9c54babce36d621ea6f9c835cae1490",
+              "retrieved_at": "2026-08-31T14:31:04.871991+00:00",
+              "total_rows": 1109,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=BeIR%2Fscifact&config=queries&split=queries&offset=200&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 300,
+              "response_hash": "sha256:98fde9edce1f43a292076c34e2c98e785a095cc99922047c389bae6091e1ab0a",
+              "retrieved_at": "2026-08-31T14:31:07.562113+00:00",
+              "total_rows": 1109,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=BeIR%2Fscifact&config=queries&split=queries&offset=300&length=100",
+              "viewer_partial": false
+            },
+            {
+              "length": 100,
+              "observed_count": 100,
+              "offset": 400,
+              "response_hash": "sha256:bd67b9148bc5a1dc2968ab852ad820583bcc6d2d415e6b5d6a6ac55e3f23ec7e",
+              "retrieved_at": "2026-08-31T14:31:10.746508+00:00",
+              "total_rows": 1109,
+              "url": "https://datasets-server.huggingface.co/rows?dataset=BeIR%2Fscifact&config=queries&split=queries&offset=400&length=100",
+              "viewer_partial": false
+            }
+          ],
+          "role": "evaluation_dataset",
+          "rows": 500,
+          "split": "queries",
+          "total_rows": 1109
+        }
+      ]
+    }
+  ]
+}

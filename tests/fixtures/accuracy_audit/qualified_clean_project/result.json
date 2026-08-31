@@ -1,0 +1,26 @@
+{
+  "model_id": "fixture/model-v1",
+  "generation_parameters": {
+    "temperature": 0.5,
+    "seed": 17
+  },
+  "prompt_fingerprint": "sha256:c940ca767ad087ef7e1aaacf18231b5a12f9be303fcf9d32c3abf8e4408fb805",
+  "dataset_fingerprint": "sha256:48d3d42287fe616e52a223cab7ecd423dd601e08fcde2d4756a84f7db4e4b586",
+  "metric_name": "accuracy",
+  "metric_definition": "Fraction of correct responses.",
+  "timestamp": "2026-01-01T00:00:00Z",
+  "samples": [
+    {
+      "id": "eval-2"
+    },
+    {
+      "id": "eval-1"
+    }
+  ],
+  "metrics": {
+    "accuracy": {
+      "value": 0.5,
+      "unit": "fraction"
+    }
+  }
+}

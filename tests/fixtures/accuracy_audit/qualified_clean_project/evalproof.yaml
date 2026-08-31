@@ -1,0 +1,38 @@
+include: [train.jsonl, eval.jsonl, corpus.jsonl, prompt.md, result.json]
+similarity:
+  enabled: true
+artifacts:
+  - path: train.jsonl
+    roles: [training_dataset]
+    schema:
+      required: [id, prompt]
+      fields:
+        id: {type: string, nullable: false}
+        prompt: {type: string, nullable: false}
+    provenance:
+      required: [version, source.ref]
+      version: fixture-v1
+      fingerprint: "sha256:e74f65cf493919ca78c0e85239dd233e07cee14f5ac645a58beaccdd431e8228"
+      source:
+        type: local
+        ref: origin.bin
+  - path: eval.jsonl
+    roles: [evaluation_dataset]
+    schema:
+      required: [id, prompt]
+      fields:
+        id: {type: string, nullable: false}
+        prompt: {type: string, nullable: false}
+    provenance:
+      required: [version, source.ref]
+      version: fixture-v1
+      fingerprint: "sha256:48d3d42287fe616e52a223cab7ecd423dd601e08fcde2d4756a84f7db4e4b586"
+      source:
+        type: local
+        ref: origin.bin
+  - path: corpus.jsonl
+    roles: [rag_document]
+  - path: prompt.md
+    roles: [prompt_template]
+  - path: result.json
+    roles: [evaluation_result]

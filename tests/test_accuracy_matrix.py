@@ -100,6 +100,9 @@ def test_accuracy_manifest_covers_every_registered_rule():
 
     assert manifest_ids == registered_ids
     assert len(manifest_ids) == 29
+    for rule_id, contract in manifest["rules"].items():
+        assert {"positive", "negative", "abstention"} <= contract.keys(), rule_id
+        assert contract["negative"] != contract["abstention"], rule_id
 
 
 def test_registered_rules_have_positive_and_negative_cases(tmp_path):
@@ -141,6 +144,27 @@ def test_registered_rules_have_positive_and_negative_cases(tmp_path):
                 if finding["rule_id"] == rule_id
             ] == [], f"{rule_id} emitted without applicability evidence"
             assert abstention["_return_code"] == 0
+
+
+def test_qualified_clean_case_exercises_all_artifact_roles(tmp_path):
+    manifest = load_manifest()
+    root = copy_case(tmp_path, manifest, "qualified_clean")
+    output = tmp_path / "qualified-clean-report.json"
+
+    assert main(["scan", str(root), "--json", "--output", str(output)]) == 0
+    report = json.loads(output.read_text(encoding="utf-8"))
+    assert report["findings"] == []
+    assert report["diagnostics"] == []
+    assert report["scan"]["rules"]["ids"] == sorted(manifest["rules"])
+    artifacts = report["scan"]["artifacts"]
+    assert len(artifacts) == 5
+    assert {role for artifact in artifacts for role in artifact["roles"]} == {
+        "training_dataset", "evaluation_dataset", "rag_document",
+        "prompt_template", "evaluation_result",
+    }
+    assert all(artifact["index_status"] == "indexed" for artifact in artifacts)
+    config = yaml.safe_load((root / "evalproof.yaml").read_text(encoding="utf-8"))
+    assert config["similarity"]["enabled"] is True
 
 
 def test_accuracy_matrix_preserves_heuristic_ci_behavior(tmp_path):
