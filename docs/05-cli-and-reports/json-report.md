@@ -17,7 +17,7 @@ Terminal output is for humans. JSON output is for tools.
   "schema_version": "1.0",
   "tool": {
     "name": "evalproof",
-    "version": "0.5.0"
+    "version": "0.6.0"
   },
   "scan": {
     "root": ".",
@@ -209,9 +209,10 @@ fingerprint. Diagnostics use the existing deterministic diagnostic ordering.
 No severity summary, findings array, rule scope or CI status appears in profile.
 Root-relative paths and evidence privacy requirements apply equally to profiles.
 
-v1.25 has no calculators: measurements is [] and measurements_total is 0 even
-when datasets are indexed. v1.26 adds measurements to this same envelope. This
-empty-list contract must never be described as a dataset passing quality checks.
+v1.25 established this envelope without calculators. From v1.26, measurements
+contain the approved calculations owned by
+[Project Index](../02-architecture/project-index.md#dataset-measurement-calculations).
+An empty measurements list must never be described as passing quality checks.
 Excluding profile started_at/completed_at, identical inputs/configuration and
 calculation methods must produce identical reports. The scan envelope remains
 unchanged, without report_type or measurements additions.

@@ -265,3 +265,22 @@ def test_full_report_determinism_and_compression_independence(tmp_path):
             report["scan"].pop(field)
         reports.append(report)
     assert reports[0] == reports[1]
+
+
+def test_jsonl_parquet_measurement_equivalence(tmp_path):
+    from evalproof.profiling import collect_measurements
+    rows = [{"id": "a", "prompt": "  private input  ", "label": "secret-class"}] * 2
+    (tmp_path / "train.jsonl").write_text("\n".join(json.dumps(row) for row in rows), encoding="utf-8")
+    pq.write_table(pa.Table.from_pylist(rows), tmp_path / "train.parquet", row_group_size=1, compression="gzip")
+    results = []
+    for name in ("train.jsonl", "train.parquet"):
+        measurements = collect_measurements(index_file(tmp_path, name))
+        normalized = []
+        for item in measurements:
+            record = item.to_dict()
+            for field in ("artifact_id", "artifact_path", "fingerprint"):
+                record.pop(field)
+            normalized.append(record)
+        results.append(normalized)
+    assert len(results[0]) == 7
+    assert results[0] == results[1]

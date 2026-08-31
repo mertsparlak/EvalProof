@@ -244,6 +244,32 @@ evalproof_report.json and evalproof_profile.json. The profile command additional
 excludes its resolved output path regardless of user exclude overrides, as
 specified in [CLI Contract](../05-cli-and-reports/cli-contract-and-exit-codes.md#profile-command).
 
+### Per-Artifact Profile Settings (v1.26)
+
+An artifact may declare `profile`, an object with only `text_fields` and
+`categorical_fields`. This is allowed only for dataset roles and structured
+formats accepted by artifact schemas (including optional Parquet). An explicit
+profile target must be an included, non-excluded regular file within the root,
+under the same validation policy as schema/provenance targets. Scan validates
+this configuration but does not produce measurements or apply these settings to
+rules. No top-level profile key is added.
+
+- `text_fields`: optional array of unique non-blank top-level field names. Dot/
+  bracket paths are rejected; nested extraction is not supported. Names are
+  case-sensitive and preserved exactly, then sorted for deterministic execution.
+  Omission uses canonical input alias selection. An empty array disables length
+  measurements for this artifact. A nonempty array replaces the default selector
+  with one independent length measurement per named field; no concatenation.
+- `categorical_fields`: optional array of objects with required `name` and optional
+  boolean `expose_values` (default false); no other keys. Names follow text_fields
+  validation, must be unique, and sort by name. Empty/omitted means no categorical
+  measurements. A field may appear in both lists for independent measurements.
+
+`profile: {}` keeps defaults. Null, unknown keys, duplicate fields, unsupported
+roles/formats and invalid values are configuration errors (3), including in scan.
+Raw category exposure is restricted to the named field; there is no global opt-in.
+Measurement definitions belong to [Project Index](project-index.md#dataset-measurement-calculations).
+
 ## Design Decisions
 
 - Configuration is optional to preserve zero-setup scanning.

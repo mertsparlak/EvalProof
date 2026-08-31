@@ -43,11 +43,29 @@ python -m pip install -e .
 evalproof profile . --json --output evalproof_profile.json
 ```
 
-The profile command has a separate report contract and never executes trust rules
-or applies CI severity thresholds. In the v1.25 contract milestone it records
-dataset coverage and diagnostics with an empty measurements list. The v1.26
-milestone adds the measurement calculations. An exit code of 0 means processing
-completed, not that dataset quality has passed a check.
+The profile command reports observed row counts, rejected and duplicate rates,
+sample ID and canonical field coverage, input character lengths and dataset
+fingerprints. It never executes trust rules or applies CI severity thresholds.
+Partial and skipped inputs remain explicit; an exit code of 0 means processing
+completed, not that dataset quality passed a check.
+
+Optional per-artifact fields can be declared in evalproof.yaml:
+
+```yaml
+artifacts:
+  - path: train.jsonl
+    roles: [training_dataset]
+    profile:
+      text_fields: [prompt]
+      categorical_fields:
+        - name: label
+          expose_values: false
+```
+
+Category values are hashed by default. Only explicit expose_values: true includes
+raw scalar categories in the report; this does not enable raw prompt or ID
+evidence elsewhere. See the [measurement definitions](docs/02-architecture/project-index.md#dataset-measurement-calculations)
+for denominators, unsupported shapes and empty values.
 
 ### Trust Scan
 

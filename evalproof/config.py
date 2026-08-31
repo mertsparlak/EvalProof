@@ -116,11 +116,24 @@ class ArtifactProvenanceContract:
 
 
 @dataclass
+class CategoricalField:
+    name: str
+    expose_values: bool = False
+
+
+@dataclass
+class ArtifactProfileSettings:
+    text_fields: Optional[List[str]] = None
+    categorical_fields: List[CategoricalField] = field(default_factory=list)
+
+
+@dataclass
 class ArtifactOverride:
     path: str
     roles: List[str]
     schema: Optional[ArtifactSchemaContract] = None
     provenance: Optional[ArtifactProvenanceContract] = None
+    profile: Optional[ArtifactProfileSettings] = None
 
 
 @dataclass
@@ -151,6 +164,42 @@ class Config:
     limits: LimitsConfig = field(default_factory=LimitsConfig)
     similarity: SimilarityConfig = field(default_factory=SimilarityConfig)
     config_path: Optional[str] = None
+
+
+def _profile_field_name(value):
+    if not isinstance(value, str) or not value.strip() or any(char in value for char in ".[]"):
+        raise ConfigError("Profile fields must be non-blank top-level field names, not nested paths.")
+    return value
+
+
+def _parse_artifact_profile(data, path, roles):
+    if not isinstance(data, dict) or set(data) - {"text_fields", "categorical_fields"}:
+        raise ConfigError("Artifact profile must be an object with only text_fields and categorical_fields.")
+    if not roles or not set(roles).issubset(DATASET_SCHEMA_ROLES) or Path(path).suffix.lower() not in SCHEMA_FORMAT_EXTENSIONS:
+        raise ConfigError("Artifact profile settings require structured dataset roles and formats.")
+    text_fields = None
+    if "text_fields" in data:
+        if not isinstance(data["text_fields"], list):
+            raise ConfigError("Profile text_fields must be a list.")
+        text_fields = [_profile_field_name(name) for name in data["text_fields"]]
+        if len(set(text_fields)) != len(text_fields):
+            raise ConfigError("Profile text_fields must be unique.")
+        text_fields.sort()
+    categories = data.get("categorical_fields", [])
+    if not isinstance(categories, list):
+        raise ConfigError("Profile categorical_fields must be a list.")
+    fields = []
+    for item in categories:
+        if not isinstance(item, dict) or "name" not in item or set(item) - {"name", "expose_values"}:
+            raise ConfigError("Categorical fields require a name and optional expose_values.")
+        name = _profile_field_name(item["name"])
+        expose = item.get("expose_values", False)
+        if not isinstance(expose, bool):
+            raise ConfigError("Categorical expose_values must be boolean.")
+        fields.append(CategoricalField(name, expose))
+    if len({item.name for item in fields}) != len(fields):
+        raise ConfigError("Categorical field names must be unique.")
+    return ArtifactProfileSettings(text_fields, sorted(fields, key=lambda item: item.name))
 
 
 def _parse_artifact_schema(
@@ -312,7 +361,7 @@ def parse_and_validate_config_dict(data: Any, config_path: Optional[str] = None)
             if not isinstance(item, dict) or "path" not in item or "roles" not in item:
                 raise ConfigError(f"Artifact entry at index {idx} must be an object with 'path' and 'roles'.")
             for key in item:
-                if key not in {"path", "roles", "schema", "provenance"}:
+                if key not in {"path", "roles", "schema", "provenance", "profile"}:
                     raise ConfigError(f"Invalid key in artifact entry at index {idx}: '{key}'.")
             path_val = item["path"]
             roles_val = item["roles"]
@@ -335,7 +384,8 @@ def parse_and_validate_config_dict(data: Any, config_path: Optional[str] = None)
             if "schema" in item:
                 schema = _parse_artifact_schema(item["schema"], posix_path, roles_val, idx)
             provenance = _parse_artifact_provenance(item["provenance"], posix_path, roles_val) if "provenance" in item else None
-            cfg.artifacts.append(ArtifactOverride(path=posix_path, roles=roles_val, schema=schema, provenance=provenance))
+            profile = _parse_artifact_profile(item["profile"], posix_path, roles_val) if "profile" in item else None
+            cfg.artifacts.append(ArtifactOverride(path=posix_path, roles=roles_val, schema=schema, provenance=provenance, profile=profile))
 
     # 4. rules
     if "rules" in data:
@@ -486,14 +536,14 @@ def load_config(scan_root: str, explicit_config_path: Optional[str] = None) -> C
 
 
 def validate_schema_artifact_paths(scan_root: str, config: Config) -> None:
-    """Ensure explicit schema/provenance contracts cannot be silently skipped."""
+    """Ensure explicit schema/provenance/profile contracts cannot be silently skipped."""
     from evalproof.discovery import is_pattern_matched
 
     root = Path(scan_root).resolve()
     for override in config.artifacts:
-        if override.schema is None and override.provenance is None:
+        if override.schema is None and override.provenance is None and override.profile is None:
             continue
-        label = "Schema" if override.schema is not None else "Provenance"
+        label = "Schema" if override.schema is not None else "Provenance" if override.provenance is not None else "Profile"
         target = (root / override.path).resolve()
         if not target.is_relative_to(root):
             raise ConfigError(

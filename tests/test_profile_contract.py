@@ -33,8 +33,8 @@ def test_profile_is_not_a_scan_or_similarity_run(tmp_path, monkeypatch):
     assert report["schema_version"] == "1.0"
     assert report["report_type"] == "profile"
     assert report["profile"]["root"] == "."
-    assert report["measurements"] == []
-    assert report["summary"] == {"artifacts_profiled": 2, "measurements_total": 0}
+    assert len(report["measurements"]) == 14
+    assert report["summary"] == {"artifacts_profiled": 2, "measurements_total": 14}
     assert [a["path"] for a in report["profile"]["artifacts"]] == ["eval.jsonl", "train.jsonl"]
     assert all("role_matched_rule_ids" not in a for a in report["profile"]["artifacts"])
     assert "private" not in json.dumps(report)

@@ -428,6 +428,113 @@ MVP limit behavior:
 - Rules must not emit findings that require skipped content.
 - Diagnostics must identify the artifact path, limit name, configured limit, and observed size or row count when available.
 
+## Dataset Measurement Calculations
+
+The profile producer consumes indexed facts; it does not read source files, apply
+rules or infer training/model quality. It emits the families below once per
+profiled dataset artifact unless a field setting specifies otherwise. Order and
+shape are owned by the [profile report](../05-cli-and-reports/json-report.md#profile-report)
+and [Measurement contract](../01-concepts/finding-model-and-schema.md#measurement-contract).
+
+Let N be the number of indexed rows, including supported scalar/non-object row
+records, and R be rows rejected by existing row-parse diagnostics. Blank JSONL
+lines, CSV headers and artifact-level parse errors do not count as rejected rows.
+Use actual stored row hashes, positions and parsed values without reparsing.
+Ratios are ordinary finite numeric division, without rounding; an empty denominator
+produces null. Complete empty collections have N=0; unavailable collections are
+not reported as zero-row datasets.
+
+All row-based measurements inherit coverage and index reasons. Without a row
+collection they use unavailable, adding sorted reason no_row_collection and
+removing the artifact-only `complete` reason. An unavailable
+artifact has value null even if earlier decoded rows survive; population/evidence
+may retain those observed counts. Partial indexes produce observed values with
+partial coverage, never projected whole-file values. Artifact fingerprints use
+artifact coverage independently of row availability.
+
+### Default Families
+
+| measurement_id | method | unit | value and population |
+| --- | --- | --- | --- |
+| dataset.row_count | indexed_rows/v1 | rows | N; population N |
+| dataset.rejected_record_rate | observed_rejections/v1 | fraction | R/(N+R); population N+R |
+| dataset.exact_duplicate_rate | normalized_row_duplicates/v1 | fraction | sum(group_size-1)/N, grouped by row_hash within the artifact; population N |
+| dataset.sample_id_coverage | explicit_sample_ids/v1 | fraction | rows with an ID selected by existing extract_scalar_field/SAMPLE_ID_FIELD_ALIASES divided by N; population N |
+| dataset.canonical_field_coverage | top_level_field_presence/v1 | fraction | object mapping each canonical input and target alias to its present-row count/N; population N |
+| dataset.input_character_lengths | input_character_lengths/v1 | characters | object min/max/p50/p95 of selected string lengths, null if no strings; population selected-string count |
+| dataset.artifact_fingerprint | project_index_fingerprint/v1 | sha256 | existing artifact_fingerprints value or null; population N |
+
+These defaults have artifact scope. All evidence includes rows_indexed. Each
+family additionally records its exact calculation facts:
+
+- Row count: rows_rejected and whether index traversal was truncated.
+- Rejected rate: accepted_count, rejected_count, observed_count. A rate of 1 is
+  valid when every observed JSONL/CSV record was rejected.
+- Duplicates: duplicate_extra_count, distinct_record_count, duplicate_group_count,
+  and at most 20 examples containing row_hash/count, sorted by row_hash, with
+  evidence_truncated. No raw record or ID values. Whole-record equality is not
+  prompt-only duplication and not cross-artifact leakage.
+- ID coverage: identified_count, missing_count, selected_field_counts, at most
+  20 missing row numbers in ascending order and evidence_truncated. No raw IDs.
+- Canonical coverage: fields are the sorted unique union of INPUT_FIELD_ALIASES
+  and ANSWER_FIELD_ALIASES. Presence means the exact top-level key exists, even
+  if its value is null or blank. Evidence fields maps each alias to present_count,
+  null_count and blank_string_count. Non-object rows have no present fields. This
+  is a shape observation, not a requirement that every alias be populated.
+- Lengths: see selection semantics below; evidence string_count, blank_count,
+  excluded_count and at most 20 selected row numbers, with evidence_truncated.
+- Fingerprint: fingerprint_basis is accepted_rows for JSONL/CSV/Parquet,
+  parsed_object for JSON/YAML/TOML, and normalized_text for text formats. On
+  partial input the existing fingerprint may describe an accepted prefix or a
+  parsed object; preserve partial coverage instead of calling it a full row-set
+  identity. Parameters normalization=project_index records this reuse explicitly.
+
+Other default parameters: duplicate normalization=normalized_row_hash; ID aliases
+use the ordered existing aliases; canonical coverage fields use their sorted
+list; row/rejection parameters are empty objects. Method versions identify changes
+to these calculations independently of package version.
+
+### Character Length Selection
+
+Without profile.text_fields, choose the first string-valued canonical input alias
+in existing order for each row. Keep an empty/whitespace string if selected; do
+not skip it to cherry-pick a later alias. Ignore non-strings and do not stringify
+numbers, lists, message arrays or nested objects. Measure Python Unicode code-point
+length of the original decoded string without trim, whitespace collapse, case
+folding or tokenization. Blank means strip() is empty, not length zero alone.
+
+Explicit text_fields produce one field-scoped dataset.input_character_lengths
+measurement per field. An absent/non-string field excludes that row. Parameters
+contain fields, selection (first_string or field), normalization=none and
+percentile=nearest_rank. For K lengths sorted ascending, percentile P is the value
+at zero-based index ceil(P*K)-1; P is 0.50 or 0.95. Use exact integer arithmetic
+for rank selection. Evidence excluded_count is N-K, even for complete artifacts.
+
+### Explicit Categorical Distribution
+
+Each configured field produces field-scoped dataset.categorical_distribution,
+method typed_scalar_distribution/v1, unit distribution. Read only that exact
+top-level field. Accept strings, booleans, integers and finite floats; preserve
+string content and scalar type. Missing, null and unsupported/nonfinite values
+are excluded and counted separately. There is no inferred label column.
+
+The category hash is sha256:<hex> of canonical JSON for the scalar, preserving
+distinctions such as true, 1, 1.0 and "1". Population K is accepted scalar rows.
+Value is an object with categories and other_count. Categories are the top 20
+by descending count, then category_hash ascending, each with category_hash,
+count and fraction=count/K. Only expose_values=true adds the raw scalar as value
+inside each category entry. The histogram of zero accepted rows is an empty
+categories array with other_count=0, not an invented class. Unavailable coverage
+still makes the entire measurement value null.
+
+Evidence: rows_indexed, accepted_count, missing_count, null_count,
+unsupported_count, distinct_count, reported_category_count and evidence_truncated.
+Other_count retains all accepted rows in unreported categories; full distinct_count
+is preserved. Parameters contain field, expose_values, normalization=none,
+category_limit=20 and ordering=count_desc_hash_asc. These are descriptive facts,
+never imbalance findings, readiness scores or CI failures. SHA-256 redaction does
+not promise anonymization of low-entropy values.
+
 ## Design Decisions
 
 - Cross-artifact contamination checks use a shared project index.

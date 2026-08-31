@@ -21,7 +21,7 @@ A planned version is not an implemented or published release.
 | v1.23 | 0.3.0 | Completed | Dataset provenance contracts |
 | v1.24 | 0.4.0 | Completed | Optional Parquet support |
 | v1.25 | 0.5.0 | Completed | Measurement and profile contract |
-| v1.26 | 0.6.0 | Planned | Dataset profiling measurements |
+| v1.26 | 0.6.0 | Completed | Dataset profiling measurements |
 | v1.27 | 1.0.0 | Gated | Public release qualification |
 | v1.28+ | 1.x | Gated | Integrations and conditional adapters |
 
@@ -308,6 +308,45 @@ checkout. No new rule or measurement calculator is claimed by this milestone.
 - Default category evidence is hashed. Raw scalar values require explicit opt-in.
 - Never turn a distribution into a finding, quality judgment or CI failure.
 - Commit: `feat(v1.26): add evidence-safe dataset measurements`.
+
+### Implementation Plan And Strategy Review
+
+1. Define each measurement's numerator, denominator, excluded population, empty
+   behavior and incomplete-coverage semantics before code. Use observed rows only;
+   do not infer full sizes from prefixes or parse failures.
+2. Add optional per-artifact profile settings with explicit top-level text and
+   categorical fields. Validate types, duplicates, roles and local target paths;
+   no inferred nested schema, tokenizer or provider adapter.
+3. Implement seven default measurement families over existing index facts: row
+   count, rejected rate, exact duplicate rate, sample ID coverage, canonical field
+   presence, input character lengths and fingerprint. Add explicit categorical
+   distribution only when configured. No rules, scoring or CI thresholds.
+4. Keep raw text/IDs out of evidence, bound row/category examples to 20, and retain
+   total counts plus truncation facts. Category identity is type-preserving and
+   raw values require per-field expose_values=true.
+5. Test exact expected calculations, zero rows, malformed rows, non-object rows,
+   partial/unsupported artifacts, nested-shape abstention, nearest-rank statistics,
+   categorical type distinctions, high cardinality bounds and privacy opt-in.
+6. Verify JSONL/Parquet logical equivalence, other structured formats, traversal/
+   process determinism, scan compatibility and installed-wheel profiling. Align
+   package to 0.6.0, run full base/extra suites and commit locally.
+
+Review outcome: presence is not correctness, repetition is not necessarily a
+defect and distribution is not imbalance failure. Ratios with an empty denominator
+are null, not zero. String lengths preserve observed characters and do not
+estimate tokens. JSON-object and row-stream artifact fingerprints keep their
+existing distinct normalization contracts; do not promise cross-format identity
+where it does not exist. Hashed categories are redacted, not anonymized against
+guessing attacks, so raw-value opt-in must be deliberately visible in parameters.
+
+Verification on 2026-08-31: 432 tests passed with PyArrow and 400 passed with one
+optional-format module skipped in the base environment. Tests cover all seven
+default families, explicit text/category settings, exact percentiles, bounded
+evidence, unavailable versus empty collections, partial rates, six structured
+formats and JSONL/Parquet logical equivalence. Cross-process profile determinism
+passes with actual calculations. Installed 0.6.0 base/extra wheels passed CLI and
+measurement smoke outside the checkout. No model inference, new rule, raw dataset
+commit, push or publication occurred. Release qualification remains a separate gate.
 
 ## v1.27: Release Qualification
 

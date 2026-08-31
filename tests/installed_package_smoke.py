@@ -65,6 +65,8 @@ def main():
             profile = json.loads(profile_output.read_text(encoding="utf-8"))
             assert profile["summary"]["artifacts_profiled"] == 2
             assert all(a["index_status"] == "indexed" for a in profile["profile"]["artifacts"])
+            assert profile["summary"]["measurements_total"] == 14
+            assert all(m["value"] == 1 for m in profile["measurements"] if m["measurement_id"] == "dataset.row_count")
         else:
             assert importlib.util.find_spec("pyarrow") is None
             (project / "eval.parquet").write_bytes(b"reader intentionally unavailable")

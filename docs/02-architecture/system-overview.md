@@ -84,8 +84,8 @@ Core indexing diagnostics and complete/partial/skipped coverage remain visible.
 Internal measurement producers consume index facts and create Measurement
 records. Profile reporters only serialize/order those records and diagnostics.
 No Measurement registry, external plugin API or provider adapter is introduced.
-v1.25 establishes the producer boundary returning an empty list; v1.26 implements
-the approved calculations in that boundary. Calculation definitions belong to
+v1.25 established the producer boundary; v1.26 implements the approved dataset
+calculations in that boundary. Calculation definitions belong to
 [Project Index](project-index.md); the Measurement shape belongs to
 [Finding Model And Schema](../01-concepts/finding-model-and-schema.md#measurement-contract).
 
