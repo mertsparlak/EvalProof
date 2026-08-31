@@ -1,7 +1,10 @@
 ﻿from __future__ import annotations
 
 import json
+import os
 import shutil
+import subprocess
+import sys
 from pathlib import Path
 
 from evalproof.cli import main
@@ -44,3 +47,19 @@ def test_default_report_file_does_not_change_second_scan_results(tmp_path):
     second_report = normalized_report(json.loads((root / "evalproof_report.json").read_text(encoding="utf-8")))
 
     assert first_report == second_report
+
+
+def test_full_scan_report_is_stable_across_process_hash_seeds(tmp_path):
+    root = tmp_path / "project"
+    shutil.copytree(FIXTURE_ROOT, root)
+    reports = []
+    for seed in ["1", "2", "987"]:
+        output = tmp_path / f"report-{seed}.json"
+        result = subprocess.run(
+            [sys.executable, "-c", "from evalproof.cli import main; raise SystemExit(main())", "scan", str(root), "--json", "--output", str(output)],
+            capture_output=True, text=True, env={**os.environ, "PYTHONHASHSEED": seed},
+        )
+        assert result.returncode == 1, result.stderr
+        assert output.exists(), result.stderr
+        reports.append(normalized_report(json.loads(output.read_text(encoding="utf-8"))))
+    assert reports[0] == reports[1] == reports[2]

@@ -1,6 +1,7 @@
 """Reusable deterministic Similarity Engine (MinHash + LSH) for EvalProof."""
 
 from dataclasses import dataclass, field
+import hashlib
 import random
 import re
 from typing import Dict, List, Optional, Set, Tuple, Any
@@ -106,13 +107,11 @@ def compute_minhash_signature(
     if hash_params is None:
         hash_params = _generate_hash_parameters(num_hashes, seed)
 
-    # For long texts, bound shingle sample to max 50 shingles for fast O(1) signature computation
-    if len(shingles) > 50:
-        shingles_list = [s for i, s in enumerate(shingles) if i < 50]
-    else:
-        shingles_list = list(shingles)
-
-    shingle_hashes = [hash(s) & 0x7FFFFFFF for s in shingles_list]
+    # A shared stable hash ranking preserves the sample across processes and sets.
+    shingle_hashes = sorted(
+        int.from_bytes(hashlib.sha256(shingle.encode("utf-8")).digest()[:4], "big") & 0x7FFFFFFF
+        for shingle in shingles
+    )[:50]
     prime = MERSENNE_PRIME
 
     return [
@@ -176,7 +175,7 @@ class SimilarityIndex:
 
         # Storage
         self.items: Dict[str, Dict[str, Any]] = {}
-        self.lsh_buckets: Dict[str, Set[str]] = {}
+        self.lsh_buckets: Dict[Tuple[int, Tuple[int, ...]], Set[str]] = {}
 
     def add_item(self, item_id: str, text: str, metadata: Optional[Dict[str, Any]] = None) -> None:
         """Index an item into MinHash LSH structure."""
@@ -201,7 +200,7 @@ class SimilarityIndex:
             if start >= len(sig):
                 break
             band_tuple = tuple(sig[start:end])
-            bucket_key = f"{band_idx}:{hash(band_tuple)}"
+            bucket_key = (band_idx, band_tuple)
             self.lsh_buckets.setdefault(bucket_key, set()).add(item_id)
 
     def query_item(self, text: str, threshold: Optional[float] = None) -> List[SimilarityCandidate]:
@@ -221,7 +220,7 @@ class SimilarityIndex:
             if start >= len(query_sig):
                 break
             band_tuple = tuple(query_sig[start:end])
-            bucket_key = f"{band_idx}:{hash(band_tuple)}"
+            bucket_key = (band_idx, band_tuple)
             candidate_ids.update(self.lsh_buckets.get(bucket_key, set()))
 
         # Compute exact Jaccard similarity for candidates

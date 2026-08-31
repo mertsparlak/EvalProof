@@ -1,5 +1,9 @@
 """Unit tests for the Similarity Engine (MinHash + LSH)."""
 
+import os
+import subprocess
+import sys
+
 import pytest
 from evalproof.config import Config, SimilarityConfig
 from evalproof.similarity import (
@@ -156,3 +160,22 @@ def test_extract_target_similarity_text_system_prompt_filtering():
     assert "Static shared long system instruction" not in t1
     assert "Static shared long system instruction" not in t2
 
+def test_signatures_and_candidates_are_stable_across_python_hash_seeds():
+    script = """
+import json
+from evalproof.similarity import SimilarityIndex, extract_shingles, compute_minhash_signature
+text = ' '.join('token' + str(i) for i in range(100))
+index = SimilarityIndex(threshold=0.7)
+index.add_item('a', 'System prompt security verification test vector.')
+index.add_item('b', 'System prompt security validation test vector.')
+print(json.dumps({'signature': compute_minhash_signature(extract_shingles(text)),
+                  'pairs': [c.to_dict() for c in index.find_all_pairs()]}))
+"""
+    outputs = []
+    for seed in ["1", "2", "3", "987"]:
+        result = subprocess.run(
+            [sys.executable, "-c", script], check=True, capture_output=True, text=True,
+            env={**os.environ, "PYTHONHASHSEED": seed},
+        )
+        outputs.append(result.stdout)
+    assert len(set(outputs)) == 1
