@@ -17,7 +17,7 @@ Terminal output is for humans. JSON output is for tools.
   "schema_version": "1.0",
   "tool": {
     "name": "evalproof",
-    "version": "0.2.2"
+    "version": "0.3.0"
   },
   "scan": {
     "root": ".",
@@ -152,6 +152,7 @@ MVP diagnostic codes:
 
 - `artifact.parse_failed`
 - `artifact.invalid_text_encoding`
+- `artifact.provenance_source_unreadable`
 - `artifact.row_parse_failed`
 - `artifact.row_limit_reached`
 - `artifact.file_size_limit_exceeded`

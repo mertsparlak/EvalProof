@@ -27,6 +27,7 @@ from evalproof.rules.schema_contract_violation import SchemaContractViolationRul
 from evalproof.rules.chunk_id_collision import ChunkIdCollisionRule
 from evalproof.rules.generation_without_seed import GenerationWithoutSeedRule
 from evalproof.rules.invalid_text_encoding import InvalidTextEncodingRule
+from evalproof.rules.provenance import RequiredProvenanceMetadataRule, ManifestFingerprintMismatchRule, LocalSourceUnresolvedRule
 
 
 def register_mvp_rules():
@@ -56,6 +57,9 @@ def register_mvp_rules():
     default_registry.register(ChunkIdCollisionRule())
     default_registry.register(GenerationWithoutSeedRule())
     default_registry.register(InvalidTextEncodingRule())
+    default_registry.register(RequiredProvenanceMetadataRule())
+    default_registry.register(ManifestFingerprintMismatchRule())
+    default_registry.register(LocalSourceUnresolvedRule())
 
 
 register_mvp_rules()

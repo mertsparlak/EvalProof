@@ -403,6 +403,13 @@ Default CI behavior: must not fail default CI by default
 
 Note: country-specific identifiers such as TCKN should not be added until locale-specific validation and false-positive behavior are documented.
 
+## Provenance Contracts
+
+v1.23 implements `provenance.required_metadata_missing`,
+`provenance.manifest_fingerprint_mismatch`, and `provenance.local_source_unresolved`.
+These are explicit declaration checks, not inferred dataset lineage or license
+advice. Their source of truth is [Provenance Rules](contamination-rules.md#provenance-rules).
+
 ## Dataset Encoding Integrity
 
 `dataset.invalid_text_encoding` is implemented in v1.22. Its bounded byte evidence

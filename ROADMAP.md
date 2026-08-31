@@ -18,7 +18,7 @@ A planned version is not an implemented or published release.
 | v1.20 | 0.2.0 | Completed | Artifact-local explicit RAG chunk identity |
 | v1.21 | 0.2.1 | Completed | Generation reproducibility |
 | v1.22 | 0.2.2 | Completed | Dataset encoding integrity |
-| v1.23 | 0.3.0 | Planned | Dataset provenance contracts |
+| v1.23 | 0.3.0 | Completed | Dataset provenance contracts |
 | v1.24 | 0.4.0 | Planned | Optional Parquet support |
 | v1.25 | 0.5.0 | Planned | Measurement and profile contract |
 | v1.26 | 0.6.0 | Planned | Dataset profiling measurements |
@@ -141,6 +141,48 @@ Package/runtime/report versions are 0.2.2; the known pytest cache warning remain
 - Never fetch remote sources or interpret licenses legally.
 - Hash/redact source and generator values in evidence.
 - Commit: `feat(v1.23): verify dataset provenance contracts`.
+
+### Implementation Plan And Strategy Review
+
+1. Define an optional typed per-dataset provenance contract. Strictly validate
+   unknown keys, required leaf names, scalar types and SHA-256 syntax. Do not
+   infer provenance from filenames or mandate fields the user did not require.
+2. Validate declared dataset targets before discovery using the existing explicit
+   contract path policy. Reject absolute, traversal, drive/UNC and symlink-escaping
+   local source references before inspecting their targets. Remote refs stay opaque.
+3. Give Project Index an explicit optional scan root for local-source metadata
+   checks. Index redacted source existence facts; rules never access the filesystem.
+   Sources may be excluded from discovery; only regular-file presence is checked.
+4. Implement required_metadata_missing, manifest_fingerprint_mismatch and
+   local_source_unresolved independently. Fingerprints compare existing semantic
+   fingerprints only on complete indexes, never a partial prefix or byte hash.
+5. Test no-contract abstention, required fields, matching/mismatching hashes,
+   partial/encoding-damaged data, missing/directory sources, traversal/symlink
+   rejection, permission errors, remote no-network behavior and redaction.
+6. Extend accuracy matrix/listing, update package to 0.3.0, run full tests, review
+   the contracts and commit locally. No publishing.
+
+Review outcome: a local source that cannot be inspected is not proven missing.
+Permission/I/O failures produce a diagnostic and abstention; only missing or
+non-file targets produce confirmed findings. License is an opaque recorded value,
+not a legal judgment. A missing source.ref is not an unresolved path; it is only
+missing metadata when explicitly required. Provenance is a declaration to check,
+not independent proof that the claimed source actually generated the dataset.
+
+Prerequisite found during the v1.23 full-suite review: similarity shingle hashing
+used process-randomized `hash()` and unsorted set sampling. Four hash seeds
+produced four signatures on identical text. Replace those with stable hash-ranked
+sampling and test full reports across subprocess seeds before closing v1.23.
+This correctness fix can change near-duplicate candidate selection relative to
+older runs; exact Jaccard scoring and thresholds are unchanged. Release calibration
+must use the corrected implementation, not treat historical green tests as proof.
+
+Verification on 2026-08-31: 330 tests passed on Python 3.14, including 47 provenance
+tests, the 29-rule accuracy matrix and cross-process scan/signature determinism.
+Root-escape resolution and permission failures use deterministic filesystem mocks;
+this does not claim a live Windows symlink privilege test. A clean 0.3.0 wheel
+contains only product modules and distribution metadata. Runtime/distribution/
+report versions agree. The existing pytest cache warning remains non-blocking.
 
 ## v1.24: Optional Parquet
 

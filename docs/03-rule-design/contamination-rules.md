@@ -804,6 +804,38 @@ This is not an encoding detector for arbitrary binary files or a malicious-conte
 claim. The diagnostic represents skipped scanning; the finding represents the
 observed dataset defect and obeys ordinary rule selection and severity policy.
 
+### Provenance Rules
+
+All three rules are opt-in through the validated per-artifact contract in
+[Configuration And Schema](../02-architecture/configuration-and-schema.md#explicit-provenance-contracts).
+No contract means no findings. Process discovered dataset artifacts in path order.
+Evidence always includes `artifact_path` and `contract_fingerprint`, a SHA-256
+of canonical JSON containing the normalized declaration with sorted required names.
+No raw version, license, source or generator values appear in findings. Each rule
+emits at most one finding per declared artifact and uses its path as primary location.
+
+`provenance.required_metadata_missing`: medium/confirmed. Emit if any explicitly
+required leaf is absent. Evidence adds sorted `missing_fields` and `missing_count`.
+Impact is incomplete declared lineage; recommend recording those fields. Do not
+require metadata beyond the declaration or validate the truth of recorded values.
+
+`provenance.manifest_fingerprint_mismatch`: high/confirmed. Compare a nonempty
+declared fingerprint only with the complete semantic artifact fingerprint.
+Emit on inequality; evidence adds `declared_fingerprint` and `observed_fingerprint`.
+Partial/skipped/encoding-damaged artifacts abstain. Impact is that current content
+does not match the declared version; recommend restoring the intended dataset or
+updating the declaration after verification. Do not accept raw byte checksums as
+semantic fingerprint evidence or borrow fingerprints from another artifact.
+
+`provenance.local_source_unresolved`: high/confirmed. Consume
+[Provenance Source Facts](../02-architecture/project-index.md#provenance-source-facts).
+Emit only for `missing` or `not_file` source status. Evidence adds `source_ref_hash`
+and `source_status`. Source paths are deliberately absent from related locations
+and messages. Recommend restoring/correcting the declared local source.
+Unreadable, remote, absent and unspecified source types abstain. This verifies
+local traceability, not whether source bytes produced the dataset or whether a
+license permits use. High findings can fail default CI; medium metadata advice does not.
+
 ## Design Decisions
 
 - The rule set is intentionally focused on evaluation trust.

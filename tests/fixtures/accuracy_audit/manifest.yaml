@@ -1,6 +1,10 @@
 version: 1
 
 cases:
+  provenance_broken:
+    path: provenance_broken_project
+  provenance_valid:
+    path: provenance_valid_project
   invalid_encoding:
     path: invalid_encoding_project
     byte_files:
@@ -35,6 +39,21 @@ cases:
     path: generation_seeded_project
 
 rules:
+  provenance.required_metadata_missing:
+    confidence: confirmed
+    positive: provenance_broken
+    negative: provenance_valid
+    abstention: clean
+  provenance.manifest_fingerprint_mismatch:
+    confidence: confirmed
+    positive: provenance_broken
+    negative: provenance_valid
+    abstention: clean
+  provenance.local_source_unresolved:
+    confidence: confirmed
+    positive: provenance_broken
+    negative: provenance_valid
+    abstention: clean
   dataset.invalid_text_encoding:
     confidence: confirmed
     positive: invalid_encoding

@@ -98,6 +98,9 @@ Trust and safety checks:
 - `rag.unreachable_context_id`
 - `rag.chunk_id_collision` (explicit chunk_id within one RAG artifact only)
 - `dataset.invalid_text_encoding` (invalid UTF-8 or actual NUL bytes; damaged datasets are not indexed)
+- `provenance.required_metadata_missing` (only explicitly required metadata)
+- `provenance.manifest_fingerprint_mismatch` (declared versus complete semantic fingerprint)
+- `provenance.local_source_unresolved` (declared local source is missing or not a file)
 - `reproducibility.nondeterministic_generation_without_seed` (advisory check on recorded evaluation parameters)
 - `rag.duplicate_chunk_in_corpus`
 - `rag.empty_or_corrupted_document`

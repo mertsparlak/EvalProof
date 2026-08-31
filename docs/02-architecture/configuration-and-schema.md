@@ -18,6 +18,7 @@ The MVP supports:
 - exclude patterns
 - artifact role overrides
 - optional schema contracts for explicitly configured dataset artifacts
+- optional provenance contracts for explicitly configured dataset artifacts
 - disabled rules
 - severity overrides
 - minimum failing severity
@@ -86,7 +87,7 @@ Schema field types:
 
 - `include`: list of strings
 - `exclude`: list of strings
-- `artifacts`: list of objects with `path` string, `roles` list of artifact role strings, and optional `schema` object
+- `artifacts`: list of objects with `path` string, `roles` list of artifact role strings, optional `schema` and `provenance` objects
 - `rules.disabled`: list of rule id strings
 - `rules.severity`: object mapping rule id strings to severity strings
 - `ci.fail_on`: severity string
@@ -131,6 +132,43 @@ Each field name must be a non-empty top-level key. Dots, brackets, and nested fi
 Every name in `required` must be unique and must also exist in `fields`. Declared fields that are not required may be absent. Additional record fields are allowed. Values are never coerced: for example, the string `"42"` does not satisfy `integer`, and booleans do not satisfy `integer` or `number`. A `number` must be finite. For CSV artifacts, every declared field type must be `string` because the MVP CSV reader does not infer scalar types.
 
 Contract enforcement and evidence behavior are defined in [`dataset.schema_contract_violation`](../03-rule-design/contamination-rules.md#datasetschema_contract_violation).
+
+## Explicit Provenance Contracts
+
+`artifacts[].provenance` is an optional object for explicitly configured dataset
+roles only. All roles must be training/evaluation/benchmark roles. The target must
+be a supported text artifact, an existing regular file inside scan root and
+included by discovery, using the same fail-fast policy as schema-bearing targets.
+Empty provenance `{}` is valid and imposes no required metadata. Null provenance,
+unknown keys and wrong field types are config errors (`3`).
+
+Allowed keys are `required`, `version`, `fingerprint`, `source`, `generator`, `license`.
+`required` defaults to `[]` and is a unique list chosen from these leaf names:
+`version`, `fingerprint`, `source.type`, `source.ref`, `source.revision`,
+`generator.name`, `generator.version`, `license`. Parent names are not accepted.
+Required leaves need not be present in the declaration; their absence is a rule
+finding, not invalid config. Missing, null and trimmed-empty strings count as absent.
+
+All metadata leaves accept strings or null, never numeric/boolean/container
+coercion. Surrounding string whitespace is trimmed. `source` and `generator` may
+be absent/null or objects, with only the listed leaves. A nonempty `source.type`
+is `local` or `remote`; no type is inferred from the ref. A nonempty fingerprint
+must be 64 hex digits with optional case-insensitive `sha256:` prefix, stored as
+lowercase `sha256:<hex>`. It means the semantic artifact fingerprint defined by
+Project Index, not a raw file checksum. `license` is opaque text.
+
+For `source.type: local`, a nonempty ref is a single scan-root-relative file path.
+Normalize backslashes and redundant `.` separators. Reject absolute paths, drive
+paths, UNC, any `..` segment, colon, NUL or control characters. Resolve symlinks
+and reject any root escape before target inspection. Errors must not echo the raw
+ref. The source need not be a discovered artifact and may be excluded; only its
+regular-file existence is checked, never its contents or relationship to the target.
+Missing sources are findings, not configuration failures. Remote refs are opaque
+strings and are never resolved or fetched. Missing local refs are handled only by
+an explicit `required: [source.ref]` declaration.
+
+The three finding contracts live in
+[Contamination Rules](../03-rule-design/contamination-rules.md#provenance-rules).
 
 ## Similarity Defaults
 

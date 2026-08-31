@@ -1,0 +1,11 @@
+artifacts:
+  - path: train.jsonl
+    roles: [training_dataset]
+    provenance:
+      required: [version]
+      fingerprint: "0000000000000000000000000000000000000000000000000000000000000000"
+      source:
+        type: local
+        ref: unavailable.bin
+similarity:
+  enabled: false

@@ -49,6 +49,9 @@ RULE_CONFIDENCE = {
     "dataset.partial_sample_id_coverage": "confirmed",
     "dataset.schema_contract_violation": "confirmed",
     "dataset.invalid_text_encoding": "confirmed",
+    "provenance.required_metadata_missing": "confirmed",
+    "provenance.manifest_fingerprint_mismatch": "confirmed",
+    "provenance.local_source_unresolved": "confirmed",
     "rag.chunk_id_collision": "confirmed",
     "reproducibility.nondeterministic_generation_without_seed": "likely",
     "rag.empty_or_corrupted_document": "confirmed",
@@ -150,7 +153,7 @@ def run_scan(args: argparse.Namespace) -> int:
             collected_diagnostics.extend(artifact.diagnostics)
 
     try:
-        project_idx = ProjectIndex(cfg)
+        project_idx = ProjectIndex(cfg, scan_root=scan_root)
         project_idx.build(list(artifacts_map.values()))
         collected_diagnostics.extend(project_idx.diagnostics)
     except Exception as err:

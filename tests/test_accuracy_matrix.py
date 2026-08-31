@@ -30,6 +30,9 @@ FINDING_KEYS = {
 
 
 REQUIRED_EVIDENCE_KEYS = {
+    "provenance.required_metadata_missing": {"artifact_path", "contract_fingerprint", "missing_fields", "missing_count"},
+    "provenance.manifest_fingerprint_mismatch": {"artifact_path", "contract_fingerprint", "declared_fingerprint", "observed_fingerprint"},
+    "provenance.local_source_unresolved": {"artifact_path", "contract_fingerprint", "source_ref_hash", "source_status"},
     "dataset.invalid_text_encoding": {"artifact_path", "byte_hash", "byte_count", "invalid_utf8_range", "nul_byte_count", "sample_nul_offsets", "nul_offsets_truncated"},
     "reproducibility.nondeterministic_generation_without_seed": {"result_artifact", "parameters_field", "temperature_field", "observed_temperature", "seed_field", "seed_state"},
     "contamination.train_eval_overlap": {"training_artifact", "evaluation_artifact", "normalized_record_hash"},
@@ -96,7 +99,7 @@ def test_accuracy_manifest_covers_every_registered_rule():
     manifest_ids = set(manifest["rules"])
 
     assert manifest_ids == registered_ids
-    assert len(manifest_ids) == 26
+    assert len(manifest_ids) == 29
 
 
 def test_registered_rules_have_positive_and_negative_cases(tmp_path):

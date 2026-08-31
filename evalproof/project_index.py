@@ -9,6 +9,7 @@ import math
 import os
 from pathlib import Path
 import re
+import stat
 from typing import Dict, List, Optional, Set, Any, Tuple
 import yaml
 
@@ -18,7 +19,7 @@ except ImportError:
     import tomli as tomllib
 
 from evalproof.artifact import Artifact
-from evalproof.config import Config
+from evalproof.config import Config, ConfigError, resolve_provenance_source
 from evalproof.finding import Diagnostic, DiagnosticSeverity, DiagnosticCode, canonical_json_dumps
 from evalproof.similarity import SimilarityCandidate, SimilarityIndex, extract_target_similarity_text
 
@@ -285,8 +286,9 @@ def extract_target_values(row_data: Any, aliases: List[str]) -> Optional[Tuple[s
 
 
 class ProjectIndex:
-    def __init__(self, config: Config):
+    def __init__(self, config: Config, scan_root: Optional[str] = None):
         self.config = config
+        self.scan_root = scan_root
         self.artifacts_by_path: Dict[str, Artifact] = {}
         self.artifacts_by_role: Dict[str, List[Artifact]] = {}
         self.rows_by_artifact: Dict[str, List[RowRecord]] = {}
@@ -296,6 +298,7 @@ class ProjectIndex:
         self.eval_metadata: Dict[str, Dict[str, Any]] = {}
         self.eval_metadata_locations: Dict[str, Dict[str, str]] = {}
         self.encoding_issues: Dict[str, Dict[str, Any]] = {}
+        self.provenance_sources: Dict[str, Dict[str, str]] = {}
         self.metric_records: List[MetricRecord] = []
         self.diagnostics: List[Diagnostic] = []
         self._similarity_candidates_cache: Dict[float, List[SimilarityCandidate]] = {}
@@ -315,6 +318,7 @@ class ProjectIndex:
         self.eval_metadata.clear()
         self.eval_metadata_locations.clear()
         self.encoding_issues.clear()
+        self.provenance_sources.clear()
         for art in artifacts:
             self.artifacts_by_path[art.path] = art
             for r in art.roles:
@@ -342,6 +346,37 @@ class ProjectIndex:
 
             # Process artifact content and fingerprints
             self._index_artifact_content(art)
+
+        self._index_provenance_sources()
+
+    def _index_provenance_sources(self):
+        for override in sorted(self.config.artifacts, key=lambda item: item.path):
+            if override.path not in self.artifacts_by_path or override.provenance is None:
+                continue
+            source = override.provenance.source
+            if source.get("type") != "local" or not source.get("ref"):
+                continue
+            if self.scan_root is None:
+                raise ValueError("An explicit scan root is required for local provenance inspection.")
+            ref_hash = "sha256:" + hashlib.sha256(source["ref"].encode("utf-8")).hexdigest()
+            try:
+                target = resolve_provenance_source(self.scan_root, source["ref"])
+                status = "present" if stat.S_ISREG(target.stat().st_mode) else "not_file"
+            except FileNotFoundError:
+                status = "missing"
+            except NotADirectoryError:
+                status = "not_file"
+            except (OSError, RuntimeError, ConfigError):
+                status = "unreadable"
+                diagnostic = Diagnostic(
+                    severity=DiagnosticSeverity.WARNING.value,
+                    code=DiagnosticCode.ARTIFACT_PROVENANCE_SOURCE_UNREADABLE.value,
+                    message="Declared local provenance source could not be inspected safely.",
+                    path=override.path, details={"source_ref_hash": ref_hash},
+                )
+                self.diagnostics.append(diagnostic)
+                self.artifacts_by_path[override.path].diagnostics.append(diagnostic)
+            self.provenance_sources[override.path] = {"source_ref_hash": ref_hash, "status": status}
 
     def get_similarity_candidates(self, threshold: Optional[float] = None) -> List[SimilarityCandidate]:
         """Return cached near-duplicate candidates for the requested threshold."""

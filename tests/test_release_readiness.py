@@ -18,8 +18,8 @@ def test_cli_help_exits_successfully(args, capsys):
 
 
 def test_runtime_and_distribution_versions_are_aligned():
-    assert __version__ == "0.2.2"
-    assert importlib.metadata.version("evalproof") == "0.2.2"
+    assert __version__ == "0.3.0"
+    assert importlib.metadata.version("evalproof") == "0.3.0"
 
 
 def test_json_report_uses_runtime_package_version(tmp_path):
@@ -31,12 +31,12 @@ def test_json_report_uses_runtime_package_version(tmp_path):
     assert result == 0
     report = json.loads(output.read_text(encoding="utf-8"))
     assert report["schema_version"] == "1.0"
-    assert report["tool"] == {"name": "evalproof", "version": "0.2.2"}
+    assert report["tool"] == {"name": "evalproof", "version": "0.3.0"}
 
 
 def test_package_metadata_declares_expected_release_version():
     project = Path(__file__).parents[1] / "pyproject.toml"
-    assert 'version = "0.2.2"' in project.read_text(encoding="utf-8")
+    assert 'version = "0.3.0"' in project.read_text(encoding="utf-8")
 
 
 def test_package_discovery_is_limited_to_evalproof():

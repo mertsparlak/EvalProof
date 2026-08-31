@@ -57,7 +57,7 @@ jobs:
       - name: Verify installed package and CLI
         run: |
           cd "$RUNNER_TEMP"
-          "$RUNNER_TEMP/evalproof-venv/bin/python" -c "import importlib.metadata, evalproof; assert evalproof.__version__ == '0.2.2'; assert importlib.metadata.version('evalproof') == '0.2.2'"
+          "$RUNNER_TEMP/evalproof-venv/bin/python" -c "import importlib.metadata, evalproof; assert evalproof.__version__ == '0.3.0'; assert importlib.metadata.version('evalproof') == '0.3.0'"
           "$RUNNER_TEMP/evalproof-venv/bin/evalproof" --help
           "$RUNNER_TEMP/evalproof-venv/bin/evalproof" rules
 

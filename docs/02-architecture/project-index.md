@@ -169,6 +169,27 @@ creating false identities. A single leading UTF-8 BOM is accepted and stripped
 before parsing healthy text; semantic fingerprints otherwise follow existing
 normalization. The byte hash is not interchangeable with a dataset fingerprint.
 
+## Provenance Source Facts
+
+`ProjectIndex(config, scan_root=None)` accepts an explicit scan root when local
+provenance references need filesystem metadata. CLI always supplies it. A caller
+with an applicable local source contract must supply it; omission is a programming
+error, not permission to infer a root from artifact paths. Rules do not use it.
+
+`provenance_sources[path]` records `source_ref_hash` (SHA-256 of normalized UTF-8
+ref) and `status`: `present`, `missing`, `not_file`, or `unreadable`. Check only
+explicit nonempty local refs on discovered provenance-bearing artifacts. Repeat
+root-boundary validation at inspection, then use filesystem metadata, not reads.
+Do not add referenced sources to discovery or inspect remote references.
+Missing/not-file statuses are objective facts. Permission or other I/O errors
+produce `artifact.provenance_source_unreadable` warning and unreadable status,
+without raw paths or OS exception text. Rules abstain on that status.
+
+Provenance fingerprint comparison uses existing semantic artifact fingerprints
+only with complete coverage (`indexed`). Skipped/partial artifacts supply no
+comparison claim. Required metadata checks use the validated declaration itself
+and do not depend on successful content parsing.
+
 ## Generation Metadata Locations
 
 Result metadata selection checks the root object followed by `metadata`, `eval`,
@@ -323,6 +344,15 @@ The similarity index:
 - emits findings only when Jaccard similarity is greater than or equal to `similarity.threshold`
 
 The similarity index is evidence-generating but approximate in candidate selection. Final findings must include exact Jaccard similarity so users can verify why the finding fired.
+
+Shingle hashing must not depend on Python's process hash seed. Use the first four
+bytes of SHA-256 over UTF-8, interpreted big-endian and masked to 31 bits. Sort
+those hash values and retain the lowest 50 for signature computation. This keeps
+the existing bounded sample but makes both sample membership and hashes stable.
+LSH bucket keys are the band index and signature-value tuple, not a process hash.
+Exact Jaccard still uses complete shingle sets. Candidate recall is approximate;
+determinism does not imply exhaustive discovery. Cross-process tests must vary
+`PYTHONHASHSEED`; same-process repeated scans alone do not prove this contract.
 
 ## Artifact Fingerprints
 

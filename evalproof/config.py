@@ -2,7 +2,8 @@
 
 from dataclasses import dataclass, field
 import os
-from pathlib import Path
+from pathlib import Path, PurePosixPath
+import re
 from typing import Dict, List, Optional, Set, Any
 import yaml
 
@@ -103,10 +104,21 @@ class ArtifactSchemaContract:
 
 
 @dataclass
+class ArtifactProvenanceContract:
+    required: List[str] = field(default_factory=list)
+    version: Optional[str] = None
+    fingerprint: Optional[str] = None
+    source: Dict[str, Optional[str]] = field(default_factory=dict)
+    generator: Dict[str, Optional[str]] = field(default_factory=dict)
+    license: Optional[str] = None
+
+
+@dataclass
 class ArtifactOverride:
     path: str
     roles: List[str]
     schema: Optional[ArtifactSchemaContract] = None
+    provenance: Optional[ArtifactProvenanceContract] = None
 
 
 @dataclass
@@ -196,6 +208,69 @@ def _parse_artifact_schema(
     return ArtifactSchemaContract(required=list(required_data), fields=fields)
 
 
+def _provenance_string(value: Any) -> Optional[str]:
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise ConfigError("Provenance metadata values must be strings or null.")
+    return value.strip() or None
+
+
+def normalize_local_source_ref(value: str) -> str:
+    path = value.replace("\\", "/")
+    if path.startswith("/") or ":" in path or ".." in path.split("/") or any(ord(c) < 32 or ord(c) == 127 for c in path):
+        raise ConfigError("Local provenance source ref must be a safe scan-root-relative path.")
+    return str(PurePosixPath(path))
+
+
+def resolve_provenance_source(scan_root: str, ref: str) -> Path:
+    root = Path(scan_root).resolve()
+    target = (root / normalize_local_source_ref(ref)).resolve()
+    if not target.is_relative_to(root):
+        raise ConfigError("Local provenance source ref must stay inside the scan root.")
+    return target
+
+
+def _parse_artifact_provenance(data: Any, path: str, roles: List[str]) -> ArtifactProvenanceContract:
+    if not isinstance(data, dict) or set(data) - {"required", "version", "fingerprint", "source", "generator", "license"}:
+        raise ConfigError("Invalid provenance object or unknown provenance key.")
+    if not roles or not set(roles).issubset(DATASET_SCHEMA_ROLES):
+        raise ConfigError("Provenance contracts require dataset roles only.")
+    if Path(path).suffix.lower() not in SCHEMA_FORMAT_EXTENSIONS | {".txt", ".text", ".md", ".markdown"}:
+        raise ConfigError("Provenance contract requires a supported dataset format.")
+    allowed = {"version", "fingerprint", "source.type", "source.ref", "source.revision", "generator.name", "generator.version", "license"}
+    required = data.get("required", [])
+    if not isinstance(required, list) or not all(isinstance(v, str) and v in allowed for v in required) or len(required) != len(set(required)):
+        raise ConfigError("Provenance required must contain unique supported leaf names.")
+    groups = {}
+    for name, keys in [("source", {"type", "ref", "revision"}), ("generator", {"name", "version"})]:
+        values = data.get(name)
+        if values is None:
+            values = {}
+        if not isinstance(values, dict) or set(values) - keys:
+            raise ConfigError("Invalid provenance metadata object or unknown key.")
+        groups[name] = {key: _provenance_string(value) for key, value in values.items()}
+    source = groups["source"]
+    if source.get("type") not in {None, "local", "remote"}:
+        raise ConfigError("Provenance source type must be local or remote.")
+    if source.get("type") == "local" and source.get("ref"):
+        # Inspect controls before trimming can erase a malformed path boundary.
+        raw_ref = data["source"]["ref"]
+        if any(ord(c) < 32 or ord(c) == 127 for c in raw_ref):
+            raise ConfigError("Local provenance source ref contains control characters.")
+        source["ref"] = normalize_local_source_ref(source["ref"])
+    fingerprint = _provenance_string(data.get("fingerprint"))
+    if fingerprint is not None:
+        if not re.fullmatch(r"(?:sha256:)?[0-9a-f]{64}", fingerprint, re.IGNORECASE):
+            raise ConfigError("Provenance fingerprint must be a SHA-256 hex digest.")
+        fingerprint = "sha256:" + fingerprint.lower().removeprefix("sha256:")
+    return ArtifactProvenanceContract(
+        required=sorted(required), version=_provenance_string(data.get("version")),
+        fingerprint=fingerprint, source=source, generator=groups["generator"],
+        license=_provenance_string(data.get("license")),
+    )
+
+
 def parse_and_validate_config_dict(data: Any, config_path: Optional[str] = None) -> Config:
     if data is None:
         return Config(config_path=config_path)
@@ -235,7 +310,7 @@ def parse_and_validate_config_dict(data: Any, config_path: Optional[str] = None)
             if not isinstance(item, dict) or "path" not in item or "roles" not in item:
                 raise ConfigError(f"Artifact entry at index {idx} must be an object with 'path' and 'roles'.")
             for key in item:
-                if key not in {"path", "roles", "schema"}:
+                if key not in {"path", "roles", "schema", "provenance"}:
                     raise ConfigError(f"Invalid key in artifact entry at index {idx}: '{key}'.")
             path_val = item["path"]
             roles_val = item["roles"]
@@ -257,7 +332,8 @@ def parse_and_validate_config_dict(data: Any, config_path: Optional[str] = None)
             schema = None
             if "schema" in item:
                 schema = _parse_artifact_schema(item["schema"], posix_path, roles_val, idx)
-            cfg.artifacts.append(ArtifactOverride(path=posix_path, roles=roles_val, schema=schema))
+            provenance = _parse_artifact_provenance(item["provenance"], posix_path, roles_val) if "provenance" in item else None
+            cfg.artifacts.append(ArtifactOverride(path=posix_path, roles=roles_val, schema=schema, provenance=provenance))
 
     # 4. rules
     if "rules" in data:
@@ -408,25 +484,33 @@ def load_config(scan_root: str, explicit_config_path: Optional[str] = None) -> C
 
 
 def validate_schema_artifact_paths(scan_root: str, config: Config) -> None:
-    """Ensure explicit schema contracts cannot be silently skipped by discovery."""
+    """Ensure explicit schema/provenance contracts cannot be silently skipped."""
     from evalproof.discovery import is_pattern_matched
 
     root = Path(scan_root).resolve()
     for override in config.artifacts:
-        if override.schema is None:
+        if override.schema is None and override.provenance is None:
             continue
+        label = "Schema" if override.schema is not None else "Provenance"
         target = (root / override.path).resolve()
         if not target.is_relative_to(root):
             raise ConfigError(
-                f"Schema artifact path must stay inside the scan root: '{override.path}'."
+                f"{label} artifact path must stay inside the scan root: '{override.path}'."
             )
         if not target.exists() or not target.is_file():
-            raise ConfigError(f"Schema artifact path does not exist: '{override.path}'.")
+            raise ConfigError(f"{label} artifact path does not exist: '{override.path}'.")
         if is_pattern_matched(override.path, config.exclude):
             raise ConfigError(
-                f"Schema artifact path is excluded from discovery: '{override.path}'."
+                f"{label} artifact path is excluded from discovery: '{override.path}'."
             )
         if not is_pattern_matched(override.path, config.include):
             raise ConfigError(
-                f"Schema artifact path is not included in discovery: '{override.path}'."
+                f"{label} artifact path is not included in discovery: '{override.path}'."
             )
+        if override.provenance is not None:
+            source = override.provenance.source
+            if source.get("type") == "local" and source.get("ref"):
+                try:
+                    resolve_provenance_source(scan_root, source["ref"])
+                except (OSError, RuntimeError):
+                    pass  # Index records unobservable sources without claiming absence.
