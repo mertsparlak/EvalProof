@@ -49,10 +49,13 @@ Do not advertise the 60-second target as measured performance.
 
 ## Release Qualification Evidence
 
-Local qualification checks on 2026-08-31 use package 0.6.0 and 29 rules. This is
-not a 1.0 release declaration. A passing GitHub Actions run for the new commits
-is still required; workflow configuration and local Windows runs do not prove
-execution on GitHub's Linux runners.
+The recorded calibration used package 0.6.0 and 29 rules. Its
+[GitHub Actions run](https://github.com/mertsparlak/EvalProof/actions/runs/33404984003)
+passed all seven jobs on Linux for commit 9ee7f71, including the four Python
+versions, optional Parquet, installed-wheel checks and 100k-row smoke.
+The subsequent version-only 1.0.0 transition passed the full 455-test optional
+suite and clean base/extra wheel smoke locally. These are qualification records,
+not a claim that the package has been published or that main was merged.
 
 - The accuracy manifest now requires a positive, negative and no-artifact
   abstention case for every registered rule. The shared negative fixture contains

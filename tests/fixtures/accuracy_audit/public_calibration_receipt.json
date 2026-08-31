@@ -1,6 +1,11 @@
 {
   "recorded_at": "2026-08-31",
-  "qualification": "pending_remote_ci",
+  "qualification": "prerequisite_ci_passed",
+  "ci_evidence": {
+    "commit": "9ee7f71bc8958b1fa9ef4f10fcc5e0ecf8930bce",
+    "url": "https://github.com/mertsparlak/EvalProof/actions/runs/33404984003",
+    "conclusion": "success"
+  },
   "sampling": "Source-order prefixes, at most 1000 rows per dataset across declared partitions; not representative sampling.",
   "snapshot_identity": "Hash-verified Dataset Viewer responses, not a claimed Hub commit snapshot. Exact replay requires retained local response cache.",
   "privacy_check": "No complete source string value of length >=32 appears as a report string value. Focused synthetic regressions separately cover short IDs, secrets, prompt excerpts and parser errors.",

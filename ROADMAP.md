@@ -22,7 +22,7 @@ A planned version is not an implemented or published release.
 | v1.24 | 0.4.0 | Completed | Optional Parquet support |
 | v1.25 | 0.5.0 | Completed | Measurement and profile contract |
 | v1.26 | 0.6.0 | Completed | Dataset profiling measurements |
-| v1.27 | 1.0.0 | Gated | Public release qualification |
+| v1.27 | 1.0.0 | Completed | Public release qualification (not published) |
 | v1.28+ | 1.x | Gated | Integrations and conditional adapters |
 
 ## v1.20: RAG Chunk Identity
@@ -401,7 +401,17 @@ tests failed on the old behavior and pass after correction. Full optional-reader
 suite: 440 passed. Interpolation evidence is hashed; parser diagnostics do not
 echo source values; non-SHA-256 references abstain. Existing mismatch-positive
 fixtures now use valid but different hashes instead of malformed placeholder
-strings. Package remains 0.6.0 and qualification is not yet complete.
+strings. That prerequisite run used 0.6.0 and did not alone complete qualification.
+
+Qualification completed on 2026-08-31. The
+[seven-job Linux CI run](https://github.com/mertsparlak/EvalProof/actions/runs/33404984003)
+passed for prerequisite commit 9ee7f71, including Python 3.11-3.14, optional
+Parquet, clean installed wheels and the 100k-row smoke. Public calibration and
+local evidence are recorded in [Success Criteria](docs/00-product/success-criteria.md).
+The version-only 1.0.0 transition passed 455 tests (one explicit scale-job skip)
+and base/extra installed-wheel smoke outside the checkout. No detector, schema,
+rule default or public input shape changed. Publication and main merge remain
+separate actions.
 
 ## Conditional Post-1.0 Work
 
