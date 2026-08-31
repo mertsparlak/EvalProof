@@ -24,6 +24,28 @@ def redact_value(detector_type: str, val: str) -> str:
     return f"<{detector_type}>:sha256:{digest}"
 
 
+def _string_leaves(value):
+    if isinstance(value, str):
+        yield value
+    elif isinstance(value, dict):
+        for key in sorted(value):
+            yield from _string_leaves(value[key])
+    elif isinstance(value, list):
+        for child in value:
+            yield from _string_leaves(child)
+
+
+def _text_positions(art, index):
+    if art.format == "parquet":
+        for row in index.rows_by_artifact.get(art.path, []):
+            for text in _string_leaves(row.row_data):
+                for line in text.splitlines():
+                    yield row.row_num, line
+    else:
+        lines = art.read_text().replace("\r\n", "\n").replace("\r", "\n").split("\n")
+        yield from enumerate(lines, start=1)
+
+
 class SensitiveValueExposureRule(Rule):
     @property
     def id(self) -> str:
@@ -56,6 +78,7 @@ class SensitiveValueExposureRule(Rule):
 
         for art in sorted(target_arts, key=lambda item: item.path):
             matches: Dict[str, Dict[str, Any]] = {}
+            position_key = "row" if art.format == "parquet" else "line"
 
             def add_match(detector_type: str, line_number: int, value: str) -> None:
                 group = matches.setdefault(detector_type, {"count": 0, "lines": set(), "redacted": set()})
@@ -63,8 +86,7 @@ class SensitiveValueExposureRule(Rule):
                 group["lines"].add(line_number)
                 group["redacted"].add(redact_value(detector_type, value))
 
-            physical_lines = art.read_text().replace("\r\n", "\n").replace("\r", "\n").split("\n")
-            for line_idx, line in enumerate(physical_lines, start=1):
+            for line_idx, line in _text_positions(art, ctx.project_index):
                 if PRIVATE_KEY_MARKER in line:
                     add_match("private_key", line_idx, PRIVATE_KEY_MARKER)
                 for match in API_KEY_REGEX.finditer(line):
@@ -78,12 +100,11 @@ class SensitiveValueExposureRule(Rule):
 
             for detector_type in sorted(matches):
                 group = matches[detector_type]
-                all_locations = [{"line": line} for line in sorted(group["lines"])]
+                all_locations = [{position_key: line} for line in sorted(group["lines"])]
                 all_redacted = sorted(group["redacted"])
                 sample_locations, locations_truncated = cap_evidence_items(all_locations)
                 redacted_values, values_truncated = cap_evidence_items(all_redacted)
                 evidence_truncated = locations_truncated or values_truncated
-                first_line = all_locations[0]["line"]
                 findings.append(
                     Finding(
                         rule_id=self.id,
@@ -96,7 +117,7 @@ class SensitiveValueExposureRule(Rule):
                         ),
                         impact="Sensitive data can make evaluation artifacts unsafe to share, store, or use in CI.",
                         recommendation="Remove or redact the values and replace them with safe fixtures.",
-                        locations=[Location(role="primary", path=art.path, line=first_line)],
+                        locations=[Location(role="primary", path=art.path, **all_locations[0])],
                         evidence={
                             "artifact_path": art.path,
                             "detector_type": detector_type,

@@ -127,6 +127,10 @@ class SchemaContractViolationRule(Rule):
         contract: ArtifactSchemaContract,
     ) -> List[Dict[str, Any]]:
         artifact = ctx.project_index.artifacts_by_path[artifact_path]
+        if any(d.code in {DiagnosticCode.ARTIFACT_OPTIONAL_DEPENDENCY_MISSING.value,
+                          DiagnosticCode.ARTIFACT_UNSUPPORTED_PARQUET_SCHEMA.value}
+               for d in artifact.diagnostics):
+            return []
         violations: List[Dict[str, Any]] = []
         artifact_parse_failed = False
 

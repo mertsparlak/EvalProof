@@ -40,6 +40,11 @@ class FingerprintMismatchRule(Rule):
         )
         prompt_roles = {"prompt_template"}
         dataset_roles = {"evaluation_dataset", "benchmark_dataset", "training_dataset"}
+        incomplete_roles = {
+            role for item in ctx.project_index.get_artifact_coverage([])
+            if item["index_status"] != "indexed" and "configuration" not in item["roles"]
+            for role in item["roles"]
+        }
 
         for res_art in result_arts:
             meta = ctx.project_index.eval_metadata.get(res_art.path, {})
@@ -48,7 +53,7 @@ class FingerprintMismatchRule(Rule):
 
             if ref_prompt_fp:
                 matches = ctx.project_index.matching_artifacts_for_fingerprint(ref_prompt_fp, prompt_roles)
-                if not matches:
+                if not matches and not prompt_roles.intersection(incomplete_roles):
                     findings.append(
                         self._build_mismatch_finding(
                             result_path=res_art.path,
@@ -64,7 +69,7 @@ class FingerprintMismatchRule(Rule):
 
             if ref_dataset_fp:
                 matches = ctx.project_index.matching_artifacts_for_fingerprint(ref_dataset_fp, dataset_roles)
-                if not matches:
+                if not matches and not dataset_roles.intersection(incomplete_roles):
                     findings.append(
                         self._build_mismatch_finding(
                             result_path=res_art.path,

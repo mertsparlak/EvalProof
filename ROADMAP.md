@@ -19,7 +19,7 @@ A planned version is not an implemented or published release.
 | v1.21 | 0.2.1 | Completed | Generation reproducibility |
 | v1.22 | 0.2.2 | Completed | Dataset encoding integrity |
 | v1.23 | 0.3.0 | Completed | Dataset provenance contracts |
-| v1.24 | 0.4.0 | Planned | Optional Parquet support |
+| v1.24 | 0.4.0 | Completed | Optional Parquet support |
 | v1.25 | 0.5.0 | Planned | Measurement and profile contract |
 | v1.26 | 0.6.0 | Planned | Dataset profiling measurements |
 | v1.27 | 1.0.0 | Gated | Public release qualification |
@@ -196,6 +196,56 @@ report versions agree. The existing pytest cache warning remains non-blocking.
 - Commit: `feat(v1.24): add optional parquet dataset scanning`.
 - References: [Arrow compatibility](https://arrow.apache.org/docs/python/install.html),
   [batch API](https://arrow.apache.org/docs/python/generated/pyarrow.parquet.ParquetFile.html).
+
+### Implementation Plan And Strategy Review
+
+1. Add an optional `parquet` extra and extension/role/schema/provenance support.
+   Load PyArrow lazily only for Parquet. Missing or incompatible PyArrow produces
+   a dependency diagnostic, never a dataset-corruption finding.
+2. Read local binary handles with deterministic batches. Reject unsupported or
+   ambiguous Arrow schemas without coercion; keep binary bytes out of text APIs.
+3. Index supported rows through the existing row/hash/similarity/answer/metric
+   machinery. Preserve JSONL-equivalent fingerprints across compression and row
+   group layout, with global row positions and existing size/row limits.
+4. Adapt existing RAG and sensitive-value rules to logical records, not binary
+   bytes. Keep Parquet locations row-based. Prevent schema/empty-RAG findings when
+   the reader is unavailable or its schema unsupported. Hash answer-match evidence
+   instead of exposing raw gold answers when reporting containment.
+5. Test format equivalence, supported types, unsupported schema abstention,
+   corruption, missing extra, limits, row-group boundaries, existing rule behavior,
+   report redaction and cross-process determinism. Generate all Parquet fixtures
+   locally in temporary directories; no public dataset downloads.
+6. Verify base and extra non-editable wheel installs outside the repository, run
+   the full suite with PyArrow 25.x, update CI to test the extra, and commit locally.
+
+Review outcome: Parquet support must not invent text semantics for binary/temporal
+values or confuse scanner limitations with data defects. Only the existing
+JSON-like record model is supported initially; unsupported types get explicit
+coverage diagnostics. File-size limits apply to physical bytes and batch size to
+rows, not a hard decompressed-memory budget. No URI/dataset-directory reader,
+remote filesystem, arbitrary metadata interpretation or new public plugin API.
+PyArrow 25.0.1 and Python 3.14 compatibility were verified against official docs;
+testing uses a temporary environment, leaving the user's PyArrow 23.0.1 unchanged.
+
+Integration tests also exposed raw sample IDs in existing alignment evidence.
+Together with RAG answer snippets, these violate the privacy boundary. Preserve
+the evidence keys but hash their values for all formats; finding fingerprints
+can change as a result. This is a privacy correction, not a new detector.
+
+Missing-reader tests also proved a false-absence risk: a skipped RAG artifact may
+contain the referenced ID, and a skipped dataset may match the result fingerprint.
+These rules now abstain on incomplete candidate groups; sample alignment requires
+both participating indexes to be complete. Observed positive evidence is retained.
+
+Verification on 2026-08-31: 373 tests passed with PyArrow 25.0.1 on Python 3.14;
+342 passed and the optional-format module was skipped in a clean no-PyArrow
+environment. Generated fixtures cover compression equivalence, 65,536-row batch
+boundaries, row limits, reader errors, schema rejection, existing rules, redaction
+and cross-process determinism. Both base and extra 0.4.0 wheels installed offline
+into separate temporary environments and passed outside-checkout CLI smoke tests.
+The wheel contains only 46 product/distribution files, including the reader and
+license. CI now includes extra and installed-wheel checks; no remote run, public
+dataset calibration, push or publication is claimed by this milestone.
 
 ## v1.25: Separate Profile Contract
 

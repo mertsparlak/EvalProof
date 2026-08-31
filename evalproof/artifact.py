@@ -19,6 +19,7 @@ from evalproof.finding import Diagnostic, DiagnosticSeverity, DiagnosticCode
 
 # Format mapping
 EXTENSION_FORMAT_MAP: Dict[str, str] = {
+    ".parquet": "parquet",
     ".json": "json",
     ".jsonl": "jsonl",
     ".ndjson": "jsonl",
@@ -67,25 +68,25 @@ def detect_heuristic_roles(posix_path: str, fmt: str) -> Set[str]:
     roles: Set[str] = set()
 
     # training_dataset
-    if fmt in {"json", "jsonl", "csv", "yaml", "toml"}:
+    if fmt in {"json", "jsonl", "csv", "yaml", "toml", "parquet"}:
         if any(seg in p_check for seg in ["/train/", "/training/", "/finetune/"]) or \
            any(kw in filename for kw in ["train", "training", "finetune"]):
             roles.add("training_dataset")
 
     # evaluation_dataset
-    if fmt in {"json", "jsonl", "csv", "yaml", "toml"}:
+    if fmt in {"json", "jsonl", "csv", "yaml", "toml", "parquet"}:
         if any(seg in p_check for seg in ["/eval/", "/evals/", "/evaluation/", "/test/", "/tests/", "/val/", "/valid/", "/validation/"]) or \
            any(kw in filename for kw in ["eval", "evaluation", "test", "golden", "expected", "val", "valid", "validation"]):
             roles.add("evaluation_dataset")
 
     # benchmark_dataset
-    if fmt in {"json", "jsonl", "csv", "yaml", "toml"}:
+    if fmt in {"json", "jsonl", "csv", "yaml", "toml", "parquet"}:
         if any(seg in p_check for seg in ["/benchmark/", "/benchmarks/", "/leaderboard/"]) or \
            any(kw in filename for kw in ["benchmark", "bench", "leaderboard"]):
             roles.add("benchmark_dataset")
 
     # evaluation_result
-    if fmt in {"json", "jsonl", "csv", "yaml", "toml"}:
+    if fmt in {"json", "jsonl", "csv", "yaml", "toml", "parquet"}:
         if any(seg in p_check for seg in ["/result/", "/results/", "/report/", "/reports/", "/run/", "/runs/"]) or \
            any(kw in filename for kw in ["result", "results", "scores", "metrics", "baseline", "run"]):
             roles.add("evaluation_result")
@@ -97,7 +98,7 @@ def detect_heuristic_roles(posix_path: str, fmt: str) -> Set[str]:
             roles.add("prompt_template")
 
     # rag_document
-    if fmt in {"markdown", "plain_text", "json", "jsonl", "csv", "yaml", "toml"}:
+    if fmt in {"markdown", "plain_text", "json", "jsonl", "csv", "yaml", "toml", "parquet"}:
         if any(seg in p_check for seg in ["/rag/", "/retrieval/", "/corpus/", "/knowledge/", "/kb/", "/docs/", "/documents/"]) or \
            any(kw in filename for kw in ["corpus", "knowledge", "retrieval", "context", "source"]):
             roles.add("rag_document")
@@ -126,6 +127,8 @@ class Artifact:
 
     def read_text(self) -> str:
         """Read artifact full raw text."""
+        if self.format == "parquet":
+            return ""
         if not self.full_disk_path or not os.path.exists(self.full_disk_path):
             return ""
         with open(self.full_disk_path, "r", encoding="utf-8-sig", errors="replace") as f:

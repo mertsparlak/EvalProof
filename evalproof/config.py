@@ -66,6 +66,7 @@ DATASET_SCHEMA_ROLES: Set[str] = {
 }
 
 SCHEMA_FORMAT_EXTENSIONS: Set[str] = {
+    ".parquet",
     ".json",
     ".jsonl",
     ".ndjson",

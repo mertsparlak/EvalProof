@@ -38,6 +38,9 @@ class UnreachableContextIdRule(Rule):
         return ["rag_integrity", "context_alignment", "reproducibility"]
 
     def evaluate(self, ctx: ScanContext) -> List[Finding]:
+        if any("rag_document" in item["roles"] and item["index_status"] != "indexed"
+               for item in ctx.project_index.get_artifact_coverage([])):
+            return []
         rag_references = ctx.project_index.get_context_references(RAG_ROLES, include_lists=False, include_generic_id=True)
         if not rag_references:
             return []

@@ -113,6 +113,8 @@ A schema-bearing artifact must satisfy all of these conditions:
 
 - `roles` is non-empty and contains only `training_dataset`, `evaluation_dataset`, or `benchmark_dataset`.
 - `path` has a structured extension: `.json`, `.jsonl`, `.ndjson`, `.csv`, `.yaml`, `.yml`, or `.toml`.
+- `.parquet` is also supported with the optional extra; missing dependencies are
+  scan diagnostics rather than invalid configuration or schema violations.
 - `path` resolves to a regular file inside the scan root.
 - `path` is matched by `include` and is not matched by `exclude`.
 - No other artifact entry has the same normalized path.

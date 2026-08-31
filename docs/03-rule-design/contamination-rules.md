@@ -163,7 +163,8 @@ Required evidence:
 
 - evaluation artifact path and answer field when available
 - RAG artifact path and location when available
-- matched normalized text or redacted/hash representation if sensitive
+- `matched_normalized_text`: always `sha256:<hex>` of the UTF-8 normalized answer;
+  never raw answer text, including for text-format RAG documents
 
 Applicability: this rule may use only answer-like fields extracted by the project index. If no canonical answer field is available, the rule must not emit a finding for that row.
 
@@ -224,6 +225,10 @@ Required evidence:
 
 A matching artifact is determined by the computed fingerprint rules in [Project Index](../02-architecture/project-index.md). Matching artifacts are treated as one content-equivalent group. If no artifact matches, this rule emits one result-centered finding. It must not emit one mismatch finding per unrelated candidate artifact.
 
+Abstain from a no-match finding if any non-configuration candidate in the relevant
+prompt/dataset role group has skipped or partial coverage: an unread candidate
+could be the match. This includes optional-reader failures and format limitations.
+
 Impact: the result may not correspond to the available prompt or dataset artifact.
 
 Recommendation: update references, restore the correct artifact version, or regenerate the result.
@@ -244,12 +249,18 @@ Required evidence:
 - dataset fingerprint
 - dataset and result counts
 - mismatch types
-- limited missing, unexpected, or duplicate IDs when available
+- limited missing, unexpected, or duplicate ID hashes when available; the existing
+  `missing_ids`, `unexpected_ids`, `duplicate_dataset_ids`, and
+  `duplicate_result_ids` keys contain only `sha256:<hex>` strings. Normalize IDs
+  using the existing extraction contract, sort them, take at most 20 per list,
+  then hash their UTF-8 bytes. No raw ID values are reported.
 
 Applicability:
 
 - the result must reference a dataset fingerprint matching one or more evaluation or benchmark artifacts
 - both artifacts must expose observable row collections
+- both participating artifacts must have complete indexed coverage; partial result
+  or dataset prefixes cannot prove complete sample alignment or absence
 - sample ID comparison runs only when every row on both sides exposes an ID alias
 - positional row matching and order differences are not findings
 
@@ -360,6 +371,11 @@ Recommendation: correct the affected records or update the explicit schema contr
 
 ### `rag.unreachable_context_id`
 
+Completeness prerequisite: all discovered RAG artifacts must have complete indexed
+coverage before claiming a context ID is absent from the corpus. If any is skipped
+or partial, abstain; it could contain the referenced ID. No diagnostic beyond the
+existing coverage diagnostics is added.
+
 Detects explicit evaluation or benchmark context references that are absent from the discovered RAG artifact IDs.
 
 Default severity: `high`
@@ -452,6 +468,11 @@ Required evidence:
 - `evidence_truncated`
 
 Aggregation: this rule emits one finding per artifact and detector type. Counts preserve the complete number of matches; locations and redacted hashes are bounded to keep reports small. Raw values and snippets are never included.
+
+For Parquet, inspect string leaves of indexed rows independently, without joining
+fields. Primary and sample locations use `row`, not physical `line`. Text formats
+retain physical line locations. The format reader and supported-value contract
+are owned by [Optional Parquet Records](../02-architecture/project-index.md#optional-parquet-records).
 
 Applicability: this rule applies only to evaluation artifacts and artifacts directly referenced by evaluation artifacts. It must not become a repository-wide general secret scanner.
 
@@ -670,6 +691,12 @@ Applicability:
 - rows without a supported content field are ignored
 
 The rule emits one finding per RAG artifact. Evidence is bounded to 20 row locations and row hashes.
+
+For Parquet, a successfully decoded zero-row table is empty; unavailable readers
+and unsupported schemas cause abstention. `observed_text_length` is the sum of
+trimmed string lengths across the explicit content aliases in indexed rows, not
+the physical binary file length. Existing text formats retain their text-length
+semantics. Decoder failure with no observed rows is corrupted, not empty.
 
 Required evidence:
 

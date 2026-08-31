@@ -138,8 +138,8 @@ artifacts:
     assert finding["severity"] == "high"
     assert finding["confidence"] == "confirmed"
     assert set(finding["evidence"]["mismatch_types"]) == {"missing_ids", "unexpected_ids"}
-    assert finding["evidence"]["missing_ids"] == ["b"]
-    assert finding["evidence"]["unexpected_ids"] == ["c"]
+    assert finding["evidence"]["missing_ids"] == ["sha256:" + hashlib.sha256(b"b").hexdigest()]
+    assert finding["evidence"]["unexpected_ids"] == ["sha256:" + hashlib.sha256(b"c").hexdigest()]
     assert finding["evidence"]["dataset_count"] == 2
     assert finding["evidence"]["result_count"] == 2
 
@@ -294,7 +294,7 @@ artifacts:
 
     finding = findings_by_rule(report, "evaluation.sample_alignment_mismatch")[0]
     assert "duplicate_ids" in finding["evidence"]["mismatch_types"]
-    assert finding["evidence"]["duplicate_result_ids"] == ["a"]
+    assert finding["evidence"]["duplicate_result_ids"] == ["sha256:" + hashlib.sha256(b"a").hexdigest()]
 
 
 def test_sample_alignment_requires_dataset_fingerprint(tmp_path):

@@ -19,6 +19,7 @@ except ImportError:
     import tomli as tomllib
 
 from evalproof.artifact import Artifact
+from evalproof.parquet import iter_parquet_rows, OptionalDependencyMissing, UnsupportedParquetSchema, ParquetReadError
 from evalproof.config import Config, ConfigError, resolve_provenance_source
 from evalproof.finding import Diagnostic, DiagnosticSeverity, DiagnosticCode, canonical_json_dumps
 from evalproof.similarity import SimilarityCandidate, SimilarityIndex, extract_target_similarity_text
@@ -435,6 +436,10 @@ class ProjectIndex:
                     reasons.append("parse_failed")
                 if DiagnosticCode.ARTIFACT_INVALID_TEXT_ENCODING.value in diagnostic_codes:
                     reasons.append("invalid_text_encoding")
+                if DiagnosticCode.ARTIFACT_OPTIONAL_DEPENDENCY_MISSING.value in diagnostic_codes:
+                    reasons.append("optional_dependency_missing")
+                if DiagnosticCode.ARTIFACT_UNSUPPORTED_PARQUET_SCHEMA.value in diagnostic_codes:
+                    reasons.append("unsupported_parquet_schema")
                 if not reasons:
                     reasons.append("no_indexable_content")
             elif has_row_partial:
@@ -472,6 +477,9 @@ class ProjectIndex:
         return coverage
 
     def _index_artifact_content(self, art: Artifact):
+        if art.format == "parquet":
+            self._index_parquet(art)
+            return
         dataset_roles = {"training_dataset", "evaluation_dataset", "benchmark_dataset"}
         if art.roles.intersection(dataset_roles) and "configuration" not in art.roles:
             text, issue = art.read_validated_dataset_text()
@@ -507,6 +515,55 @@ class ProjectIndex:
             self._index_yaml(art, text)
         elif art.format == "toml":
             self._index_toml(art, text)
+
+    def _index_parquet(self, art: Artifact):
+        rows = []
+        digest = hashlib.sha256()
+        source = iter_parquet_rows(art.full_disk_path)
+        try:
+            for row_num, parsed in enumerate(source, start=1):
+                if len(rows) >= self.config.limits.max_rows_per_artifact:
+                    diagnostic = Diagnostic(
+                        severity=DiagnosticSeverity.WARNING.value,
+                        code=DiagnosticCode.ARTIFACT_ROW_LIMIT_REACHED.value,
+                        message=f"Row count reached configured limit of {self.config.limits.max_rows_per_artifact}.",
+                        path=art.path, row=row_num,
+                        details={"limit_name": "limits.max_rows_per_artifact",
+                                 "configured_limit": self.config.limits.max_rows_per_artifact},
+                    )
+                    self.diagnostics.append(diagnostic)
+                    art.diagnostics.append(diagnostic)
+                    break
+                row_hash = compute_row_hash(parsed)
+                if rows:
+                    digest.update(b"\n")
+                digest.update(canonical_json_dumps(normalize_row_data(parsed)).encode("utf-8"))
+                rows.append(RowRecord(art.path, row_num, parsed, row_hash))
+                self.record_hashes.setdefault(row_hash, []).append((art.path, row_num))
+                self._index_row_for_similarity(art, row_num, parsed, row_hash)
+                self._check_answer_extraction(art, row_num, parsed)
+                self._extract_metric_records_from_source(art, parsed, f"rows[{row_num}]")
+        except (OptionalDependencyMissing, UnsupportedParquetSchema, ParquetReadError) as error:
+            if isinstance(error, OptionalDependencyMissing):
+                code = DiagnosticCode.ARTIFACT_OPTIONAL_DEPENDENCY_MISSING.value
+                message = "Parquet indexing requires evalproof[parquet] with PyArrow 25.x."
+            elif isinstance(error, UnsupportedParquetSchema):
+                code = DiagnosticCode.ARTIFACT_UNSUPPORTED_PARQUET_SCHEMA.value
+                message = "Parquet schema is outside the supported JSON-like record model."
+            else:
+                code = DiagnosticCode.ARTIFACT_PARSE_FAILED.value
+                message = "Could not decode Parquet artifact; no complete fingerprint is available."
+            diagnostic = Diagnostic(severity=DiagnosticSeverity.WARNING.value, code=code,
+                                    message=message, path=art.path, details={"format": "parquet"})
+            self.diagnostics.append(diagnostic)
+            art.diagnostics.append(diagnostic)
+            if rows:
+                self.rows_by_artifact[art.path] = rows
+            return
+        finally:
+            source.close()
+        self.rows_by_artifact[art.path] = rows
+        self.artifact_fingerprints[art.path] = "sha256:" + digest.hexdigest()
 
     def _index_jsonl(self, art: Artifact, text: str):
         lines = text.replace("\r\n", "\n").replace("\r", "\n").split("\n")

@@ -55,6 +55,9 @@ MVP extension mapping:
 - Markdown: `.md`, `.markdown`
 - plain text: `.txt`, `.text`
 
+Post-MVP optional format: Parquet `.parquet`; its reader contract is defined under
+[Optional Parquet](#optional-parquet).
+
 Files with unsupported extensions are not candidate artifacts unless configuration assigns an artifact role. If a configured artifact has an unsupported extension, it is treated as plain text and receives a diagnostic with code `artifact.unsupported_extension`.
 
 ## Artifact Roles
@@ -135,13 +138,20 @@ If heuristic detection assigns `training_dataset` together with `evaluation_data
 
 ## Content Access
 
-Rules need different content shapes. Core must expose content through simple access modes:
+Rules need different content shapes. Core exposes text content for prompt,
+Markdown and plain-text artifacts; row iteration for JSONL, CSV and Parquet;
+and structured object access for JSON, YAML and TOML. Rules reuse indexed rows
+instead of opening an independent binary reader.
 
-- text content for prompt, markdown, and plain text artifacts.
-- row iteration for JSONL and CSV datasets.
-- structured object access for JSON, YAML, and TOML artifacts.
+### Optional Parquet
 
-Large artifacts must be readable without requiring every rule to load the whole file into memory.
+The `.parquet` extension is a structured row format when `evalproof[parquet]` is
+installed. Dataset, evaluation-result and RAG filename/role heuristics apply as
+for JSONL. It also supports explicit schema/provenance dataset contracts.
+Raw Parquet bytes are never a text representation: text access returns an empty
+string, while row access is supplied by
+[Optional Parquet Records](../02-architecture/project-index.md#optional-parquet-records).
+Text-only prompt interpolation is not extended to binary artifacts.
 
 ## Text Encoding Access
 
@@ -196,4 +206,4 @@ None.
 
 ## Future Considerations
 
-Future versions may support binary formats such as Parquet or PDF through additional detectors without changing the rule-facing artifact model.
+PDF and other binary formats remain outside the supported artifact contract.

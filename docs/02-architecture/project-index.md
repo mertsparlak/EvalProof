@@ -144,6 +144,50 @@ Context identifiers are trimmed, remain case-sensitive, and accept only non-empt
 
 Each extracted reference also has a stable SHA-256 hash for evidence that must not expose the raw identifier.
 
+## Optional Parquet Records
+
+`.parquet` uses the optional `pyarrow>=25,<26` dependency. Import it only when
+indexing Parquet; absence, import failure or an incompatible major version emits
+`artifact.optional_dependency_missing`. Coverage is skipped with reason
+`optional_dependency_missing`, no rows or fingerprint. Base text scans do not
+import PyArrow. Never feed Parquet bytes into the text encoding audit.
+
+Open only the artifact's local binary handle, not an Arrow URI or directory.
+Use `ParquetFile` with extension interpretation disabled, page checksum validation
+enabled, and `iter_batches(batch_size=65536, use_threads=False)`. Read file row
+groups in order; locations are global 1-based row numbers. No pandas conversion,
+file key-value metadata inference, filesystem adapter or model/network calls.
+
+Supported Arrow types: null, boolean, integer, floating point, string/large string,
+string view, dictionary of supported values, list/large/fixed-size list and struct
+of supported values. Struct field names, including root columns, must be unique.
+Map, binary, temporal, decimal, extension and other unsupported types emit
+`artifact.unsupported_parquet_schema` and skip the entire artifact before decoding
+rows. This is a scanner limitation, not a corruption finding. Do not stringify,
+drop columns, flatten nesting or replace values. Decoded non-finite floats retain
+existing JSONL behavior and can violate an explicit finite-number schema contract.
+
+Decoded records reuse canonical row normalization and all row-based indexes.
+The artifact fingerprint is SHA-256 of canonical normalized row JSON joined by
+one newline with no trailing newline, matching JSONL. Compression, metadata and
+row group layout do not affect it. Empty tables have zero rows and the empty-input
+digest. Stop at max indexed rows; if more rows exist, emit the existing row-limit
+diagnostic and mark partial coverage. File size is checked before importing or
+opening Arrow. Batching is not a hard bound on decompressed bytes or total index
+memory; the index still retains accepted rows as other formats do.
+
+A reader/decode failure emits a redacted `artifact.parse_failed` diagnostic,
+without exception text, values or file metadata. Successfully decoded earlier
+rows may remain available as observed evidence, but no complete artifact
+fingerprint is assigned. Schema/empty-RAG rules abstain on dependency/schema
+limitations; actual parsing failures retain their documented corruption behavior.
+
+`Artifact.read_text()` returns no text for Parquet. RAG containment uses each
+decoded record's canonical RAG content field independently (never concatenates
+records into invented text). Sensitive-value scanning uses string leaves inside
+decoded rows and records row locations. Row-based metric extraction works as for
+JSONL; Parquet file metadata does not supply artifact-level result metadata.
+
 ## Dataset Encoding Facts
 
 After the file-size gate, inspect original bytes of training/evaluation/benchmark

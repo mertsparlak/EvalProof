@@ -17,7 +17,7 @@ Terminal output is for humans. JSON output is for tools.
   "schema_version": "1.0",
   "tool": {
     "name": "evalproof",
-    "version": "0.3.0"
+    "version": "0.4.0"
   },
   "scan": {
     "root": ".",
@@ -153,6 +153,9 @@ MVP diagnostic codes:
 - `artifact.parse_failed`
 - `artifact.invalid_text_encoding`
 - `artifact.provenance_source_unreadable`
+- `artifact.optional_dependency_missing`
+- `artifact.unsupported_parquet_schema`
+
 - `artifact.row_parse_failed`
 - `artifact.row_limit_reached`
 - `artifact.file_size_limit_exceeded`
@@ -160,6 +163,12 @@ MVP diagnostic codes:
 - `config.invalid`
 - `rule.recoverable_error`
 - `artifact.role_conflict`
+
+The optional Parquet diagnostics are warnings and indicate scanner limitations,
+not corrupt records. Coverage is `skipped` with `optional_dependency_missing` or
+`unsupported_parquet_schema` in `index_reasons`; no complete fingerprint is
+invented. [Project Index](../02-architecture/project-index.md#optional-parquet-records)
+owns reader behavior. These codes do not change the report schema version.
 
 ## Determinism
 

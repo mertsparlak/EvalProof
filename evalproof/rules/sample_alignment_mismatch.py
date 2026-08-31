@@ -1,6 +1,7 @@
 """Rule: evaluation.sample_alignment_mismatch."""
 
 from collections import Counter
+import hashlib
 from typing import Any, Dict, List
 
 from evalproof.finding import Confidence, Finding, Location, Severity
@@ -40,14 +41,19 @@ class SampleAlignmentMismatchRule(Rule):
             key=lambda artifact: artifact.path,
         )
         dataset_roles = {"evaluation_dataset", "benchmark_dataset"}
+        complete_paths = {item["path"] for item in ctx.project_index.get_artifact_coverage([])
+                          if item["index_status"] == "indexed"}
 
         for result_artifact in result_artifacts:
+            if result_artifact.path not in complete_paths:
+                continue
             metadata = ctx.project_index.eval_metadata.get(result_artifact.path, {})
             dataset_fingerprint = metadata.get("dataset_fingerprint")
             if not dataset_fingerprint:
                 continue
 
             matches = ctx.project_index.matching_artifacts_for_fingerprint(dataset_fingerprint, dataset_roles)
+            matches = [artifact for artifact in matches if artifact.path in complete_paths]
             if not matches:
                 continue
 
@@ -84,14 +90,14 @@ class SampleAlignmentMismatchRule(Rule):
 
                 if missing_ids:
                     mismatch_types.append("missing_ids")
-                    evidence["missing_ids"] = missing_ids[:20]
+                    evidence["missing_ids"] = self._redacted_ids(missing_ids)
                 if unexpected_ids:
                     mismatch_types.append("unexpected_ids")
-                    evidence["unexpected_ids"] = unexpected_ids[:20]
+                    evidence["unexpected_ids"] = self._redacted_ids(unexpected_ids)
                 if duplicate_dataset_ids or duplicate_result_ids:
                     mismatch_types.append("duplicate_ids")
-                    evidence["duplicate_dataset_ids"] = duplicate_dataset_ids[:20]
-                    evidence["duplicate_result_ids"] = duplicate_result_ids[:20]
+                    evidence["duplicate_dataset_ids"] = self._redacted_ids(duplicate_dataset_ids)
+                    evidence["duplicate_result_ids"] = self._redacted_ids(duplicate_result_ids)
 
             if not mismatch_types:
                 continue
@@ -118,6 +124,10 @@ class SampleAlignmentMismatchRule(Rule):
             )
 
         return findings
+
+    @staticmethod
+    def _redacted_ids(identifiers):
+        return ["sha256:" + hashlib.sha256(value.encode("utf-8")).hexdigest() for value in identifiers[:20]]
 
     @staticmethod
     def _extract_ids(rows: list) -> List[str] | None:

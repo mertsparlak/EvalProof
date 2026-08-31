@@ -12,6 +12,8 @@ EVALUATION_ROLES = {"evaluation_dataset", "benchmark_dataset"}
 RAG_ROLES = {"rag_document"}
 CONTENT_FIELD_ALIASES = ["text", "content", "document", "body", "chunk", "page_content"]
 INCOMPLETE_INDEX_CODES = {
+    DiagnosticCode.ARTIFACT_OPTIONAL_DEPENDENCY_MISSING.value,
+    DiagnosticCode.ARTIFACT_UNSUPPORTED_PARQUET_SCHEMA.value,
     DiagnosticCode.ARTIFACT_FILE_SIZE_LIMIT_EXCEEDED.value,
     DiagnosticCode.ARTIFACT_ROW_LIMIT_REACHED.value,
 }
@@ -83,11 +85,22 @@ class EmptyOrCorruptedDocumentRule(Rule):
             key=lambda row: row.row_num,
         )
         raw_text = artifact.read_text()
+        observed_text_length = len(raw_text.strip())
+        if artifact.format == "parquet":
+            observed_text_length = sum(
+                len(value.strip()) for row in rows if isinstance(row.row_data, dict)
+                for field, value in row.row_data.items()
+                if field in CONTENT_FIELD_ALIASES and isinstance(value, str)
+            )
         state = None
         empty_rows = []
         content_fields = set()
 
-        if not raw_text.strip():
+        if artifact.format == "parquet" and any(code in CORRUPTION_CODES for code in diagnostic_codes) and not rows:
+            state = "corrupted"
+        elif (artifact.format != "parquet" and not raw_text.strip()) or (
+            artifact.format == "parquet" and not rows and artifact.path in ctx.project_index.artifact_fingerprints
+        ):
             state = "empty"
         elif any(code in CORRUPTION_CODES for code in diagnostic_codes) and not rows:
             state = "corrupted"
@@ -118,7 +131,7 @@ class EmptyOrCorruptedDocumentRule(Rule):
             "state": state,
             "empty_record_count": len(empty_rows),
             "row_count": len(rows),
-            "observed_text_length": len(raw_text.strip()),
+            "observed_text_length": observed_text_length,
             "content_fields": sorted(content_fields),
             "row_locations": row_locations,
             "row_hashes": row_hashes,

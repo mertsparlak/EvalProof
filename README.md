@@ -14,6 +14,21 @@ Install from a source checkout:
 python -m pip install .
 ```
 
+For local Parquet datasets, install the optional reader:
+
+```powershell
+python -m pip install ".[parquet]"
+```
+
+The base package does not require PyArrow. Without the extra, discovered Parquet
+files are reported as skipped with an optional-dependency diagnostic. The reader
+supports JSON-like columns, nested lists and structs; binary, temporal, decimal,
+map and ambiguous schemas are skipped without coercion. See the
+[Parquet contract](docs/02-architecture/project-index.md#optional-parquet-records).
+
+Parquet fingerprints depend on decoded records, not compression or file metadata.
+Batching limits decoding batches, not total index memory or decompressed bytes.
+
 For local development with editable imports:
 
 ```powershell
