@@ -140,6 +140,15 @@ RAG document rows support the scalar fields above plus `id`. RAG list fields are
 
 For referenced-document integrity, RAG rows may expose content through the scalar fields `text`, `content`, `document`, `body`, `chunk`, or `page_content`. Nested content and free-text document IDs are not used.
 
+`inspect_rag_content_state(row_data)` returns `(present_fields, state)`, where
+present_fields is a tuple of explicit top-level names in the order above. State
+is `nonempty` if any present value is a nonblank string, `empty` if there is at
+least one field and all values are null or blank strings, otherwise null
+(unobservable). Non-object rows return an empty tuple and null. Both empty-RAG
+rules consume this pure observation; role applicability, findings and evidence
+aggregation remain rule-owned. This does not flatten nested schemas or coerce
+unsupported values, and is not a provider SchemaAdapter interface.
+
 Context identifiers are trimmed, remain case-sensitive, and accept only non-empty strings or finite numeric scalar values. Booleans, nested objects, nested metadata, filenames, and free-text matches are ignored. The generic `id` field is a RAG document identifier only; an evaluation row's `id` remains a sample identifier.
 
 Each extracted reference also has a stable SHA-256 hash for evidence that must not expose the raw identifier.

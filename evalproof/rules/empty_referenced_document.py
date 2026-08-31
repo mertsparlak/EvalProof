@@ -4,14 +4,14 @@ from collections import defaultdict
 from typing import Dict, List, Tuple
 
 from evalproof.finding import Confidence, Finding, Location, Severity
-from evalproof.project_index import extract_context_references
+from evalproof.project_index import extract_context_references, inspect_rag_content_state, RAG_CONTENT_FIELD_ALIASES
 from evalproof.rule_engine import Rule, ScanContext
 
 
 RULE_ID = "rag.empty_referenced_document"
 EVALUATION_ROLES = {"evaluation_dataset", "benchmark_dataset"}
 RAG_ROLES = {"rag_document"}
-CONTENT_FIELD_ALIASES = ["text", "content", "document", "body", "chunk", "page_content"]
+CONTENT_FIELD_ALIASES = RAG_CONTENT_FIELD_ALIASES
 
 
 class EmptyReferencedDocumentRule(Rule):
@@ -133,13 +133,4 @@ class EmptyReferencedDocumentRule(Rule):
 
     @staticmethod
     def _content_state(row_data) -> str | None:
-        if not isinstance(row_data, dict):
-            return None
-        present = [(field, row_data[field]) for field in CONTENT_FIELD_ALIASES if field in row_data]
-        if not present:
-            return None
-        if any(isinstance(value, str) and value.strip() for _, value in present):
-            return "nonempty"
-        if all(value is None or (isinstance(value, str) and not value.strip()) for _, value in present):
-            return "empty"
-        return None
+        return inspect_rag_content_state(row_data)[1]

@@ -240,6 +240,21 @@ def normalize_fingerprint(value: Any) -> str:
     return normalized
 
 
+def inspect_rag_content_state(row_data: Any) -> Tuple[Tuple[str, ...], Optional[str]]:
+    """Observe explicit content fields without treating unknown shapes as empty."""
+    if not isinstance(row_data, dict):
+        return (), None
+    fields = tuple(field for field in RAG_CONTENT_FIELD_ALIASES if field in row_data)
+    if not fields:
+        return fields, None
+    values = [row_data[field] for field in fields]
+    if any(isinstance(value, str) and value.strip() for value in values):
+        return fields, "nonempty"
+    if all(value is None or isinstance(value, str) and not value.strip() for value in values):
+        return fields, "empty"
+    return fields, None
+
+
 def extract_rag_content(row_data: Any) -> Optional[Tuple[str, str]]:
     """Return the first supported non-empty top-level RAG content value."""
     if not isinstance(row_data, dict):

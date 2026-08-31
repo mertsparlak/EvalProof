@@ -3,6 +3,7 @@
 from typing import List
 
 from evalproof.finding import Confidence, DiagnosticCode, Finding, Location, Severity
+from evalproof.project_index import inspect_rag_content_state, RAG_CONTENT_FIELD_ALIASES
 from evalproof.rule_engine import Rule, ScanContext
 from evalproof.rules._evidence import MAX_RELATED_EVIDENCE, cap_evidence_items
 
@@ -10,7 +11,7 @@ from evalproof.rules._evidence import MAX_RELATED_EVIDENCE, cap_evidence_items
 RULE_ID = "rag.empty_or_corrupted_document"
 EVALUATION_ROLES = {"evaluation_dataset", "benchmark_dataset"}
 RAG_ROLES = {"rag_document"}
-CONTENT_FIELD_ALIASES = ["text", "content", "document", "body", "chunk", "page_content"]
+CONTENT_FIELD_ALIASES = RAG_CONTENT_FIELD_ALIASES
 INCOMPLETE_INDEX_CODES = {
     DiagnosticCode.ARTIFACT_OPTIONAL_DEPENDENCY_MISSING.value,
     DiagnosticCode.ARTIFACT_UNSUPPORTED_PARQUET_SCHEMA.value,
@@ -106,15 +107,9 @@ class EmptyOrCorruptedDocumentRule(Rule):
             state = "corrupted"
         else:
             for row in rows:
-                present = [
-                    (field, row.row_data[field])
-                    for field in CONTENT_FIELD_ALIASES
-                    if isinstance(row.row_data, dict) and field in row.row_data
-                ]
-                if not present:
-                    continue
-                content_fields.update(field for field, _ in present)
-                if all(value is None or (isinstance(value, str) and not value.strip()) for _, value in present):
+                fields, row_state = inspect_rag_content_state(row.row_data)
+                content_fields.update(fields)
+                if row_state == "empty":
                     empty_rows.append(row)
             if empty_rows:
                 state = "empty"

@@ -476,7 +476,77 @@ That layer requires separate contracts for:
 - attack evidence format
 - model-call errors and rate-limit handling
 
-It must not run during the offline static scan, must not be required by default, and must not be coupled to the static `Rule` interface until a separate architecture review approves the execution and evidence model.
+It must not run during the offline static scan, must not be required by default,
+and must never be coupled to the static `Rule` interface. A separate architecture
+review is required before implementing any execution or evidence model.
+
+### Research Design Review After Static Qualification
+
+Status: design recorded, not implemented and not a scheduled product version.
+The versioned delivery boundary is maintained in [Roadmap](../../ROADMAP.md).
+No runner, generator, scorer, model dependency, new CLI command or automatic
+network access is authorized by this research note.
+
+The research question is whether dataset-informed test generation finds additional
+reproducible target-model failures compared with a fixed test-template baseline
+under the same execution budget. A small local generator is a candidate, not a
+proven requirement. Training data is incomplete evidence of learned behavior:
+pretraining, tuning, runtime instructions and retrieval also influence outputs.
+Dataset statistics alone cannot answer that question.
+
+1. Freeze the task contract and failure assertions before generating prompts.
+   Record dataset fingerprint and exact selection rules; separate generation
+   material from a held-out assessment pool. Deduplicate generated tests against
+   that pool. Do not select evaluation criteria after seeing model failures.
+2. Start with deterministic templates as the control. Compare a small local
+   generator under matched target-call and token budgets; generator cost is
+   reported separately. Do not download weights or transmit source records
+   automatically. Model choice requires its own hardware and license assessment.
+3. Use a separate execution harness rather than building provider orchestration
+   into EvalProof. Inspect already separates named model roles and sandboxed tools;
+   see [model roles](https://inspect.aisi.org.uk/models.html#model-roles) and
+   [sandboxing](https://inspect.aisi.org.uk/sandboxing.html). Prefer evaluating an
+   existing harness integration before designing a bespoke runner.
+4. Require an explicitly authorized target and positive per-run request, token,
+   wall-time and concurrency limits before any execution; the unconfigured budget
+   is zero. Count retries against the request budget, default automatic retries to
+   zero, and never retry after exhaustion. Authentication/configuration failures
+   terminate the run; rate limits/timeouts are execution errors, not model failures.
+5. Disable tools, filesystem mutation and arbitrary network access for the first
+   experiment. Allow only the named target endpoint when remote execution is
+   explicitly approved. Source records and retrieved documents remain untrusted
+   data, not authorization to execute their instructions. No attack against third
+   parties, production users or systems outside the declared target boundary.
+6. Separate generator, target and judge identities. Use executable objective
+   assertions where the task supports them. Otherwise preserve judge uncertainty
+   and obtain blinded human adjudication of claimed failures. A generator judging
+   its own prompts is not independent validation. A refusal is neither universally
+   a success nor a failure; the declared task contract determines the outcome.
+7. Store hypothesis and observation records outside scan/profile schemas. A
+   hypothesis links dataset/selection fingerprints, generating method, prompt
+   fingerprint and intended assertion, but has no confirmed weakness verdict.
+   An observation links that hypothesis to target identity, generation settings,
+   request/response fingerprints, outcome, judge version and evidence references.
+   Execution errors, unjudged responses and inconclusive judgments stay distinct.
+8. Keep raw prompts/responses in access-controlled local experiment artifacts,
+   never ordinary EvalProof reports or automatic uploads. Shared summaries use
+   hashes and bounded metadata. A hash alone is not a witness: verification
+   requires authorized access to the underlying response and the failure criterion.
+   Record target/generator/judge versions, seeds, settings and runner version;
+   an opaque floating provider model identity limits replay guarantees even with
+   the same seed. Replays retain attempts rather than overwriting prior evidence.
+9. Report planned, attempted, completed, judged, failed, inconclusive and errored
+   counts separately. Failure fractions use judged completed attempts with that
+   denominator stated, never silently count failed requests as model successes.
+   Compare incremental adjudicated failures, false positives, duplicate-test rate,
+   reproducibility and total cost against the fixed-template control.
+
+Promotion requires a predeclared experiment on at least two authorized target
+models with held-out cases, reproducible evidence and a useful improvement over
+the control. No numeric benefit or model superiority is claimed without results.
+If the generator adds cost without additional valid failures, retain the simpler
+control and do not ship a model-assisted product layer. The next action for this
+track would be a separately approved, budgeted experiment, not a static rule.
 
 ## Rejected Or Deferred Themes
 

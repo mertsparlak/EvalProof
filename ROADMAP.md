@@ -24,7 +24,7 @@ A planned version is not an implemented or published release.
 | v1.26 | 0.6.0 | Completed | Dataset profiling measurements |
 | v1.27 | 1.0.0 | Completed | Public release qualification (not published) |
 | v1.28 | 1.1.0 | Completed | Explicit local dataset card provenance |
-| Post-v1.28 | Unscheduled | Conditional | Schema adapters and model-assisted research |
+| Post-v1.28 | 1.1.0 | Reviewed | Shared RAG extraction; remaining adapters/research gated |
 
 ## v1.20: RAG Chunk Identity
 
@@ -458,10 +458,108 @@ or at least 20 percent of calibration datasets cannot use core measurements beca
 of unsupported shapes. Start internal; candidate families are OpenAI messages,
 instruction/input/output and chosen/rejected preferences. No external API yet.
 
+### Adapter Gate Review And Maintenance Plan
+
+Review on 2026-08-31 found no duplicated provider-family parser in rules. Scalar
+sample/target extraction already uses shared index helpers. Two RAG rules do,
+however, duplicate the same top-level content-field emptiness predicate. This is
+enough to review shared extraction, not evidence for introducing a schema registry.
+
+1. Freeze the existing RAG content-state truth table in focused tests: no fields
+   or unsupported-only values abstain; all present values null/blank means empty;
+   any nonblank string means nonempty. Preserve canonical field ordering.
+2. Move that observation to a pure Project Index helper used by both RAG rules.
+   Keep existing rule-specific scope, severity, evidence and aggregation unchanged.
+3. Run focused RAG tests, the full accuracy/determinism suite and clean wheel smoke.
+   This internal consolidation does not add formats, roles, rules or configuration.
+4. Keep provider SchemaAdapter implementation gated. Reopen with concrete family
+   fixtures and duplicated extraction or a measured unsupported-shape population.
+
+Native-shape audit used hash-verified responses from the existing public calibration
+cache, offline, without the calibration harness's added aliases. Original row objects
+were preserved. Existing explicit profile.text_fields selected text/user_input where
+needed; all other profile settings were defaults. RAG corpus partitions were excluded
+because the profile command measures datasets, not corpora.
+
+| Dataset | Native dataset rows | Measured text population |
+| --- | ---: | ---: |
+| deepset/prompt-injections | 616 | 616 |
+| lmsys/toxic-chat | 1000 | 1000 |
+| xTRam1/safe-guard-prompt-injection | 1000 | 1000 |
+| nvidia/Aegis-AI-Content-Safety-Dataset-2.0 | 1000 | 1000 |
+| openai/gsm8k | 1000 | 1000 |
+| rajpurkar/squad | 1000 | 1000 |
+| truthfulqa/truthful_qa | 817 | 817 |
+| BeIR/fiqa | 500 | 500 |
+| BeIR/nfcorpus | 500 | 500 |
+| BeIR/scifact | 500 | 500 |
+
+All 112 emitted measurements had complete coverage and no diagnostics. Zero of
+ten datasets required a new shape adapter for these core measurements; the 20%
+gate is not met. This does not certify semantic field recognition: conv_id/_id
+remain outside default sample ID aliases, nested targets are not flattened and
+the sample contains no basis for claiming chat/preference schema support. It is
+a bounded gate decision, not a market-wide compatibility estimate. The local
+metadata-only audit receipt has SHA-256
+`a40049b97d7ef301cd1d1c7a54bd25b3c23db758291dfb6a605a5cd03bc5a356`;
+source response hashes remain recorded in the committed calibration receipt.
+
+Maintenance verification: the shared helper passed an 81-combination content
+truth table plus missing/nested/alias cases and all 17 focused RAG tests. All-rule
+reports from 19 accuracy fixture projects are identical before/after the change
+excluding timestamps, including evidence, fingerprints, diagnostics and exit codes.
+The full suite passed 501 tests with the optional reader (one scale-job skip),
+and 469 without it (two expected skips). Rebuilt base/extra 1.1.0 wheels passed
+installed smoke outside the checkout. Package content, entry point and Apache
+license were inspected. No public contract or package version change was required
+for this internal consolidation of the unpublished 1.1.0 build.
+
+A fresh offline replay of the ten cached public datasets also completed on the
+final code: all 20 scan/profile reports match the qualification replay after
+excluding timestamps and tool.version only. This preserves the previously reviewed
+findings and measurements on 9,433 rows; it is not a new precision/recall study.
+
 Model-assisted work is a separate research track, not a version commitment.
 After static contracts stabilize, design target runner, prompt generation budget,
 model/seed provenance, judging, sandboxing, rate limits and a separate hypothesis/result
 schema. Never add it to the static Rule interface or default scan.
+
+The design review and experimental promotion criteria are recorded in
+[Future Dynamic Attack Layer](docs/03-rule-design/future-rule-candidates.md#future-dynamic-attack-layer).
+That research design is complete; execution is intentionally not a deliverable of
+the approved static roadmap. The note makes no model-quality or vulnerability claim.
+
+## Delivery Audit
+
+The implementation milestones are complete on the feature branch, not published.
+This audit distinguishes delivered behavior from conditional future work and
+maps each approved slice to executable evidence rather than a status checkbox.
+
+| Requirement | Completion evidence |
+| --- | --- |
+| v1.19 explicit schema contract | test_schema_contract_config.py and test_schema_contract_rule.py; positive, negative and opt-in behavior |
+| v1.20 explicit RAG chunk identity | test_chunk_id_collision.py; artifact-local identity and abstention |
+| v1.21 generation reproducibility | test_generation_reproducibility.py; aliases, seeds, advisory confidence and default CI |
+| v1.22 encoding integrity | test_dataset_encoding.py; strict UTF-8, BOM, bounded NUL/byte evidence and damaged-input handling |
+| v1.23 provenance | test_provenance.py; metadata, semantic fingerprints, local paths and unreadable-source abstention |
+| v1.24 optional Parquet | test_parquet.py and test_parquet_dependency.py; supported logical shapes, limits and base-install behavior |
+| v1.25 separate profile contract | test_profile_contract.py; no rules/model calls, distinct report and deterministic output |
+| v1.26 measurements | test_profile_measurements.py; numerators, denominators, percentiles, categorical redaction and explicit text fields |
+| v1.27 qualification | Success Criteria evidence and public receipt; 29-rule accuracy matrix, privacy, determinism, installed wheels, real local scan and seven-job CI |
+| v1.28 local cards | test_dataset_card.py and installed_package_smoke.py; explicit binding, parser bounds, cache and missing-versus-unobservable distinction |
+| Conditional extraction review | Native-shape audit and test_rag_content_state.py; shared RAG helper implemented, no justified provider framework |
+| Conditional model-assisted track | Future Dynamic Attack Layer research design; no runtime implementation or model calls promised |
+
+Test files in this table are under tests/. Each implementation slice has its own
+commit, plan and strategy review. The final optional/base suite and wheel checks
+above cover the current source, not only historical milestone commits. The
+[v1.28 CI run](https://github.com/mertsparlak/EvalProof/actions/runs/33420203192)
+passed all seven jobs including Python 3.11-3.14 and 100k-row smoke.
+
+Remaining provider adapters and the dynamic experiment require their stated
+promotion evidence; they are not unfinished approved static features. No universal
+dataset score, automatic data repair, SDK/plugin framework or hosted service was
+added. Main merge, tags and publication remain unperformed and separately authorized.
 
 ## Permanent Boundaries
 
@@ -498,4 +596,5 @@ None for the approved execution order. Conditional work requires its own design 
 
 ## Future Considerations
 
-Only the conditional post-1.0 track above is approved for further design, not automatic implementation.
+Further provider adapters and model-assisted execution remain conditional as
+specified above. Completing this roadmap does not authorize those implementations.
