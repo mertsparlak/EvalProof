@@ -90,7 +90,7 @@ artifacts:
                 "model_id": "demo",
                 "generation_parameters": {},
                 "prompt_version": "p1",
-                "dataset_fingerprint": "sha256:wrong",
+                "dataset_fingerprint": "sha256:" + "0" * 64,
                 "metric_name": "accuracy",
                 "metric_threshold": 0.8,
                 "timestamp": "2026-01-01T00:00:00Z",

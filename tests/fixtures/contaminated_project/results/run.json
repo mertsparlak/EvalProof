@@ -2,7 +2,7 @@
   "model_id": "demo-model",
   "metric_name": "accuracy",
   "timestamp": "2026-01-01T00:00:00Z",
-  "dataset_fingerprint": "sha256:not-the-real-dataset-fingerprint",
-  "prompt_fingerprint": "sha256:not-the-real-prompt-fingerprint",
+  "dataset_fingerprint": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "prompt_fingerprint": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
   "results": []
 }

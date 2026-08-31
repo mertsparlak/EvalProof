@@ -1,5 +1,6 @@
 """Rule: contamination.untrusted_context_interpolation"""
 
+import hashlib
 import re
 from typing import List, Set
 
@@ -83,7 +84,7 @@ class UntrustedContextInterpolationRule(Rule):
 
                         if not has_delimiter:
                             loc = Location(role="primary", path=art.path, line=line_idx)
-                            snippet = line.strip()[:100]
+                            snippet = "sha256:" + hashlib.sha256(line.strip().encode("utf-8")).hexdigest()
                             finding = Finding(
                                 rule_id=self.id,
                                 severity=self.default_severity,

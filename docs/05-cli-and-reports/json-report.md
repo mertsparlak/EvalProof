@@ -148,6 +148,11 @@ Optional diagnostic fields:
 - `row`
 - `details`
 
+Parser diagnostics must not copy parser exception messages or source-line excerpts
+into message/details. They retain the artifact path, available row location and
+format/code; JSONL details.error is the exception class name only. This protects
+both scan and profile reports from parser errors that quote sensitive source data.
+
 MVP diagnostic codes:
 
 - `artifact.parse_failed`

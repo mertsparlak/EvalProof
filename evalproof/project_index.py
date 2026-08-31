@@ -585,7 +585,7 @@ class ProjectIndex:
                     message=f"Failed to parse row {idx} as JSONL.",
                     path=art.path,
                     row=idx,
-                    details={"format": "jsonl", "error": str(err)},
+                    details={"format": "jsonl", "error": type(err).__name__},
                 )
                 self.diagnostics.append(diag)
                 art.diagnostics.append(diag)
@@ -641,7 +641,7 @@ class ProjectIndex:
             diag = Diagnostic(
                 severity=DiagnosticSeverity.WARNING.value,
                 code=DiagnosticCode.ARTIFACT_PARSE_FAILED.value,
-                message=f"Could not parse CSV header: {err}",
+                message="Could not parse CSV header.",
                 path=art.path,
             )
             self.diagnostics.append(diag)
@@ -710,7 +710,7 @@ class ProjectIndex:
             diag = Diagnostic(
                 severity=DiagnosticSeverity.WARNING.value,
                 code=DiagnosticCode.ARTIFACT_PARSE_FAILED.value,
-                message=f"Could not parse JSON artifact: {err}",
+                message="Could not parse JSON artifact.",
                 path=art.path,
             )
             self.diagnostics.append(diag)
@@ -730,7 +730,7 @@ class ProjectIndex:
             diag = Diagnostic(
                 severity=DiagnosticSeverity.WARNING.value,
                 code=DiagnosticCode.ARTIFACT_PARSE_FAILED.value,
-                message=f"Could not parse YAML artifact: {err}",
+                message="Could not parse YAML artifact.",
                 path=art.path,
             )
             self.diagnostics.append(diag)
@@ -750,7 +750,7 @@ class ProjectIndex:
             diag = Diagnostic(
                 severity=DiagnosticSeverity.WARNING.value,
                 code=DiagnosticCode.ARTIFACT_PARSE_FAILED.value,
-                message=f"Could not parse TOML artifact: {err}",
+                message="Could not parse TOML artifact.",
                 path=art.path,
             )
             self.diagnostics.append(diag)

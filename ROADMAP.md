@@ -365,6 +365,44 @@ No new features. Do not set package version 1.0.0 until all gates have evidence:
 Commit only after qualification: `chore(v1.27): qualify EvalProof 1.0 release`.
 Publishing or pushing is a separate explicit user action.
 
+### Qualification Plan And Strategy Review
+
+1. Require positive, negative and abstention cases for all 29 rules. Strengthen
+   negative cases that previously passed only because relevant artifacts were
+   absent; keep the complete pipeline and evidence assertions in the matrix.
+2. Close privacy defects found by the audit before release qualification: raw
+   interpolation snippets, parser exception content, and arbitrary invalid
+   fingerprint metadata must not enter reports. Invalid/non-SHA-256 references
+   are not comparable fingerprint evidence and require abstention, not a new rule.
+3. Add an explicitly selected 100k-row synthetic release smoke covering a full
+   similarity-enabled scan and profile. Keep generated records outside git and
+   report elapsed time without a hardware-independent deadline guarantee.
+4. Run the user's dataset_v2 read-only with its existing config; store reports in
+   temporary storage and verify source hashes before/after. Preserve diagnostics
+   and partial coverage rather than interpreting a successful process as clean.
+5. Establish a reproducible ten-public-dataset calibration record: bounded samples,
+   source/revision or response hashes, declared role/field mappings, reviewed
+   evidence and scope limitations. Cached cards alone are not dataset calibration.
+   Historical green scans do not certify the corrected similarity implementation.
+6. Expand CI to Python 3.11-3.14 and base/extra wheel/profile smoke. Record actual
+   runtime tests separately from workflow configuration; do not claim a remote
+   run without evidence or push automatically to obtain it.
+7. Re-run full accuracy, determinism, format and packaging gates. Keep 0.6.0 until
+   qualification evidence is complete. Only then prepare the planned 1.0 commit;
+   any prerequisite bugfix commits must not imply that release is qualified.
+
+Review outcome: a smoke test proves execution, not detector precision. A negative
+fixture with no applicable data is only an abstention test. Public samples need
+independent witness review, and a workflow file is not evidence of a passing
+remote matrix. Conditional post-1.0 work stays gated while qualification is open.
+
+Prerequisite verification on 2026-08-31: eight new privacy/comparability regression
+tests failed on the old behavior and pass after correction. Full optional-reader
+suite: 440 passed. Interpolation evidence is hashed; parser diagnostics do not
+echo source values; non-SHA-256 references abstain. Existing mismatch-positive
+fixtures now use valid but different hashes instead of malformed placeholder
+strings. Package remains 0.6.0 and qualification is not yet complete.
+
 ## Conditional Post-1.0 Work
 
 v1.28: read explicitly linked local Hugging Face card YAML metadata without network

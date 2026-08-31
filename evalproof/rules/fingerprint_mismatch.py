@@ -1,10 +1,15 @@
 """Rule: contamination.fingerprint_mismatch"""
 
+import re
 from typing import Any, List
 
 from evalproof.finding import Finding, Location, Severity, Confidence
 from evalproof.project_index import normalize_fingerprint
 from evalproof.rule_engine import Rule, ScanContext
+
+
+def _comparable_reference(value):
+    return isinstance(value, str) and re.fullmatch(r"[0-9a-f]{64}", normalize_fingerprint(value)) is not None
 
 
 class FingerprintMismatchRule(Rule):
@@ -51,7 +56,7 @@ class FingerprintMismatchRule(Rule):
             ref_prompt_fp = meta.get("prompt_fingerprint")
             ref_dataset_fp = meta.get("dataset_fingerprint")
 
-            if ref_prompt_fp:
+            if _comparable_reference(ref_prompt_fp):
                 matches = ctx.project_index.matching_artifacts_for_fingerprint(ref_prompt_fp, prompt_roles)
                 if not matches and not prompt_roles.intersection(incomplete_roles):
                     findings.append(
@@ -67,7 +72,7 @@ class FingerprintMismatchRule(Rule):
                         )
                     )
 
-            if ref_dataset_fp:
+            if _comparable_reference(ref_dataset_fp):
                 matches = ctx.project_index.matching_artifacts_for_fingerprint(ref_dataset_fp, dataset_roles)
                 if not matches and not dataset_roles.intersection(incomplete_roles):
                     findings.append(

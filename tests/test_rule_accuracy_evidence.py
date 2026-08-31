@@ -195,7 +195,7 @@ artifacts:
     (tmp_path / "eval.jsonl").write_text('{"prompt":"sample"}\n', encoding="utf-8")
     (tmp_path / "results" / "missing.json").write_text('{"model_id":"demo"}', encoding="utf-8")
     (tmp_path / "results" / "comparable.json").write_text(
-        '{"model_id":"demo","generation_parameters":{},"prompt_version":"p1","dataset_fingerprint":"sha256:wrong",'
+        '{"model_id":"demo","generation_parameters":{},"prompt_version":"p1","dataset_fingerprint":"sha256:0000000000000000000000000000000000000000000000000000000000000000",'
         '"metric_name":"accuracy","metric_threshold":0.8,"timestamp":"2026-01-01T00:00:00Z"}',
         encoding="utf-8",
     )

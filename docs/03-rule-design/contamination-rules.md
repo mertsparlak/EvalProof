@@ -210,6 +210,11 @@ Recommendation: add the missing metadata to the result artifact or regenerate th
 
 ### `contamination.fingerprint_mismatch`
 
+Only string SHA-256 references are comparable: after trimming whitespace and
+removing an optional case-insensitive sha256: prefix, exactly 64 hexadecimal
+characters must remain. Other values cause abstention, not a mismatch finding;
+they are not copied into evidence. This rule does not validate arbitrary metadata.
+
 Detects when a referenced prompt or dataset fingerprint does not match any available comparable artifact.
 
 Default severity: `high`
@@ -423,7 +428,8 @@ Required evidence:
 
 - prompt artifact path
 - variable or placeholder name
-- nearby redacted snippet
+- `snippet`: always sha256:<hex> of the UTF-8 trimmed matched line, never a raw
+  prompt fragment. The existing key is retained for report compatibility.
 
 Applicability: this rule applies only to prompt artifacts that are evaluation-related by role, path, or explicit configuration. It must not scan arbitrary application prompts as a general prompt-quality rule.
 
