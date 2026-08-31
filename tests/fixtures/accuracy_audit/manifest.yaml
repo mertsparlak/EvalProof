@@ -25,8 +25,17 @@ cases:
     path: chunk_collision_project
   chunk_identity_clean:
     path: chunk_identity_clean_project
+  generation_unseeded:
+    path: generation_unseeded_project
+  generation_seeded:
+    path: generation_seeded_project
 
 rules:
+  reproducibility.nondeterministic_generation_without_seed:
+    confidence: likely
+    positive: generation_unseeded
+    negative: generation_seeded
+    abstention: clean
   contamination.train_eval_overlap:
     confidence: confirmed
     positive: contaminated

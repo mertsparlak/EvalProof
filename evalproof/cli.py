@@ -49,6 +49,7 @@ RULE_CONFIDENCE = {
     "dataset.partial_sample_id_coverage": "confirmed",
     "dataset.schema_contract_violation": "confirmed",
     "rag.chunk_id_collision": "confirmed",
+    "reproducibility.nondeterministic_generation_without_seed": "likely",
     "rag.empty_or_corrupted_document": "confirmed",
     "rag.duplicate_chunk_in_corpus": "confirmed",
     "rag.empty_referenced_document": "confirmed",

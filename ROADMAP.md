@@ -16,7 +16,7 @@ A planned version is not an implemented or published release.
 | --- | --- | --- | --- |
 | v1.19 | 0.1.0 | Completed | Explicit dataset schema validation |
 | v1.20 | 0.2.0 | Completed | Artifact-local explicit RAG chunk identity |
-| v1.21 | 0.2.1 | Planned | Generation reproducibility |
+| v1.21 | 0.2.1 | Completed | Generation reproducibility |
 | v1.22 | 0.2.2 | Planned | Dataset encoding integrity |
 | v1.23 | 0.3.0 | Planned | Dataset provenance contracts |
 | v1.24 | 0.4.0 | Planned | Optional Parquet support |
@@ -63,6 +63,32 @@ or publication is claimed; v1.21 onward remains planned or gated.
 - Preserve the observed parameter location; do not infer provider capabilities.
 - Merge the older temperature candidate into this ID instead of adding two rules.
 - Commit: `feat(v1.21): detect unseeded stochastic evaluation runs`.
+
+### Implementation Plan And Strategy Review
+
+1. Preserve canonical result metadata selection while retaining its exact source
+   field in Project Index. No recursive parameter search or provider adapter.
+2. Test all four aliases and five source levels, conflicting aliases, missing/null/
+   blank/present seeds, invalid temperatures, non-result roles and parse failure.
+3. Add one advisory finding per result artifact, reusing selected metadata only.
+   Evidence carries field paths, finite temperature and seed absence state; no
+   arbitrary parameter values, prompts, credentials or provided seeds.
+4. Add positive, seeded-negative and no-parameters abstention accuracy fixtures;
+   verify traversal determinism, rule listing, default exit 0 and explicit medium
+   threshold exit 1. Update package/runtime/CI version to 0.2.1.
+5. Run the complete suite, review changed contracts and commit locally.
+
+Review outcome: a missing seed proves missing recorded metadata, not actual model
+non-determinism. The message is therefore advisory and never promises that adding
+a seed makes execution deterministic. A provided non-blank value suppresses this
+rule even if malformed; seed validation is outside this milestone. Existing
+metadata alias precedence remains authoritative, avoiding conflicting views of
+the same result between reproducibility rules.
+
+Verification on 2026-08-31: 254 tests passed on Python 3.14, including 52 focused
+generation tests and a 25-rule accuracy matrix. Default/explicit CI thresholds,
+redaction, source locations and deterministic fingerprints are covered. Package,
+runtime and report versions are 0.2.1. The local pytest cache warning remains.
 
 ## v1.22: Dataset Encoding Integrity
 

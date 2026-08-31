@@ -17,7 +17,7 @@ Terminal output is for humans. JSON output is for tools.
   "schema_version": "1.0",
   "tool": {
     "name": "evalproof",
-    "version": "0.2.0"
+    "version": "0.2.1"
   },
   "scan": {
     "root": ".",

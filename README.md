@@ -97,6 +97,7 @@ Trust and safety checks:
 - `evaluation.metric_out_of_bounds`
 - `rag.unreachable_context_id`
 - `rag.chunk_id_collision` (explicit chunk_id within one RAG artifact only)
+- `reproducibility.nondeterministic_generation_without_seed` (advisory check on recorded evaluation parameters)
 - `rag.duplicate_chunk_in_corpus`
 - `rag.empty_or_corrupted_document`
 - `rag.empty_referenced_document`

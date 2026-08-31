@@ -1,0 +1,5 @@
+artifacts:
+  - path: result.json
+    roles: [evaluation_result]
+similarity:
+  enabled: false

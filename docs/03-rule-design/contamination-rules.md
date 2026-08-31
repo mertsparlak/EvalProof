@@ -762,6 +762,30 @@ Recommendation: assign distinct IDs to different contents or remove outdated
 records and regenerate dependent references. This rule does not determine which
 content is correct or claim malicious intent.
 
+### `reproducibility.nondeterministic_generation_without_seed`
+
+Advisory check for unrecorded sampling seed in explicit evaluation-result
+generation parameters. Severity `medium`, confidence `likely`; no default CI
+failure. Only `evaluation_result` artifacts, excluding configuration roles, apply.
+
+Use the single canonical generation parameter value and source location from
+[Project Index](../02-architecture/project-index.md#generation-metadata-locations).
+It must be an object containing `temperature` as a finite int/float strictly
+greater than zero; booleans and strings are not numbers for this rule.
+Only the `seed` key in that same object counts. Emit when it is absent, null or a
+whitespace-only string. Every other present value suppresses the rule: this is
+not validation of seed types or provider support. No root/sibling seed inference.
+
+Emit one finding per result artifact. Primary location is the exact temperature
+field. Evidence contains `result_artifact`, `parameters_field`, `temperature_field`,
+`observed_temperature`, `seed_field`, and `seed_state` (`missing`, `null`, `blank`).
+No raw parameter object, seed, model identifier or input text is reported.
+The recommendation is to record the seed if the runner supports it and retain
+backend/model versions; a seed alone does not guarantee repeatability.
+Absence of a finding does not establish deterministic execution, including at
+temperature zero. Missing parameter objects remain the concern of the existing
+missing-repro-metadata rule, not a second finding from this rule.
+
 ## Design Decisions
 
 - The rule set is intentionally focused on evaluation trust.

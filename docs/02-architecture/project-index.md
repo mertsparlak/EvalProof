@@ -144,6 +144,20 @@ Context identifiers are trimmed, remain case-sensitive, and accept only non-empt
 
 Each extracted reference also has a stable SHA-256 hash for evidence that must not expose the raw identifier.
 
+## Generation Metadata Locations
+
+Result metadata selection checks the root object followed by `metadata`, `eval`,
+`evaluation`, `run` (one level only). Within each source, canonical alias order
+applies. The first non-null value wins, including a value of the wrong type;
+no later alias overrides it. This preserves existing metadata selection.
+
+`eval_metadata_locations[path][canonical_name]` retains that selected field path
+(for example `metadata.generation_params`). `eval_metadata` keeps the selected
+values. Both maps reset on every index build. JSON/YAML/TOML root objects support
+this contract; JSONL/CSV rows and root arrays do not declare artifact-level
+generation parameters. Row limits do not invalidate metadata already parsed from
+the complete root object. Parse failures have no usable metadata.
+
 ## RAG Chunk Identity Records
 
 `get_rag_chunk_records()` exposes redacted identity/content records from indexed

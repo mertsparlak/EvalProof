@@ -30,6 +30,7 @@ FINDING_KEYS = {
 
 
 REQUIRED_EVIDENCE_KEYS = {
+    "reproducibility.nondeterministic_generation_without_seed": {"result_artifact", "parameters_field", "temperature_field", "observed_temperature", "seed_field", "seed_state"},
     "contamination.train_eval_overlap": {"training_artifact", "evaluation_artifact", "normalized_record_hash"},
     "contamination.train_eval_near_duplicate": {"training_artifact", "evaluation_artifact", "similarity_score", "configured_threshold", "matched_training_records", "evidence_truncated"},
     "contamination.duplicate_eval_sample": {"artifact_path", "duplicate_row_locations", "normalized_record_hash"},
@@ -92,7 +93,7 @@ def test_accuracy_manifest_covers_every_registered_rule():
     manifest_ids = set(manifest["rules"])
 
     assert manifest_ids == registered_ids
-    assert len(manifest_ids) == 24
+    assert len(manifest_ids) == 25
 
 
 def test_registered_rules_have_positive_and_negative_cases(tmp_path):

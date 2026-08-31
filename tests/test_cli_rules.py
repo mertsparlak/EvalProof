@@ -26,6 +26,7 @@ EXPECTED_RULE_IDS = [
     "rag.empty_or_corrupted_document",
     "rag.empty_referenced_document",
     "rag.unreachable_context_id",
+    "reproducibility.nondeterministic_generation_without_seed",
 ]
 
 

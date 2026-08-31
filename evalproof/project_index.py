@@ -294,6 +294,7 @@ class ProjectIndex:
         self.answer_records: List[AnswerRecord] = []
         self.artifact_fingerprints: Dict[str, str] = {}
         self.eval_metadata: Dict[str, Dict[str, Any]] = {}
+        self.eval_metadata_locations: Dict[str, Dict[str, str]] = {}
         self.metric_records: List[MetricRecord] = []
         self.diagnostics: List[Diagnostic] = []
         self._similarity_candidates_cache: Dict[float, List[SimilarityCandidate]] = {}
@@ -310,6 +311,8 @@ class ProjectIndex:
     def build(self, artifacts: List[Artifact]):
         """Index derived facts across all candidate artifacts."""
         self._similarity_candidates_cache.clear()
+        self.eval_metadata.clear()
+        self.eval_metadata_locations.clear()
         for art in artifacts:
             self.artifacts_by_path[art.path] = art
             for r in art.roles:
@@ -652,9 +655,10 @@ class ProjectIndex:
     def _extract_json_rows_and_metadata(self, art: Artifact, data: Any):
         # Extract metadata if evaluation_result role
         if "evaluation_result" in art.roles:
-            meta = self.extract_result_metadata(data)
+            meta, locations = self.extract_result_metadata_with_locations(data)
             if meta:
                 self.eval_metadata[art.path] = meta
+                self.eval_metadata_locations[art.path] = locations
             self._extract_metric_records_from_source(art, data, "")
 
         # Row extraction
@@ -746,30 +750,35 @@ class ProjectIndex:
 
     def extract_result_metadata(self, data: Any) -> Dict[str, Any]:
         """Extract canonical evaluation result metadata fields."""
+        return self.extract_result_metadata_with_locations(data)[0]
+
+    def extract_result_metadata_with_locations(self, data: Any) -> Tuple[Dict[str, Any], Dict[str, str]]:
         if not isinstance(data, dict):
-            return {}
+            return {}, {}
 
         result_meta: Dict[str, Any] = {}
+        locations: Dict[str, str] = {}
 
         # Sub-objects to check in addition to top-level
-        sub_sources = [data]
+        sub_sources = [("", data)]
         for sub_key in ["metadata", "eval", "evaluation", "run"]:
             if sub_key in data and isinstance(data[sub_key], dict):
-                sub_sources.append(data[sub_key])
+                sub_sources.append((sub_key + ".", data[sub_key]))
 
         for canonical_name, aliases in CANONICAL_METADATA_ALIASES.items():
             found_val = None
-            for src in sub_sources:
+            for prefix, src in sub_sources:
                 for alias in aliases:
                     if alias in src and src[alias] is not None:
                         found_val = src[alias]
+                        locations[canonical_name] = prefix + alias
                         break
                 if found_val is not None:
                     break
             if found_val is not None:
                 result_meta[canonical_name] = found_val
 
-        return result_meta
+        return result_meta, locations
 
     def get_context_references(self, roles: Set[str], include_lists: bool = True, include_generic_id: bool = False) -> List[Tuple[RowRecord, ContextReference]]:
         """Return explicit context ID references from rows with selected artifact roles."""

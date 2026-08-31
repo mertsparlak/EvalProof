@@ -407,29 +407,14 @@ Note: country-specific identifiers such as TCKN should not be added until locale
 
 ### `reproducibility.non_deterministic_temperature_setting`
 
-Status: `promote`
+Status: `merged`, implemented in v1.21 as
+`reproducibility.nondeterministic_generation_without_seed`.
 
-Problem: evaluation result or config artifacts specify stochastic generation settings without a seed or reproducibility control.
-
-Required evidence:
-
-- result or config artifact path
-- temperature field and value
-- missing seed field
-- optional generation parameter object path
-
-Default confidence: `likely`
-
-Default severity if promoted: `medium`
-
-Default CI behavior: should not fail default CI by default
-
-False-positive risks:
-
-- evaluations intentionally measuring stochastic behavior
-- providers where seed is unavailable or unsupported
-
-Promotion requirement: emit only when the artifact is evaluation-related and temperature is greater than 0.0.
+The narrower result-only advisory contract lives in
+[Contamination Rules](contamination-rules.md#reproducibilitynondeterministic_generation_without_seed).
+Intentional stochastic evaluations and providers without seed support remain
+valid use cases; the rule reports missing recorded state, not a proven runtime
+defect. No second rule or configuration-artifact variant is registered.
 
 ### `reproducibility.missing_model_version_pin`
 

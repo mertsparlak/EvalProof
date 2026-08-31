@@ -25,6 +25,7 @@ from evalproof.rules.empty_or_corrupted_document import EmptyOrCorruptedDocument
 from evalproof.rules.duplicate_chunk_in_corpus import DuplicateChunkInCorpusRule
 from evalproof.rules.schema_contract_violation import SchemaContractViolationRule
 from evalproof.rules.chunk_id_collision import ChunkIdCollisionRule
+from evalproof.rules.generation_without_seed import GenerationWithoutSeedRule
 
 
 def register_mvp_rules():
@@ -52,6 +53,7 @@ def register_mvp_rules():
     default_registry.register(DuplicateChunkInCorpusRule())
     default_registry.register(SchemaContractViolationRule())
     default_registry.register(ChunkIdCollisionRule())
+    default_registry.register(GenerationWithoutSeedRule())
 
 
 register_mvp_rules()
