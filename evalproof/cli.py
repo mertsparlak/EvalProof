@@ -5,6 +5,7 @@ from copy import deepcopy
 from datetime import datetime, timezone
 import json
 from pathlib import Path
+import textwrap
 import sys
 from typing import List, Optional
 
@@ -72,14 +73,38 @@ def rule_fails_default_ci(rule_id: str, severity: str) -> bool:
 
 
 def render_rules_listing() -> str:
-    lines = ["EvalProof Built-in Rules", ""]
-    for rule in sorted(default_registry.get_all_rules(), key=lambda r: r.id):
+    """Render a stable, human-readable rule catalogue for terminal users."""
+    rules = sorted(default_registry.get_all_rules(), key=lambda r: r.id)
+    lines = [
+        "EvalProof Built-in Rules",
+        "========================",
+        f"{len(rules)} rules available. Use --rules <id[,id...]> to run a focused scan.",
+        "",
+    ]
+    for number, rule in enumerate(rules, 1):
         confidence = RULE_CONFIDENCE.get(rule.id, "likely")
-        ci_behavior = "fails default CI" if rule_fails_default_ci(rule.id, rule.default_severity) else "does not fail default CI"
-        tags = ",".join(rule.tags)
-        lines.append(
-            f"- {rule.id} | severity={rule.default_severity} | confidence={confidence} | {ci_behavior} | tags={tags} | {rule.title} | {rule.description}"
+        ci_behavior = (
+            "fails default CI"
+            if rule_fails_default_ci(rule.id, rule.default_severity)
+            else "does not fail default CI"
         )
+        lines.extend([
+            f"[{number:02d}] {rule.id}",
+            f"     {rule.title}",
+            f"     severity={rule.default_severity} | confidence={confidence}",
+            f"     default CI: {ci_behavior}",
+            f"     tags: {', '.join(rule.tags)}",
+        ])
+        lines.extend(
+            textwrap.fill(
+                f"Description: {rule.description}",
+                width=96,
+                initial_indent="     ",
+                subsequent_indent="     ",
+            ).splitlines()
+        )
+        if number != len(rules):
+            lines.append("")
     return "\n".join(lines)
 
 

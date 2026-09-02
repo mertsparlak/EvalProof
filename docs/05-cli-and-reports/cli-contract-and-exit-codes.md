@@ -117,6 +117,13 @@ The terminal summary must include:
 
 The terminal summary must not be the machine-readable contract.
 
+`evalproof rules` renders one deterministic block per registered rule, sorted by
+rule ID. Each block contains the ordinal, ID, title, severity, confidence, default
+CI behavior, tags and a wrapped description. Metadata is kept on separate lines;
+the renderer uses a fixed 96-column wrapping width so captured output does not
+change with the caller's terminal size. This formatting is informational only and
+does not change rule selection, execution order or JSON contracts.
+
 ## CI Behavior
 
 CI systems should use exit codes and JSON output.

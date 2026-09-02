@@ -58,10 +58,28 @@ def test_rules_command_shows_severity_confidence_and_ci_behavior(capsys):
     assert "confidence=heuristic" in output
     assert "fails default CI" in output
     assert "does not fail default CI" in output
-    assert "tags=contamination" in output
+    assert "tags: contamination" in output
 
 
 def test_rules_command_rejects_unknown_options():
     ret = main(["rules", "--unknown"])
 
     assert ret == 2
+
+
+def test_rules_command_uses_separate_readable_rule_blocks(capsys):
+    assert main(["rules"]) == 0
+    lines = capsys.readouterr().out.splitlines()
+    assert "========================" in lines
+    assert any(line.startswith("[01] contamination.") for line in lines)
+    assert any(line.startswith("     Description: ") for line in lines)
+    assert any(line == "" for line in lines)
+    assert max(map(len, lines)) <= 96
+
+
+def test_rules_command_keeps_long_metadata_out_of_single_lines(capsys):
+    assert main(["rules"]) == 0
+    output = capsys.readouterr().out
+    assert " | tags=" not in output
+    assert " | severity=" not in output
+    assert "default CI: fails default CI" in output
