@@ -531,9 +531,10 @@ the approved static roadmap. The note makes no model-quality or vulnerability cl
 
 ## Delivery Audit
 
-The implementation milestones are complete on the feature branch, not published.
-This audit distinguishes delivered behavior from conditional future work and
-maps each approved slice to executable evidence rather than a status checkbox.
+The implementation milestones are complete on main. The package has not been
+published or tagged as a release. This audit distinguishes delivered behavior
+from conditional future work and maps each approved slice to executable
+evidence rather than a status checkbox.
 
 | Requirement | Completion evidence |
 | --- | --- |
@@ -559,7 +560,8 @@ passed all seven jobs including Python 3.11-3.14 and 100k-row smoke.
 Remaining provider adapters and the dynamic experiment require their stated
 promotion evidence; they are not unfinished approved static features. No universal
 dataset score, automatic data repair, SDK/plugin framework or hosted service was
-added. Main merge, tags and publication remain unperformed and separately authorized.
+added. Main merge is complete; tags and publication remain unperformed and
+separately authorized.
 
 ## Permanent Boundaries
 

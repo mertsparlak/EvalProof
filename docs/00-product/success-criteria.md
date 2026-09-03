@@ -54,8 +54,10 @@ The recorded calibration used package 0.6.0 and 29 rules. Its
 passed all seven jobs on Linux for commit 9ee7f71, including the four Python
 versions, optional Parquet, installed-wheel checks and 100k-row smoke.
 The subsequent version-only 1.0.0 transition passed the full 455-test optional
-suite and clean base/extra wheel smoke locally. These are qualification records,
-not a claim that the package has been published or that main was merged.
+suite and clean base/extra wheel smoke locally. These are historical
+qualification records, not a claim that the package has been published. The
+current main branch contains the qualified implementation and subsequent
+maintenance changes.
 
 - The accuracy manifest now requires a positive, negative and no-artifact
   abstention case for every registered rule. The shared negative fixture contains
